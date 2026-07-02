@@ -1,0 +1,279 @@
+#!/usr/bin/env python3
+"""Generate backend/data/catalog.json — 50 women's + 50 men's pieces across categories.
+Each item gets a flat-lay generation prompt consumed by gen_assets.py.
+
+  python scripts/build_catalog.py
+"""
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+OUT = ROOT / "backend" / "data" / "catalog.json"
+
+BG = "on a clean light-grey seamless studio background, soft even lighting, sharp focus, premium fashion e-commerce catalog photo, no text"
+
+# size templates
+TOP_W = ["XS", "S", "M", "L", "XL", "XXL"]
+TOP_M = ["S", "M", "L", "XL", "XXL"]
+BOT_W = ["26", "28", "30", "32", "34", "36"]
+BOT_M = ["30", "32", "34", "36", "38"]
+FW_W = ["UK3", "UK4", "UK5", "UK6", "UK7", "UK8"]
+FW_M = ["UK6", "UK7", "UK8", "UK9", "UK10", "UK11"]
+FREE = ["Free"]
+
+
+def chart(kind):
+    if kind == "top_w":
+        return {s: {"bust": 79 + i * 5} for i, s in enumerate(TOP_W)}
+    if kind == "top_m":
+        return {s: {"chest": 96 + i * 5} for i, s in enumerate(TOP_M)}
+    if kind in ("bot_w", "bot_m"):
+        szs = BOT_W if kind == "bot_w" else BOT_M
+        return {s: {"waist": round(int(s) * 2.54)} for s in szs}
+    if kind in ("fw_w", "fw_m"):
+        szs = FW_W if kind == "fw_w" else FW_M
+        return {s: {"cm": 21.5 + i} for i, s in enumerate(szs)}
+    return {"Free": {}}
+
+
+SIZES = {"top_w": TOP_W, "top_m": TOP_M, "bot_w": BOT_W, "bot_m": BOT_M,
+         "fw_w": FW_W, "fw_m": FW_M, "free": FREE}
+
+# (name, category, fabric, price, mrp, colors[(name,hex)], occasions, tags, sizekind, desc)
+WOMEN = [
+ ("Ivory & Gold Chanderi Anarkali","Anarkali","Chanderi silk",14990,18990,[("Ivory Gold","#F3E9D2"),("Blush","#E7C9C6")],["sangeet","wedding","mehendi","festive","diwali"],["Bestseller"],"top_w","a floor-length ivory Chanderi silk Anarkali gown with fine gold zari embroidery and a sheer dupatta"),
+ ("Wine Velvet Anarkali Suit","Anarkali","Velvet",16990,20990,[("Wine","#6E1023"),("Bottle Green","#0B3D2E")],["sangeet","reception","wedding","festive","diwali"],["Premium"],"top_w","a wine-red velvet Anarkali suit with gold embroidery and churidar, dupatta beside it"),
+ ("Powder-Blue Floor Anarkali","Anarkali","Georgette",11990,14990,[("Powder Blue","#BCD4E6")],["mehendi","day-function","haldi","festive"],["New"],"top_w","a powder-blue georgette floor-length Anarkali with silver thread work and a light dupatta"),
+ ("Emerald Raw-Silk Lehenga","Lehenga","Raw silk",26990,31990,[("Emerald","#0B6E4F"),("Wine","#6E1023")],["wedding","sangeet","reception","festive"],["Premium"],"an emerald-green raw-silk lehenga skirt with gold hand-embroidered border, matching blouse and net dupatta"),
+ ("Blush Sequin Lehenga Set","Lehenga","Net",29990,35990,[("Blush Pink","#E8B7C2"),("Champagne","#E6D2A8")],["wedding","reception","sangeet"],["Premium"],"a blush-pink sequinned net lehenga with embellished blouse and dupatta"),
+ ("Navy Velvet Bridal Lehenga","Lehenga","Velvet",42990,49990,[("Navy","#1B2A4A"),("Maroon","#5C1A2B")],["wedding","reception"],["Premium"],"a navy-blue velvet bridal lehenga with heavy gold zardozi embroidery and dupatta"),
+ ("Mustard Mirror-Work Lehenga","Lehenga","Cotton silk",17990,21990,[("Mustard","#D4A017")],["mehendi","haldi","sangeet","festive"],[],"top_w","a mustard-yellow cotton-silk lehenga with mirror and gota work, blouse and dupatta"),
+ ("Magenta Banarasi Silk Saree","Saree","Banarasi silk",18990,22990,[("Magenta","#A11457"),("Royal Blue","#1B3A93")],["wedding","festive","diwali","pooja","reception"],["Bestseller"],"free","a magenta Banarasi silk saree with elaborate gold zari brocade pallu, folded to show the weave"),
+ ("Royal-Blue Kanjeevaram Saree","Saree","Kanjeevaram silk",21990,25990,[("Royal Blue","#1B3A93"),("Gold","#C9A227")],["wedding","festive","pooja","reception"],["Premium"],"free","a royal-blue Kanjeevaram silk saree with a contrast gold temple border, draped in soft folds"),
+ ("Powder-Blue Organza Saree","Saree","Organza",9990,12990,[("Powder Blue","#BCD4E6"),("Mint","#CFE8DD")],["mehendi","day-function","haldi","brunch","festive"],["New"],"free","a sheer powder-blue organza saree with silver sequin scatter and a satin border, airy translucent folds"),
+ ("Black Sequin Party Saree","Saree","Georgette",13990,16990,[("Black","#1B1B1B")],["reception","party","cocktail","festive"],[],"free","a black georgette saree fully covered in fine sequins with a sleek pallu"),
+ ("Ivory Chikankari Saree","Saree","Mulmul cotton",7990,9990,[("Ivory","#F5F1E6")],["pooja","day-function","everyday","festive"],[],"free","an ivory mulmul cotton saree with delicate white chikankari embroidery"),
+ ("Sage-Green Velvet Sharara","Sharara Set","Velvet",16990,20990,[("Sage","#8A9A5B"),("Plum","#5C2A4A")],["sangeet","reception","festive","diwali"],[],"top_w","a sage-green velvet kurta with mirror work and flared sharara pants with dupatta"),
+ ("Coral Gota Gharara Set","Sharara Set","Cotton silk",12990,15990,[("Coral","#F26B5E")],["mehendi","haldi","sangeet"],["New"],"top_w","a coral cotton-silk short kurta with gota-patti work and flared gharara pants"),
+ ("Mint Chanderi Salwar Suit","Salwar Suit","Chanderi",8990,10990,[("Mint","#CFE8DD")],["day-function","festive","everyday","pooja"],[],"top_w","a mint-green Chanderi straight salwar suit with light thread work and dupatta"),
+ ("Peach Embroidered Suit Set","Salwar Suit","Cotton",6990,8490,[("Peach","#F4C2A1")],["everyday","day-function","festive"],[],"top_w","a peach cotton straight kurta with palazzo and dupatta, subtle floral embroidery"),
+ ("Lavender Silk Palazzo Suit","Salwar Suit","Art silk",9490,11990,[("Lavender","#B9A4D4")],["festive","reception","day-function"],[],"top_w","a lavender art-silk kurta with wide palazzo and organza dupatta"),
+ ("White Mulmul Chikankari Kurta","Kurta","Mulmul cotton",2290,2990,[("White","#FAFAF5"),("Powder Pink","#EFD3D7")],["everyday","work-casual","festive","pooja"],["Back in stock"],"top_w","a white mulmul cotton straight kurta with white chikankari embroidery"),
+ ("Indigo Block-Print Kurta","Kurta","Cotton",1990,2490,[("Indigo","#324A8B")],["everyday","work-casual","work"],["Bestseller"],"top_w","an indigo hand block-printed cotton straight kurta"),
+ ("Mustard A-line Kurti","Kurta","Rayon",1490,1990,[("Mustard","#D4A017")],["everyday","work-casual"],[],"top_w","a mustard-yellow rayon A-line kurti with subtle prints"),
+ ("Teal Bandhani Kurti","Kurta","Cotton",1790,2290,[("Teal","#0E7C7B")],["everyday","festive","work-casual"],[],"top_w","a teal bandhani tie-dye cotton kurti"),
+ ("Coral Linen Co-ord Set","Co-ord Set","Linen",6990,8990,[("Coral","#F26B5E"),("Sand","#D8C3A5")],["goa","beach-wedding","resort","brunch","vacation"],["Bestseller"],"top_w","a coral linen co-ord set: relaxed camp-collar shirt and wide-leg trousers"),
+ ("Ivory Cotton Co-ord Set","Co-ord Set","Cotton",5990,7490,[("Ivory","#F5F1E6")],["resort","brunch","vacation","everyday"],[],"top_w","an ivory cotton co-ord set with a boxy shirt and shorts"),
+ ("Olive Satin Co-ord Set","Co-ord Set","Satin",7490,8990,[("Olive","#6B6B3A")],["party","brunch","resort"],["New"],"top_w","an olive satin co-ord set with a draped top and trousers"),
+ ("Ivory Schiffli Maxi Dress","Maxi Dress","Schiffli cotton",7490,9490,[("Ivory","#F5F1E6"),("Lemon","#F2E9A0")],["goa","beach-wedding","resort","brunch","vacation"],["New"],"top_w","an ivory white Schiffli cut-work cotton tiered maxi dress with thin straps"),
+ ("Floral Chiffon Maxi Dress","Maxi Dress","Chiffon",5990,7490,[("Floral","#C98BB9")],["brunch","resort","vacation","day-function"],[],"top_w","a floral-print chiffon maxi dress with a flowy skirt"),
+ ("Black Slip Midi Dress","Maxi Dress","Satin",4490,5490,[("Black","#1B1B1B")],["party","cocktail","dinner"],[],"top_w","a black satin slip midi dress, minimal and elegant"),
+ ("Terracotta Wrap Dress","Wrap Dress","Handloom cotton",5490,6990,[("Terracotta","#C66B3D"),("Indigo","#2E4374")],["brunch","resort","everyday","work-casual"],[],"top_w","a terracotta handloom cotton wrap dress with a tie waist"),
+ ("Indigo Ikat Shirt-Dress","Shirt Dress","Ikat cotton",4290,5490,[("Indigo","#324A8B"),("Black","#1B1B1B")],["work","work-casual","everyday","brunch"],["Bestseller"],"top_w","an indigo Ikat-print cotton collared shirt-dress with a fabric tie belt"),
+ ("Black Tailored Jumpsuit","Jumpsuit","Crepe",5990,7490,[("Black","#1B1B1B")],["party","work","dinner","cocktail"],[],"top_w","a black crepe tailored jumpsuit with a cinched waist"),
+ ("Emerald Halter Jumpsuit","Jumpsuit","Satin",6490,7990,[("Emerald","#0B6E4F")],["party","cocktail","reception"],["New"],"top_w","an emerald-green satin halter-neck wide-leg jumpsuit"),
+ ("Ivory Silk Camisole Top","Top","Silk",2490,2990,[("Ivory","#F5F1E6")],["work-casual","party","everyday"],[],"top_w","an ivory silk camisole top, laid flat"),
+ ("White Poplin Shirt","Top","Cotton poplin",2290,2790,[("White","#FAFAF5")],["work","work-casual","everyday"],["Bestseller"],"top_w","a crisp white cotton poplin button-down shirt for women, folded"),
+ ("Black Tailored Linen Trousers","Trousers","Linen blend",3490,4490,[("Black","#1B1B1B"),("Beige","#D9C7A7")],["work","work-casual","everyday"],[],"bot_w","a pair of black high-rise tailored straight-leg linen-blend trousers for women, folded"),
+ ("Beige Wide-Leg Palazzo","Trousers","Crepe",2790,3490,[("Beige","#D9C7A7")],["work-casual","everyday","brunch"],[],"bot_w","a pair of beige wide-leg palazzo trousers, folded"),
+ ("Indigo High-Rise Jeans","Jeans","Denim",2990,3990,[("Indigo","#2E4374")],["everyday","work-casual","brunch"],["Bestseller"],"bot_w","a pair of indigo high-rise straight jeans for women, folded"),
+ ("Black Skinny Jeans","Jeans","Stretch denim",2790,3490,[("Black","#1B1B1B")],["everyday","party"],[],"bot_w","a pair of black skinny stretch jeans, folded"),
+ ("Navy Tailored Blazer","Blazer","Wool blend",6990,8490,[("Navy","#1B2A4A")],["work","party","dinner"],[],"top_w","a navy single-breasted tailored blazer for women"),
+ ("Indigo Denim Jacket","Jacket","Denim",3990,4990,[("Indigo","#2E4374")],["everyday","work-casual","vacation"],[],"top_w","a classic indigo denim jacket for women"),
+ ("Pastel Floral Anarkali Kurti","Kurta","Muslin",2490,2990,[("Pastel Pink","#EFD3D7")],["festive","day-function","everyday"],[],"top_w","a pastel pink muslin Anarkali-style kurti with floral prints"),
+ ("Beige Pleated Midi Skirt","Skirt","Georgette",2990,3690,[("Beige","#D9C7A7")],["work-casual","brunch","party"],[],"bot_w","a beige pleated georgette midi skirt, laid flat"),
+ ("Maroon Bandhgala Indo Jacket","Co-ord Set","Brocade",8990,10990,[("Maroon","#5C1A2B")],["sangeet","reception","festive"],["New"],"top_w","a maroon brocade bandhgala-style jacket with trousers for women"),
+ ("Antique-Gold Embellished Juttis","Footwear","Embellished suede",2990,3990,[("Antique Gold","#C9A227")],["wedding","sangeet","festive","diwali","mehendi"],["Bestseller"],"fw_w","a pair of antique-gold embellished Indian juttis with mirror and bead work, side by side"),
+ ("Tan Leather Kolhapuri Heels","Footwear","Leather",3490,4290,[("Tan","#B07A4A")],["resort","goa","brunch","everyday","festive"],["New"],"fw_w","a pair of tan leather Kolhapuri-inspired block-heel sandals, side by side"),
+ ("White Minimal Leather Sneakers","Footwear","Leather",4490,5490,[("White","#F2F2EF")],["everyday","work-casual","vacation","brunch"],[],"fw_w","a pair of clean minimalist white leather low-top sneakers for women, side by side"),
+ ("Black Block Heel Sandals","Footwear","Suede",3290,3990,[("Black","#1B1B1B")],["party","dinner","work"],[],"fw_w","a pair of black suede block-heel strappy sandals, side by side"),
+ ("Rose-Gold Embellished Flats","Footwear","Satin",2290,2790,[("Rose Gold","#D89B9B")],["festive","wedding","party"],[],"fw_w","a pair of rose-gold embellished ballet flats, side by side"),
+ ("Silver Potli Embroidered Clutch","Accessory","Silk",1990,2490,[("Silver","#C9C9C9")],["wedding","reception","party","festive"],[],"free","a silver embroidered potli drawstring clutch bag"),
+ ("Oxidised Silver Jhumka Set","Accessory","Oxidised silver",1290,1690,[("Silver","#C9C9C9")],["festive","everyday","sangeet"],["Bestseller"],"free","a pair of oxidised silver jhumka earrings on a plain surface"),
+ ("Wine Silk Cocktail Gown","Maxi Dress","Silk",8990,10990,[("Wine","#6E1023")],["party","cocktail","reception","dinner"],["New"],"top_w","a wine-red silk floor-length cocktail gown with a draped bodice, laid flat"),
+ ("Champagne Sequin Slip Dress","Maxi Dress","Sequin mesh",6990,8490,[("Champagne","#E6D2A8")],["beach-party","cocktail","party","date-night"],["New"],"top_w","a champagne sequinned slip party dress, knee length, laid flat"),
+ ("Ivory Crochet Beach Co-ord","Co-ord Set","Crochet cotton",4990,6490,[("Ivory","#F5F1E6")],["beach-party","goa","resort","vacation"],[],"top_w","an ivory crochet knit beach co-ord set with a bralette and wide trousers"),
+ ("Coral Halter Beach Maxi","Maxi Dress","Chiffon",4490,5490,[("Coral","#F26B5E")],["beach-party","goa","resort","vacation"],[],"top_w","a coral floral halter-neck flowy beach maxi dress"),
+ ("Black Sequin Gala Gown","Gown","Sequin",18990,22990,[("Black","#1B1B1B")],["awards","black-tie","gala","cocktail"],["Premium"],"top_w","a floor-length black sequin evening gala gown with a thigh slit, on a hanger"),
+ ("Emerald One-Shoulder Gown","Gown","Velvet",16990,20990,[("Emerald","#0B6E4F")],["awards","black-tie","gala"],["Premium"],"top_w","an emerald velvet floor-length one-shoulder gala gown, on a hanger"),
+ ("Sand Relaxed Linen Blazer","Blazer","Linen",5490,6990,[("Sand","#D8C3A5")],["casual-friday","work-casual","office"],["New"],"top_w","a relaxed sand linen unstructured blazer for women"),
+ ("Light Denim Smart Shirt","Top","Denim",2490,2990,[("Light Indigo","#6E89B5")],["casual-friday","work-casual","everyday"],[],"top_w","a light-wash denim relaxed shirt for women, folded"),
+ ("Charcoal Athleisure Set","Activewear","Performance knit",3490,4290,[("Charcoal","#36454F")],["athleisure","gym","sports","everyday"],["Bestseller"],"top_w","a charcoal high-waist leggings and matching sports bra athleisure set"),
+ ("White Pleated Tennis Dress","Activewear","Performance knit",2990,3690,[("White","#F2F2EF")],["athleisure","sports","tennis"],[],"top_w","a white pleated tennis sports dress with built-in shorts"),
+ ("Lilac Zip Track Jacket","Activewear","Tech fleece",2790,3490,[("Lilac","#B9A4D4")],["athleisure","sports","travel","everyday"],[],"top_w","a lilac zip-up track jacket for women, folded"),
+ ("Stone Jogger Travel Set","Co-ord Set","Modal",3290,3990,[("Stone","#C9BBA0")],["travel","athleisure","loungewear","everyday"],["New"],"top_w","a stone modal jogger and hoodie travel co-ord set for women"),
+ ("Wine Ponte Bodycon Dress","Maxi Dress","Ponte",4990,5990,[("Wine","#6E1023")],["cocktail","date-night","party"],[],"top_w","a wine ponte knee-length bodycon cocktail dress"),
+ ("Rust Boho Festival Maxi","Maxi Dress","Rayon",3990,4990,[("Rust","#C66B3D")],["festival","concert","vacation","brunch"],[],"top_w","a rust boho-print tiered festival maxi dress with bell sleeves"),
+ ("Beige Belted Trench Coat","Jacket","Cotton gabardine",7990,9990,[("Beige","#D9C7A7")],["monsoon","travel","work","everyday"],[],"top_w","a beige belted trench coat for women"),
+ ("Sage Ribbed Lounge Set","Co-ord Set","Ribbed cotton",2790,3490,[("Sage","#8A9A5B")],["loungewear","everyday","travel"],[],"top_w","a sage ribbed cotton lounge co-ord set, top and shorts"),
+ ("Indigo Denim Jumpsuit","Jumpsuit","Denim",4490,5490,[("Indigo","#2E4374")],["everyday","brunch","travel","work-casual"],[],"top_w","an indigo denim utility jumpsuit for women with a tie waist, laid flat"),
+ ("Olive Utility Jumpsuit","Jumpsuit","Cotton",4290,5290,[("Olive","#6B6B3A")],["everyday","travel","casual-friday"],["New"],"top_w","an olive cotton utility boilersuit-style jumpsuit for women, laid flat"),
+ ("Lavender Velour Tracksuit","Tracksuit","Velour",4990,5990,[("Lavender","#B9A4D4")],["athleisure","travel","loungewear","everyday"],["New"],"top_w","a lavender velour tracksuit set, a zip hoodie and joggers for women, neatly folded together"),
+ ("Heather Grey Hoodie Set","Tracksuit","French terry",3490,4290,[("Grey","#8A8A8A")],["athleisure","loungewear","travel","everyday"],["Bestseller"],"top_w","a heather-grey hoodie and jogger co-ord set for women, folded"),
+ ("Ivory Longline Cardigan","Knitwear","Wool blend",2990,3690,[("Ivory","#F5F1E6")],["work-casual","everyday","work"],[],"top_w","an ivory longline knit cardigan for women, folded"),
+ ("Indigo Denim Dungarees","Dungarees","Denim",3490,4290,[("Indigo","#2E4374")],["everyday","brunch","casual-friday"],[],"top_w","a pair of indigo denim dungarees (overalls) for women, laid flat"),
+ ("Coral Printed Resort Kaftan","Kaftan","Chiffon",3290,3990,[("Coral","#F26B5E")],["beach-party","resort","goa","vacation"],["New"],"top_w","a coral printed flowy resort kaftan for women, laid flat"),
+ ("Tan Leather Tote Bag","Accessory","Leather",4490,5490,[("Tan","#B07A4A")],["work","everyday","work-casual"],["Bestseller"],"free","a tan leather structured tote handbag standing upright, studio shot"),
+ ("Black Quilted Sling Bag","Accessory","Quilted leather",3290,3990,[("Black","#1B1B1B")],["party","everyday","date-night"],[],"free","a black quilted crossbody sling bag with a gold chain strap"),
+ ("Tortoiseshell Sunglasses","Accessory","Acetate",1990,2490,[("Tortoise","#7A4B2B")],["resort","everyday","vacation"],["New"],"free","a pair of oversized tortoiseshell sunglasses"),
+ ("Magenta Silk Stole","Accessory","Silk",1490,1890,[("Magenta","#A11457")],["festive","wedding","work"],[],"free","a magenta silk stole with a fine gold zari border, neatly folded"),
+ ("Kundan Statement Necklace","Accessory","Kundan",3990,4990,[("Gold","#C9A227")],["wedding","sangeet","festive","reception"],["Premium"],"free","a gold kundan statement necklace set on a plain surface"),
+ ("Gold Lac Bangle Set","Accessory","Lac",1290,1690,[("Gold","#C9A227")],["festive","wedding","sangeet"],[],"free","a set of gold lac bangles with mirror work"),
+ ("Rose-Gold Mesh Watch","Accessory","Stainless steel",3490,4490,[("Rose Gold","#D89B9B")],["work","everyday","party"],[],"free","a rose-gold mesh-strap wristwatch for women"),
+ ("Nude Block-Heel Wedges","Footwear","Suede",3290,3990,[("Nude","#E3C6A8")],["party","work","reception","brunch"],[],"fw_w","a pair of nude suede block-heel wedge sandals, side by side"),
+ # --- Monsoon / Rainwear ---
+ ("Coral Hooded Rain Jacket","Rainwear","Water-resistant nylon",3490,4290,[("Coral","#F26B5E"),("Navy","#1B2A4A")],["monsoon","travel","everyday","work-casual"],["New"],"a coral hooded water-resistant rain jacket windcheater for women, folded"),
+ ("Navy Packable Windcheater","Rainwear","Ripstop nylon",2790,3490,[("Navy","#1B2A4A")],["monsoon","travel","everyday"],[],"a navy packable lightweight windcheater rain jacket for women, folded"),
+ ("Olive Longline Rain Trench","Rainwear","Waterproof poly",4490,5490,[("Olive","#6B6B3A"),("Beige","#D9C7A7")],["monsoon","work","travel","everyday"],["Bestseller"],"an olive longline waterproof hooded rain trench coat for women"),
+ ("Yellow Colourblock Raincoat","Rainwear","PU-coated poly",2990,3690,[("Yellow","#E5B80B"),("Grey","#8A8A8A")],["monsoon","everyday","travel"],[],"a bright yellow and grey colour-block hooded raincoat for women"),
+ ("Black Quick-Dry Rain Trousers","Trousers","Quick-dry poly",1990,2490,[("Black","#1B1B1B")],["monsoon","travel","everyday"],[],"bot_w","a pair of black quick-dry tapered water-repellent rain trousers for women, folded"),
+ ("Black Waterproof Chelsea Boots","Footwear","Rubberised leather",3990,4990,[("Black","#1B1B1B")],["monsoon","everyday","travel"],["New"],"fw_w","a pair of black waterproof rubberised Chelsea ankle rain boots for women, side by side"),
+ ("Teal Waterproof Jelly Flats","Footwear","PVC",1290,1690,[("Teal","#0E7C7B"),("Clear","#D9E4E8")],["monsoon","everyday","resort"],[],"fw_w","a pair of teal waterproof jelly ballet flats for women, side by side"),
+ ("Floral Compact Umbrella","Accessory","Pongee",990,1290,[("Floral","#C98BB9")],["monsoon","everyday","travel"],["New"],"free","a compact floral-print folding umbrella, partly open, studio shot"),
+ ("Black Waterproof Rain Pants","Rainwear","Waterproof poly",2190,2790,[("Black","#1B1B1B")],["monsoon","travel","everyday","work-casual"],["New"],"bot_w","a pair of black waterproof tapered rain pants for women, folded"),
+ ("Teal Waterproof Floater Sandals","Footwear","Rubberised EVA",1590,1990,[("Teal","#0E7C7B")],["monsoon","everyday","travel","resort"],["New"],"fw_w","a pair of teal waterproof sporty floater sandals for women, side by side"),
+]
+
+MEN = [
+ ("Ivory & Gold Silk Sherwani","Sherwani","Silk",24990,29990,[("Ivory Gold","#F3E9D2")],["wedding","reception","sangeet"],["Premium"],"top_m","an ivory silk sherwani with gold zari embroidery and a matching stole, laid flat"),
+ ("Navy Embroidered Sherwani","Sherwani","Silk blend",22990,27990,[("Navy","#1B2A4A")],["wedding","reception","sangeet"],["Premium"],"top_m","a navy-blue sherwani with tonal embroidery, churidar and stole"),
+ ("Maroon Velvet Sherwani","Sherwani","Velvet",27990,32990,[("Maroon","#5C1A2B")],["wedding","reception"],["Premium"],"top_m","a maroon velvet sherwani with gold buttons and embroidery"),
+ ("Black Classic Bandhgala","Bandhgala","Wool blend",15990,18990,[("Black","#1B1B1B")],["wedding","reception","party","festive"],["Bestseller"],"top_m","a tailored black bandhgala jodhpuri suit jacket with trousers"),
+ ("Navy Jodhpuri Suit","Bandhgala","Wool blend",16990,19990,[("Navy","#1B2A4A")],["wedding","reception","party"],[],"top_m","a navy jodhpuri bandhgala suit with subtle texture"),
+ ("Beige Linen Bandhgala","Bandhgala","Linen",13990,16990,[("Beige","#D9C7A7")],["day-wedding","reception","goa"],["New"],"top_m","a beige linen bandhgala suit for a day wedding"),
+ ("White Festive Kurta Set","Kurta Set","Cotton silk",4990,6490,[("White","#FAFAF5")],["festive","pooja","diwali","sangeet"],["Bestseller"],"top_m","a white cotton-silk kurta with churidar pyjama for men, folded"),
+ ("Mustard Silk Kurta Set","Kurta Set","Art silk",5490,6990,[("Mustard","#D4A017")],["festive","sangeet","mehendi","diwali"],[],"top_m","a mustard art-silk kurta with pyjama for men"),
+ ("Teal Embroidered Kurta Set","Kurta Set","Cotton silk",5990,7490,[("Teal","#0E7C7B")],["festive","sangeet","reception"],["New"],"top_m","a teal kurta with chest embroidery and churidar for men"),
+ ("Maroon Chikankari Kurta Set","Kurta Set","Cotton",5290,6490,[("Maroon","#5C1A2B")],["festive","pooja","diwali"],[],"top_m","a maroon cotton kurta with chikankari work and pyjama for men"),
+ ("Navy Brocade Nehru Jacket","Nehru Jacket","Brocade",4990,6490,[("Navy","#1B2A4A")],["festive","wedding","sangeet","reception"],["Bestseller"],"top_m","a navy brocade Nehru jacket (bandi waistcoat) for men, laid flat"),
+ ("Black Silk Nehru Jacket","Nehru Jacket","Silk",4490,5790,[("Black","#1B1B1B")],["festive","wedding","party"],[],"top_m","a black silk Nehru jacket with subtle sheen"),
+ ("Gold Jacquard Nehru Jacket","Nehru Jacket","Jacquard",5490,6990,[("Gold","#C9A227")],["wedding","reception","sangeet"],["New"],"top_m","a gold jacquard Nehru jacket for men"),
+ ("Black Cotton Pathani Suit","Pathani Suit","Cotton",4290,5490,[("Black","#1B1B1B")],["festive","everyday","eid"],[],"top_m","a black cotton Pathani kurta suit with pyjama for men"),
+ ("Olive Linen Pathani Suit","Pathani Suit","Linen",4690,5990,[("Olive","#6B6B3A")],["festive","everyday","day-function"],[],"top_m","an olive linen Pathani suit for men"),
+ ("Ivory Indo-Western Set","Indo-Western","Silk blend",13990,16990,[("Ivory","#F5F1E6")],["sangeet","reception","wedding"],["Premium"],"top_m","an ivory indo-western draped kurta set with a jacket for men"),
+ ("Charcoal Asymmetric Indo-Western","Indo-Western","Silk blend",12990,15990,[("Charcoal","#36454F")],["sangeet","reception","party"],[],"top_m","a charcoal asymmetric-hem indo-western kurta with jacket for men"),
+ ("White Linen Casual Shirt","Shirt","Linen",2490,2990,[("White","#FAFAF5")],["goa","resort","brunch","work-casual","everyday"],["Bestseller"],"top_m","a white linen casual shirt for men, folded"),
+ ("Sky-Blue Linen Shirt","Shirt","Linen",2490,2990,[("Sky Blue","#A7C7E7")],["goa","resort","work-casual","everyday"],[],"top_m","a sky-blue linen shirt for men, folded"),
+ ("Sage Linen Camp Shirt","Shirt","Linen",2690,3290,[("Sage","#8A9A5B")],["goa","resort","brunch","vacation"],["New"],"top_m","a sage-green linen camp-collar short-sleeve shirt for men"),
+ ("Sand Cotton Cuban Shirt","Shirt","Cotton",2390,2890,[("Sand","#D8C3A5")],["resort","vacation","brunch"],[],"top_m","a sand-beige cotton cuban-collar printed shirt for men"),
+ ("Indigo Check Casual Shirt","Shirt","Cotton",2190,2690,[("Indigo","#324A8B")],["everyday","work-casual"],[],"top_m","an indigo checked cotton casual shirt for men, folded"),
+ ("White Formal Shirt","Shirt","Cotton poplin",2290,2790,[("White","#FAFAF5")],["work","formal","everyday"],["Bestseller"],"top_m","a crisp white formal cotton poplin shirt for men, folded"),
+ ("Light-Blue Formal Shirt","Shirt","Cotton",2190,2690,[("Light Blue","#BcdcF0")],["work","formal"],[],"top_m","a light-blue formal cotton shirt for men, folded"),
+ ("White Crew T-Shirt","T-Shirt","Pima cotton",990,1290,[("White","#FAFAF5")],["everyday","work-casual"],[],"top_m","a plain white crew-neck pima cotton t-shirt for men, folded"),
+ ("Black Crew T-Shirt","T-Shirt","Pima cotton",990,1290,[("Black","#1B1B1B")],["everyday","work-casual"],["Bestseller"],"top_m","a plain black crew-neck cotton t-shirt for men, folded"),
+ ("Navy Pique Polo","Polo","Cotton pique",1490,1890,[("Navy","#1B2A4A")],["everyday","work-casual","brunch"],[],"top_m","a navy cotton pique polo t-shirt for men, folded"),
+ ("Striped Resort Polo","Polo","Cotton",1690,2090,[("Sand","#D8C3A5")],["resort","vacation","brunch"],["New"],"top_m","a beige and white striped resort polo for men"),
+ ("Beige Slim Chinos","Chinos","Cotton twill",2490,2990,[("Beige","#D9C7A7")],["work-casual","everyday","brunch"],["Bestseller"],"bot_m","a pair of beige slim-fit chino trousers for men, folded"),
+ ("Olive Slim Chinos","Chinos","Cotton twill",2490,2990,[("Olive","#6B6B3A")],["work-casual","everyday"],[],"bot_m","a pair of olive slim-fit chinos for men, folded"),
+ ("Navy Slim Chinos","Chinos","Cotton twill",2490,2990,[("Navy","#1B2A4A")],["work","work-casual","everyday"],[],"bot_m","a pair of navy slim-fit chinos for men, folded"),
+ ("Charcoal Formal Trousers","Trousers","Wool blend",3290,3990,[("Charcoal","#36454F")],["work","formal"],[],"bot_m","a pair of charcoal formal trousers for men, folded"),
+ ("Grey Tailored Trousers","Trousers","Wool blend",3290,3990,[("Grey","#8A8A8A")],["work","formal","party"],[],"bot_m","a pair of grey tailored formal trousers for men"),
+ ("Indigo Slim Jeans","Jeans","Denim",2790,3490,[("Indigo","#2E4374")],["everyday","work-casual","brunch"],["Bestseller"],"bot_m","a pair of indigo slim-fit jeans for men, folded"),
+ ("Black Slim Jeans","Jeans","Stretch denim",2790,3490,[("Black","#1B1B1B")],["everyday","party"],[],"bot_m","a pair of black slim-fit jeans for men, folded"),
+ ("Beige Linen Shorts","Shorts","Linen",1490,1890,[("Beige","#D9C7A7")],["goa","resort","vacation","everyday"],[],"bot_m","a pair of beige linen shorts for men, folded"),
+ ("Navy Cotton Shorts","Shorts","Cotton",1290,1690,[("Navy","#1B2A4A")],["everyday","resort","vacation"],[],"bot_m","a pair of navy cotton chino shorts for men, folded"),
+ ("Navy Single-Breasted Blazer","Blazer","Wool blend",8990,10990,[("Navy","#1B2A4A")],["work","party","wedding","dinner"],["Premium"],"top_m","a navy single-breasted tailored blazer for men"),
+ ("Grey Check Blazer","Blazer","Wool blend",9490,11990,[("Grey","#8A8A8A")],["work","party","dinner"],[],"top_m","a grey checked tailored blazer for men"),
+ ("Olive Bomber Jacket","Jacket","Nylon",3990,4990,[("Olive","#6B6B3A")],["everyday","work-casual","vacation"],[],"top_m","an olive bomber jacket for men"),
+ ("Indigo Denim Jacket","Jacket","Denim",3690,4490,[("Indigo","#2E4374")],["everyday","work-casual","vacation"],["New"],"top_m","a classic indigo denim trucker jacket for men"),
+ ("Charcoal Crew Sweatshirt","Sweatshirt","Fleece",1990,2490,[("Charcoal","#36454F")],["everyday","work-casual"],[],"top_m","a charcoal crew-neck fleece sweatshirt for men, folded"),
+ ("Maroon Velvet Blazer","Blazer","Velvet",10990,13490,[("Maroon","#5C1A2B")],["party","reception","cocktail"],["Premium"],"top_m","a maroon velvet party blazer for men"),
+ ("Cream Embroidered Mojaris","Footwear","Embellished suede",2790,3490,[("Cream","#EFE6D2")],["wedding","sangeet","festive","diwali"],["Bestseller"],"fw_m","a pair of cream embellished Indian mojaris (juttis) for men, side by side"),
+ ("Tan Leather Loafers","Footwear","Leather",3990,4990,[("Tan","#B07A4A")],["work","party","brunch","everyday"],[],"fw_m","a pair of tan leather penny loafers for men, side by side"),
+ ("White Minimal Sneakers","Footwear","Leather",4490,5490,[("White","#F2F2EF")],["everyday","work-casual","vacation"],["Bestseller"],"fw_m","a pair of clean minimalist white leather sneakers for men, side by side"),
+ ("Brown Leather Brogues","Footwear","Leather",4990,5990,[("Brown","#5C3A21")],["work","formal","wedding"],[],"fw_m","a pair of brown leather brogue formal shoes for men, side by side"),
+ ("Black Kolhapuri Sandals","Footwear","Leather",1990,2490,[("Black","#1B1B1B")],["festive","everyday","resort"],[],"fw_m","a pair of black leather Kolhapuri sandals for men, side by side"),
+ ("Navy Canvas Espadrilles","Footwear","Canvas",1790,2290,[("Navy","#1B2A4A")],["goa","resort","vacation","brunch"],["New"],"fw_m","a pair of navy canvas espadrilles for men, side by side"),
+ ("Brown Leather Belt","Accessory","Leather",1290,1690,[("Brown","#5C3A21")],["work","formal","everyday"],[],"free","a brown leather formal belt coiled neatly"),
+ ("Teal Printed Resort Shirt","Shirt","Rayon",2290,2790,[("Teal","#0E7C7B")],["beach-party","goa","resort","vacation"],["New"],"top_m","a teal tropical-print short-sleeve resort beach shirt for men"),
+ ("Sand Linen Beach Set","Co-ord Set","Linen",3490,4290,[("Sand","#D8C3A5")],["beach-party","goa","resort","vacation"],[],"top_m","a sand linen camp-collar shirt and shorts beach co-ord set for men"),
+ ("Black Peak-Lapel Tuxedo","Tuxedo","Wool blend",17990,21990,[("Black","#1B1B1B")],["awards","black-tie","gala","wedding"],["Premium"],"top_m","a classic black peak-lapel tuxedo suit with satin details"),
+ ("Midnight-Blue Dinner Suit","Tuxedo","Wool blend",18990,22990,[("Midnight Blue","#191970")],["awards","black-tie","gala"],["Premium"],"top_m","a midnight-blue dinner tuxedo suit for men"),
+ ("Olive Knit Polo","Polo","Knit cotton",1990,2490,[("Olive","#6B6B3A")],["casual-friday","work-casual","everyday"],["New"],"top_m","an olive knit short-sleeve polo for men, folded"),
+ ("Sky Oxford Shirt","Shirt","Oxford cotton",2290,2790,[("Sky Blue","#A7C7E7")],["casual-friday","work","office","work-casual"],[],"top_m","a sky-blue oxford button-down shirt for men, folded"),
+ ("Navy Knit Blazer","Blazer","Knit",7490,8990,[("Navy","#1B2A4A")],["casual-friday","work","cocktail"],[],"top_m","a navy unstructured knit blazer for men"),
+ ("Charcoal Athleisure Track Set","Activewear","Tech fleece",3990,4790,[("Charcoal","#36454F")],["athleisure","gym","sports","travel"],["Bestseller"],"top_m","a charcoal zip jacket and joggers athleisure track set for men"),
+ ("Black Performance Tee","Activewear","Performance knit",1290,1690,[("Black","#1B1B1B")],["athleisure","gym","sports"],[],"top_m","a black performance training t-shirt for men, folded"),
+ ("Graphite Tech Joggers","Activewear","Tech knit",2290,2790,[("Graphite","#3A3A3A")],["athleisure","gym","travel","everyday"],[],"top_m","a pair of graphite tech jogger pants for men, folded"),
+ ("Stone Hooded Sweatshirt","Sweatshirt","French terry",2490,2990,[("Stone","#C9BBA0")],["travel","athleisure","loungewear","everyday"],["New"],"top_m","a stone hooded french-terry travel sweatshirt for men"),
+ ("White Tennis Polo Set","Activewear","Performance knit",2990,3690,[("White","#F2F2EF")],["athleisure","sports","tennis"],[],"top_m","a white performance tennis polo and shorts set for men"),
+ ("Black Graphic Festival Tee","T-Shirt","Cotton",990,1290,[("Black","#1B1B1B")],["festival","concert","everyday"],[],"top_m","a black graphic-print festival t-shirt for men, folded"),
+ ("Olive Water-Resistant Jacket","Jacket","Nylon",4490,5490,[("Olive","#6B6B3A")],["monsoon","travel","everyday"],[],"top_m","an olive water-resistant hooded jacket for men"),
+ ("Navy Bomber Travel Jacket","Jacket","Nylon",3990,4790,[("Navy","#1B2A4A")],["travel","casual-friday","everyday"],[],"top_m","a navy bomber travel jacket for men"),
+ ("Navy Striped Tracksuit","Tracksuit","Tech fleece",4490,5490,[("Navy","#1B2A4A")],["athleisure","travel","gym","everyday"],["Bestseller"],"top_m","a navy tech-fleece tracksuit, a zip jacket and joggers with side stripes for men, folded together"),
+ ("Charcoal Zip Hoodie","Hoodie","French terry",2490,2990,[("Charcoal","#36454F")],["everyday","athleisure","loungewear"],[],"top_m","a charcoal zip-up hoodie for men, folded"),
+ ("Grey Tapered Sweatpants","Activewear","French terry",1990,2490,[("Grey","#8A8A8A")],["athleisure","loungewear","gym","everyday"],[],"bot_m","a pair of grey tapered sweatpants for men, folded"),
+ ("Khaki Utility Overshirt","Jacket","Cotton",2990,3690,[("Khaki","#9C8A5B")],["casual-friday","everyday","travel"],["New"],"top_m","a khaki utility overshirt jacket with chest pockets for men, folded"),
+ ("Charcoal Two-Piece Suit","Suit","Wool blend",14990,17990,[("Charcoal","#36454F")],["work","formal","wedding","interview"],["Premium"],"top_m","a charcoal two-piece formal suit, jacket and trousers, for men on a hanger"),
+ ("Beige Linen Waistcoat","Waistcoat","Linen",3490,4290,[("Beige","#D9C7A7")],["wedding","festive","reception","casual-friday"],[],"top_m","a beige linen five-button waistcoat for men, laid flat"),
+ ("Black Wayfarer Sunglasses","Accessory","Acetate",1790,2290,[("Black","#1B1B1B")],["resort","everyday","vacation"],["New"],"free","a pair of black wayfarer sunglasses"),
+ ("Brown Leather Watch","Accessory","Leather",4490,5490,[("Brown","#5C3A21")],["work","everyday","formal"],["Bestseller"],"free","a brown leather-strap analog wristwatch for men"),
+ ("Brown Leather Bifold Wallet","Accessory","Leather",1990,2490,[("Brown","#5C3A21")],["everyday","work"],[],"free","a brown leather bifold wallet"),
+ ("Navy Silk Tie","Accessory","Silk",1290,1690,[("Navy","#1B2A4A")],["work","formal","wedding"],[],"free","a navy silk necktie with subtle texture, neatly rolled"),
+ ("Maroon Paisley Pocket Square","Accessory","Silk",690,890,[("Maroon","#5C1A2B")],["wedding","party","reception","formal"],[],"free","a maroon paisley silk pocket square, folded"),
+ ("Black Baseball Cap","Accessory","Cotton",990,1290,[("Black","#1B1B1B")],["everyday","athleisure","vacation"],[],"free","a black cotton baseball cap"),
+ ("Grey Laptop Backpack","Accessory","Nylon",3490,4290,[("Grey","#8A8A8A")],["work","travel","everyday"],["New"],"free","a grey minimalist laptop backpack standing upright"),
+ ("Tan Weekender Duffel","Accessory","Canvas",4990,5990,[("Tan","#B07A4A")],["travel","vacation"],[],"free","a tan canvas and leather weekender duffel travel bag"),
+ ("Silver Classic Cufflinks","Accessory","Metal",1290,1690,[("Silver","#C9C9C9")],["wedding","formal","reception"],[],"free","a pair of silver classic cufflinks on a plain surface"),
+ ("Black Leather Sliders","Footwear","Leather",1790,2290,[("Black","#1B1B1B")],["resort","everyday","vacation"],[],"fw_m","a pair of black leather slider sandals for men, side by side"),
+ # --- Monsoon / Rainwear ---
+ ("Navy Hooded Rain Jacket","Rainwear","Water-resistant nylon",3490,4290,[("Navy","#1B2A4A"),("Black","#1B1B1B")],["monsoon","travel","everyday","work-casual"],["New"],"a navy hooded water-resistant rain jacket windcheater for men, folded"),
+ ("Olive Packable Windcheater","Rainwear","Ripstop nylon",2790,3490,[("Olive","#6B6B3A")],["monsoon","travel","everyday"],[],"an olive packable lightweight windcheater rain jacket for men, folded"),
+ ("Charcoal Waterproof Rain Trench","Rainwear","Waterproof poly",4490,5490,[("Charcoal","#36454F")],["monsoon","work","travel","everyday"],["Bestseller"],"a charcoal waterproof hooded rain trench coat for men"),
+ ("Black Colourblock Raincoat","Rainwear","PU-coated poly",2990,3690,[("Black","#1B1B1B"),("Yellow","#E5B80B")],["monsoon","everyday","travel"],[],"a black and yellow colour-block hooded raincoat for men"),
+ ("Graphite Quick-Dry Rain Joggers","Activewear","Quick-dry poly",1990,2490,[("Graphite","#3A3A3A")],["monsoon","travel","athleisure","everyday"],[],"bot_m","a pair of graphite quick-dry water-repellent rain joggers for men, folded"),
+ ("Black Waterproof Trek Shoes","Footwear","Waterproof mesh",4490,5490,[("Black","#1B1B1B")],["monsoon","travel","everyday"],["New"],"fw_m","a pair of black waterproof trekking-style sneakers for men, side by side"),
+ ("Brown Rubber Rain Boots","Footwear","Rubber",2490,2990,[("Brown","#5C3A21")],["monsoon","everyday","travel"],[],"fw_m","a pair of brown rubberised waterproof Chelsea rain boots for men, side by side"),
+ ("Black Auto-Open Umbrella","Accessory","Pongee",990,1290,[("Black","#1B1B1B")],["monsoon","everyday","travel","work"],[],"free","a black automatic-open folding umbrella, partly open, studio shot"),
+ ("Charcoal Waterproof Rain Pants","Rainwear","Waterproof poly",2290,2890,[("Charcoal","#36454F"),("Navy","#1B2A4A")],["monsoon","travel","everyday","work-casual"],["New"],"bot_m","a pair of charcoal waterproof tapered rain pants for men, folded"),
+ ("Black Waterproof Floater Sandals","Footwear","Rubberised EVA",1690,2090,[("Black","#1B1B1B")],["monsoon","everyday","travel","resort"],["New"],"fw_m","a pair of black waterproof sporty floater sandals for men, side by side"),
+]
+
+
+def _infer_sk(cat, gender):
+    c = cat.lower()
+    suf = "w" if gender == "women" else "m"
+    if "footwear" in c:
+        return f"fw_{suf}"
+    if any(k in c for k in ["saree", "accessory"]):
+        return "free"
+    if any(k in c for k in ["trouser", "jeans", "chino", "short", "skirt", "palazzo"]):
+        return f"bot_{suf}"
+    return f"top_{suf}"
+
+
+def build(items, gender, prefix):
+    out = []
+    for i, item in enumerate(items, 1):
+        name, cat, fab, price, mrp, colors, occ, tags = item[:8]
+        rest = item[8:]
+        if len(rest) == 2 and rest[0] in SIZES:
+            sk, desc = rest
+        else:
+            desc = rest[-1]
+            sk = _infer_sk(cat, gender)
+        sid = f"CD-{prefix}{i:03d}"
+        is_fw = sk.startswith("fw")
+        verb = "a pair" if is_fw else "ghost-mannequin flat-lay of"
+        prompt = (f"E-commerce {'flat-lay of ' if is_fw else 'ghost-mannequin flat-lay of '}{desc}, {BG}.")
+        out.append({
+            "id": sid, "name": name, "category": cat, "gender": gender, "fabric": fab,
+            "price": price, "mrp": mrp,
+            "colors": [{"name": n, "hex": h} for n, h in colors],
+            "tags": tags, "occasions": occ, "weather": [], "sizes": SIZES[sk],
+            "size_chart": chart(sk), "returns_rate": round(0.04 + (i % 7) * 0.02, 2),
+            "description": f"{name} in {fab.lower()}.",
+            "image": f"assets/catalog/{sid}.png", "prompt": prompt,
+        })
+    return out
+
+
+catalog = build(WOMEN, "women", "W") + build(MEN, "men", "M")
+OUT.write_text(json.dumps(catalog, indent=2, ensure_ascii=False))
+print(f"Wrote {len(catalog)} items ({sum(1 for c in catalog if c['gender']=='women')} W / "
+      f"{sum(1 for c in catalog if c['gender']=='men')} M) → {OUT}")
+cats = {}
+for c in catalog:
+    cats.setdefault(c["gender"], set()).add(c["category"])
+for g, cs in cats.items():
+    print(f"  {g}: {len(cs)} categories")

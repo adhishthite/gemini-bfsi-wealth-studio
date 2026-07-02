@@ -1,0 +1,105 @@
+{
+  "women": {
+    "user_id": "U-IND-2207",
+    "name": "Aisha Sharma",
+    "email": "aisha.sharma@example.in",
+    "phone": "+91 98xxxx4471",
+    "city": "Mumbai",
+    "default_address": {
+      "line1": "A-1204, Lodha Bellissimo",
+      "line2": "Apollo Mills Compound, Lower Parel",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "pincode": "400013",
+      "country": "India"
+    },
+    "payment": {
+      "type": "Visa Credit",
+      "last4": "1234",
+      "expiry": "08/29",
+      "tokenized": true
+    },
+    "body_metrics": {
+      "height_cm": 165,
+      "weight_kg": 60,
+      "bust_cm": 90,
+      "waist_cm": 73,
+      "hips_cm": 98,
+      "arm_span_cm": 162,
+      "sitting_height_cm": 86,
+      "shoe_uk": 5,
+      "fit_preference": "true-to-size, slightly relaxed"
+    },
+    "recommended_sizes": {
+      "tops": "M",
+      "dresses": "M",
+      "bottoms": "30",
+      "saree": "Free",
+      "footwear": "UK5"
+    },
+    "purchase_history": [
+      {"id": "CD-KUR-209", "name": "Indigo Ikat Cotton Shirt-Dress", "size": "M", "status": "kept", "rating": 5},
+      {"id": "CD-SAR-233", "name": "Magenta Banarasi Silk Saree", "size": "Free", "status": "kept", "rating": 5},
+      {"id": "CD-FTW-631", "name": "White Minimal Leather Sneakers", "size": "UK5", "status": "kept", "rating": 4},
+      {"id": "CD-SHR-118", "name": "Sage-Green Velvet Sharara Set", "size": "L", "status": "returned", "reason": "L ran large in the waist; prefer M"},
+      {"id": "CD-DRS-329", "name": "Ivory Schiffli Cotton Maxi Dress", "size": "S", "status": "returned", "reason": "S too snug at bust; M fits better"}
+    ],
+    "style_notes": [
+      "Loves jewel tones and breathable natural fabrics",
+      "Avoids very heavy/structured velvet for daytime outdoor events",
+      "Prefers size M for tops and dresses based on successful past orders"
+    ],
+    "base_photo": "assets/model/aisha_base.png"
+  },
+  "men": {
+    "user_id": "U-IND-3318",
+    "name": "Arjun Mehra",
+    "email": "arjun.mehra@example.in",
+    "phone": "+91 98xxxx2208",
+    "city": "Mumbai",
+    "default_address": {
+      "line1": "1801, Oberoi Springs",
+      "line2": "Off New Link Road, Andheri West",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "pincode": "400053",
+      "country": "India"
+    },
+    "payment": {
+      "type": "Mastercard",
+      "last4": "5678",
+      "expiry": "11/28",
+      "tokenized": true
+    },
+    "body_metrics": {
+      "height_cm": 178,
+      "weight_kg": 76,
+      "chest_cm": 100,
+      "waist_cm": 84,
+      "hips_cm": 99,
+      "arm_span_cm": 180,
+      "sitting_height_cm": 92,
+      "shoe_uk": 9,
+      "fit_preference": "true-to-size, tailored"
+    },
+    "recommended_sizes": {
+      "tops": "M",
+      "dresses": "M",
+      "bottoms": "32",
+      "saree": "Free",
+      "footwear": "UK9"
+    },
+    "purchase_history": [
+      {"id": "CD-SHT-144", "name": "White Linen Casual Shirt", "size": "M", "status": "kept", "rating": 5},
+      {"id": "CD-CHN-155", "name": "Beige Slim Chinos", "size": "32", "status": "kept", "rating": 4},
+      {"id": "CD-FTW-672", "name": "White Minimal Sneakers", "size": "UK9", "status": "kept", "rating": 5},
+      {"id": "CD-BLZ-164", "name": "Navy Single-Breasted Blazer", "size": "40", "status": "returned", "reason": "sleeves a touch long; size 38 fits better"}
+    ],
+    "style_notes": [
+      "Prefers tailored fits in linen and cotton for Mumbai humidity",
+      "Leans navy, olive and earth tones; minimal prints",
+      "Size L tops and 34 bottoms based on successful past orders"
+    ],
+    "base_photo": "assets/model/arjun_base.png"
+  }
+}

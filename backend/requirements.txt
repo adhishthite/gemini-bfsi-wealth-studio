@@ -1,0 +1,10 @@
+google-genai>=2.10.0
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pillow>=10.0.0
+websockets>=13.0
+python-dotenv>=1.0.0
+pyopenssl>=24.0.0           # required for mTLS / context-aware access (corp machines)
+google-auth>=2.30.0         # ADC bearer token for the Live Avatar Vertex WS proxy
+certifi>=2024.0.0
+requests>=2.31.0
