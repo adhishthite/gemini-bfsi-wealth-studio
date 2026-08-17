@@ -60,7 +60,7 @@ const PAD_TOP = 22;
 const PAD_BOTTOM = 34;
 
 export default function SimulationDialog() {
-	const { simulation, simulationOpen, set, pushToast } = useStore();
+	const { simulation, simulationOpen, set } = useStore();
 
 	const [activeScenario, setActiveScenario] = useState("baseline");
 	const [eqPct, setEqPct] = useState(65);
@@ -121,7 +121,6 @@ export default function SimulationDialog() {
 			liquid_pct: 5,
 			monthly_sip_inr: sip,
 		});
-		pushToast("Recalculating the projection", "info");
 	};
 
 	/* The trajectory, plotted from the returned series. */
@@ -397,7 +396,6 @@ export default function SimulationDialog() {
 									)} by ${horizonEnd}.`,
 								});
 								set({ simulationOpen: false });
-								pushToast("Generating the advisory proposal", "info");
 							}}
 							className="h-10 rounded-lg text-sm font-semibold"
 						>
