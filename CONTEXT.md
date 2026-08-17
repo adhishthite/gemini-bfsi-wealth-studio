@@ -25,7 +25,15 @@ Domain terminology and concepts for the Private Wealth & Portfolio Advisory Stud
 - **TER (Total Expense Ratio)**: Annual percentage fee charged by the fund management house.
 
 ### Transactions & Studio Actions
-- **Product / Fund Explorer**: The searchable universe of mutual funds, ETFs, and fixed-income products available for selection.
+- **Product / Fund Explorer**: The searchable universe of mutual funds, ETFs, and fixed-income products, organized into focused horizontal carousel rails (High-Conviction, Equity, Debt, Multi-Asset), with 1-click toggles for full grid and dense matrix table views.
+- **Portfolio Diagnostics & Health Canvas**: Deep audit view analyzing current vs strategic asset drift, concentration risks, and surplus cash deployment.
+- **Goal Simulation Lab**: Interactive 15-year compounding growth visualizer modeling portfolio behavior under varying macroeconomic scenarios (Baseline, Bull Supercycle, Recession, Rate Cut, High Inflation).
+- **Compounding Growth Cone**: Visual trajectory modeling corpus growth from ₹75L baseline to ₹5.82 Cr milestone across key target horizons (2032 Education, 2042 Retirement).
 - **Advisory Basket**: The staging area containing proposed fund allocations, lump-sum investments, and monthly SIP/STP commitments prior to execution.
-- **Portfolio Stress-Test / Scenario Simulation**: Real-time projection visualizer modeling portfolio behavior under varying market conditions (e.g. rate cuts, bull/bear regimes) and forecasting retirement goal probabilities.
-- **Advisory Mandate & Summary**: Formal proposal document detailing recommendations, asset shifts, return expectations, and statutory SEBI/regulatory disclaimers for client sign-off.
+- **Advisory Mandate & Summary**: Formal proposal document detailing recommendations, asset shifts, return expectations, and statutory SEBI/regulatory disclaimers for client sign-off via e-NACH auto-debit.
+
+### Studio Visual Theme Engine
+- **Obsidian & Champagne Terminal (Dark Mode - Default)**: Deep obsidian slate baseline (`#060a12`), frosted glassmorphic containers (`rgba(15,23,42,0.65)`), champagne gold accents (`#E5C07B`), and emerald yield numerals.
+- **Porcelain Executive (Light Mode)**: Crisp porcelain executive surfaces (`#F8F9FB`), high-contrast slate-900 typography, warm gold badges, and subtle elevation shadows.
+- **Theme Persistence**: Instant 1-click toggle in the studio TopBar persisted to `localStorage` (`cymbal_theme`) and synced across sessions.
+

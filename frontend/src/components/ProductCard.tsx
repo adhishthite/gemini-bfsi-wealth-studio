@@ -1,41 +1,25 @@
 import { useState } from "react";
-import { Star, Plus, Check } from "lucide-react";
+import { Star, Plus, Check, Sparkles } from "lucide-react";
 import type { FundProduct } from "@/types";
 import { useStore } from "@/store";
 import { sendAction } from "@/ws";
-import {
-	Card,
-	CardContent,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 
 export default function ProductCard({ fund }: { fund: FundProduct }) {
 	const { highlightIds, basket, addToBasket, pushToast } = useStore();
-	const [sipAmount, setSipAmount] = useState<number>(25000);
-	const [lumpAmount] = useState<number>(0);
+	const [sipAmount] = useState<number>(25000);
 
 	const isHighlighted = highlightIds.includes(fund.id);
 	const inBasket = basket.some((b) => b.product_id === fund.id);
 
-	const handleAddSip = () => {
+	const handleAddSip = (e: React.MouseEvent) => {
+		e.stopPropagation();
 		addToBasket({
 			product_id: fund.id,
 			name: fund.name,
 			category: fund.category,
 			sub_category: fund.sub_category,
-			lumpsum_inr: lumpAmount,
+			lumpsum_inr: 0,
 			monthly_sip_inr: sipAmount,
 			linked_goal: fund.sub_category.includes("Retirement")
 				? "Retirement 2042"
@@ -46,166 +30,121 @@ export default function ProductCard({ fund }: { fund: FundProduct }) {
 		sendAction("add_to_basket", {
 			product_id: fund.id,
 			monthly_sip_amount_inr: sipAmount,
-			lumpsum_amount_inr: lumpAmount,
+			lumpsum_amount_inr: 0,
 			linked_goal: "Wealth Creation",
 		});
 		pushToast(
-			`Added ${fund.name} (₹${(sipAmount / 1000).toFixed(0)}k/mo) to Basket`,
+			`Added ${fund.name} (₹${(sipAmount / 1000).toFixed(0)}k/mo) to Advisory Basket`,
 			"success",
 		);
 	};
 
-	const getRiskBadgeVariant = (risk: string) => {
-		const r = risk.toLowerCase();
-		if (r.includes("low")) return "riskLow" as const;
-		if (r.includes("moderate")) return "riskModerate" as const;
-		return "riskHigh" as const;
-	};
-
-	const getCategoryBadgeVariant = (cat: string) => {
-		switch (cat) {
-			case "Equity":
-				return "equity" as const;
-			case "Debt":
-				return "debt" as const;
-			case "Commodities":
-				return "commodities" as const;
-			case "Hybrid":
-				return "hybrid" as const;
-			default:
-				return "secondary" as const;
-		}
-	};
-
 	return (
-		<Card
-			className={`group flex flex-col justify-between transition-all duration-300 ${
+		<div
+			className={`group relative rounded-xl p-4 flex flex-col justify-between transition-all duration-200 border ${
 				isHighlighted
-					? "border-amber-400 ring-4 ring-amber-300/40 shadow-lg scale-[1.01]"
+					? "bg-amber-400/[0.04] dark:bg-amber-400/[0.03] border-amber-400/60 shadow-md ring-1 ring-amber-400/30"
 					: inBasket
-						? "border-emerald-400/80 ring-2 ring-emerald-100 dark:ring-emerald-950 shadow-xs"
-						: "hover:border-slate-300 hover:shadow-md"
+						? "bg-emerald-500/[0.03] border-emerald-500/40 shadow-xs"
+						: "bg-white/80 dark:bg-slate-900/40 border-slate-200/80 dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/15 hover:bg-white dark:hover:bg-slate-900/70 shadow-xs"
 			}`}
 		>
-			<CardHeader className="p-4 pb-2 space-y-2">
-				{/* Category & Star Rating */}
-				<div className="flex items-center justify-between gap-2">
-					<Badge variant={getCategoryBadgeVariant(fund.category)}>
+			{/* Recommended Ribbon */}
+			{isHighlighted && (
+				<div className="absolute top-0 right-3 -translate-y-1/2 bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-xs">
+					<Sparkles className="size-2.5" />
+					<span>Top RM Pick</span>
+				</div>
+			)}
+
+			<div className="space-y-2.5">
+				{/* Category & Rating */}
+				<div className="flex items-center justify-between text-[11px]">
+					<span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
 						{fund.sub_category}
-					</Badge>
-					<div className="flex items-center gap-1">
-						<div className="flex text-amber-400">
-							{Array.from({ length: fund.rating }).map((_, i) => (
-								<Star key={i} className="size-3 fill-current" />
-							))}
-						</div>
-						<span className="text-[10px] text-muted-foreground font-semibold">
+					</span>
+					<div className="flex items-center gap-1 text-amber-500/90 dark:text-amber-400/90">
+						<Star className="size-3 fill-current" />
+						<span className="font-mono text-[11px] font-bold text-slate-600 dark:text-slate-300">
 							{fund.rating}.0
 						</span>
 					</div>
 				</div>
 
-				{/* Fund Title & AMC */}
+				{/* Title & AMC */}
 				<div>
-					<CardTitle className="text-xs group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+					<h4 className="text-sm font-bold text-slate-900 dark:text-white leading-snug group-hover:text-amber-700 dark:group-hover:text-amber-300 transition-colors line-clamp-1">
 						{fund.name}
-					</CardTitle>
-					<p className="text-[11px] text-muted-foreground mt-0.5 font-medium">
+					</h4>
+					<p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
 						{fund.amc}
 					</p>
 				</div>
-			</CardHeader>
 
-			<CardContent className="p-4 pt-1 space-y-3">
-				{/* Core Financial Metrics */}
-				<div className="grid grid-cols-3 gap-2 p-2.5 bg-muted/40 rounded-xl border border-border text-center">
+				{/* Financial Metrics: 3 clean columns without heavy card wrappers */}
+				<div className="flex items-baseline justify-between pt-1 border-t border-slate-100 dark:border-white/[0.04]">
 					<div>
-						<p className="text-[10px] text-muted-foreground font-semibold">3Y CAGR</p>
-						<p className="text-xs font-extrabold text-emerald-600">
+						<span className="text-[10px] text-slate-400 dark:text-slate-500 block">
+							3Y CAGR
+						</span>
+						<span className="text-sm font-bold font-mono text-emerald-600 dark:text-emerald-400">
 							+{fund.cagr_3y}%
-						</p>
+						</span>
 					</div>
 					<div>
-						<p className="text-[10px] text-muted-foreground font-semibold">TER</p>
-						<p className="text-xs font-extrabold text-foreground">{fund.ter}%</p>
+						<span className="text-[10px] text-slate-400 dark:text-slate-500 block">
+							TER
+						</span>
+						<span className="text-xs font-semibold font-mono text-slate-700 dark:text-slate-300">
+							{fund.ter}%
+						</span>
 					</div>
 					<div>
-						<p className="text-[10px] text-muted-foreground font-semibold">AUM</p>
-						<p className="text-xs font-extrabold text-foreground">
+						<span className="text-[10px] text-slate-400 dark:text-slate-500 block">
+							AUM
+						</span>
+						<span className="text-xs font-semibold font-mono text-slate-700 dark:text-slate-300">
 							₹{(fund.aum_crores / 1000).toFixed(1)}k Cr
-						</p>
+						</span>
 					</div>
 				</div>
 
-				{/* Top Holdings Tags */}
-				<div>
-					<p className="text-[10px] font-bold text-muted-foreground mb-1">
-						Top Holdings:
-					</p>
-					<div className="flex flex-wrap gap-1">
-						{fund.top_holdings.slice(0, 3).map((h, i) => (
-							<Badge key={i} variant="secondary" className="text-[10px] font-medium">
-								{h}
-							</Badge>
-						))}
-					</div>
-				</div>
+				{/* Top holdings as quiet inline text */}
+				<p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
+					<span className="text-slate-400 dark:text-slate-500">Holdings:</span>{" "}
+					{fund.top_holdings.slice(0, 3).join(", ")}
+				</p>
+			</div>
 
-				{/* Risk & Feature Badges */}
-				<div className="flex items-center gap-1.5 flex-wrap">
-					<Badge variant={getRiskBadgeVariant(fund.risk_level)}>
-						{fund.risk_level}
-					</Badge>
-					{fund.tags.slice(0, 2).map((t, i) => (
-						<Badge key={i} variant="tag">
-							{t}
-						</Badge>
-					))}
-				</div>
-			</CardContent>
-
-			<CardFooter className="p-4 pt-2 flex flex-col gap-2 border-t border-border">
-				<div className="flex items-center justify-between w-full text-xs">
-					<span className="text-[11px] text-muted-foreground font-semibold">
-						Monthly SIP:
-					</span>
-					<div className="w-36">
-						<Select
-							value={String(sipAmount)}
-							onValueChange={(v) => setSipAmount(Number(v))}
-						>
-							<SelectTrigger className="h-7 text-[11px] font-bold bg-muted/40">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="10000">₹10,000 / mo</SelectItem>
-								<SelectItem value="20000">₹20,000 / mo</SelectItem>
-								<SelectItem value="25000">₹25,000 / mo</SelectItem>
-								<SelectItem value="35000">₹35,000 / mo</SelectItem>
-								<SelectItem value="50000">₹50,000 / mo</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
-				</div>
+			{/* Subtle, Understated Footer Action */}
+			<div className="pt-3 mt-3 border-t border-slate-100 dark:border-white/[0.04] flex items-center justify-between">
+				<span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
+					₹25k / mo SIP
+				</span>
 
 				<Button
+					size="sm"
 					onClick={handleAddSip}
-					variant={inBasket ? "success" : "wealth"}
-					className="w-full h-8 text-xs font-bold gap-1.5"
+					className={`h-7 px-3 text-[11px] font-bold rounded-lg transition-all duration-200 ${
+						inBasket
+							? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 shadow-xs"
+							: "bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 hover:bg-amber-400 hover:text-slate-950 hover:border-amber-400 hover:shadow-[0_0_16px_rgba(251,191,36,0.65)] hover:ring-1 hover:ring-amber-400/60 hover:scale-105 active:scale-95"
+					}`}
 				>
 					{inBasket ? (
 						<>
-							<Check className="size-3.5" />
-							<span>In Advisory Basket</span>
+							<Check className="size-3 mr-1" />
+							<span>In Basket</span>
 						</>
 					) : (
 						<>
-							<Plus className="size-3.5" />
-							<span>Add to Advisory Basket</span>
+							<Plus className="size-3 mr-1" />
+							<span>Add</span>
 						</>
 					)}
 				</Button>
-			</CardFooter>
-		</Card>
+			</div>
+		</div>
 	);
 }
+

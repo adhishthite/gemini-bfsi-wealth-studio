@@ -1,11 +1,12 @@
 import { useMemo } from "react";
 import { useStore } from "@/store";
 import ProductCard from "./ProductCard";
-import { Layers, Sparkles } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import ProductTable from "./ProductTable";
+import ProductCarousel from "./ProductCarousel";
+import { AlertCircle } from "lucide-react";
 
 export default function CatalogGrid() {
-	const { funds, visibleFundIds, filter } = useStore();
+	const { funds, visibleFundIds, filter, explorerView } = useStore();
 
 	const displayedFunds = useMemo(() => {
 		let list = [...funds];
@@ -68,38 +69,28 @@ export default function CatalogGrid() {
 		return list;
 	}, [funds, visibleFundIds, filter]);
 
+	if (displayedFunds.length === 0) {
+		return (
+			<div className="glass-panel rounded-2xl p-12 text-center text-slate-400 space-y-3 shadow-xs border border-slate-200 dark:border-white/10">
+				<AlertCircle className="size-10 mx-auto text-amber-400/50" />
+				<p className="font-bold text-slate-900 dark:text-white text-sm">
+					No matching investment instruments found
+				</p>
+				<p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+					Try relaxing your filter settings or search keywords.
+				</p>
+			</div>
+		);
+	}
+
 	return (
 		<div className="space-y-4">
-			{/* Grid Header */}
-			<div className="flex items-center justify-between px-1">
-				<div className="flex items-center gap-2">
-					<Layers className="size-4 text-muted-foreground" />
-					<h2 className="text-sm font-bold text-foreground">
-						Product Explorer ({displayedFunds.length} Instruments)
-					</h2>
-				</div>
-				{visibleFundIds && (
-					<Badge variant="gold" className="gap-1 font-bold">
-						<Sparkles className="size-3" />
-						<span>Curated by Ananya</span>
-					</Badge>
-				)}
-			</div>
-
-			{/* Grid Content */}
-			{displayedFunds.length === 0 ? (
-				<div className="bg-card rounded-2xl border border-border p-12 text-center text-muted-foreground">
-					<Layers className="size-9 mx-auto text-muted-foreground/40 mb-3" />
-					<p className="font-bold text-foreground">
-						No matching investment products found
-					</p>
-					<p className="text-xs text-muted-foreground mt-1">
-						Try adjusting your search query, riskometer setting, or category
-						filter.
-					</p>
-				</div>
+			{explorerView === "carousel" ? (
+				<ProductCarousel funds={displayedFunds} />
+			) : explorerView === "matrix" ? (
+				<ProductTable funds={displayedFunds} />
 			) : (
-				<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+				<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5">
 					{displayedFunds.map((fund) => (
 						<ProductCard key={fund.id} fund={fund} />
 					))}
@@ -108,3 +99,5 @@ export default function CatalogGrid() {
 		</div>
 	);
 }
+
+

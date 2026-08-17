@@ -8,20 +8,20 @@ import {
 	Video,
 	PhoneOff,
 	ShieldCheck,
+	Maximize2,
+	Minimize2,
+	Activity,
 } from "lucide-react";
 import { useStore } from "@/store";
 import { sendUserText } from "@/ws";
 import { LiveAvatar } from "@/lib/liveClient";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 
 const WEALTH_STARTERS = [
 	"Review my ₹75L portfolio & goal progress",
-	"Show top Flexi Cap & Global AI Tech funds",
+	"Show top Flexi Cap & Global Tech funds",
 	"Add all-weather volatility protection",
 	"Simulate ₹1 Lakh/month SIP for 2042 Retirement",
 	"Generate official Advisory Proposal PDF",
@@ -36,6 +36,7 @@ export default function AdvisorDock() {
 		voiceOn,
 		connected,
 		live,
+		expandedAdvisor,
 		set,
 	} = useStore();
 	const [text, setText] = useState("");
@@ -129,15 +130,15 @@ export default function AdvisorDock() {
 		: !connected
 			? "Connecting…"
 			: thinking
-				? "Analyzing Portfolio…"
+				? "Analyzing Allocations…"
 				: listening
 					? "Listening…"
 					: speaking
 						? "Ananya Speaking…"
-						: "Advisory Online";
+						: "Senior Advisory Online";
 
 	return (
-		<div className="bg-card rounded-2xl border border-border shadow-xs flex flex-col h-full overflow-hidden">
+		<div className="glass-panel rounded-2xl flex flex-col h-full overflow-hidden border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-card-luxury">
 			{/* ===== LIVE VIDEO STAGE (Gemini 3.1 Live Avatar) ===== */}
 			<div
 				className={
@@ -148,20 +149,20 @@ export default function AdvisorDock() {
 			>
 				<canvas
 					ref={canvasRef}
-					className="absolute inset-0 h-full w-full object-cover object-center scale-[1.1] origin-bottom"
+					className="absolute inset-0 h-full w-full object-cover object-center scale-[1.08] origin-bottom"
 				/>
 
 				{/* Live Status Overlay */}
 				<div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
-					<div className="flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs font-semibold">
+					<div className="flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs font-semibold border border-white/10">
 						<span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
-						<span>Gemini Live Avatar</span>
+						<span>Photoreal Live Advisor</span>
 					</div>
 					<Button
 						size="sm"
 						variant="destructive"
 						onClick={stopLive}
-						className="h-7 px-2.5 rounded-full text-xs font-bold gap-1"
+						className="h-7 px-2.5 rounded-full text-xs font-bold gap-1 shadow-lg"
 					>
 						<PhoneOff className="size-3.5" />
 						<span>End Live</span>
@@ -169,13 +170,13 @@ export default function AdvisorDock() {
 				</div>
 
 				{/* Live Subtitle Transcript */}
-				<div className="absolute bottom-16 left-3 right-3 bg-black/70 backdrop-blur-md rounded-xl p-3 z-10">
+				<div className="absolute bottom-16 left-3 right-3 bg-slate-950/85 backdrop-blur-md rounded-xl p-3 z-10 border border-white/10 shadow-2xl">
 					<p
 						ref={captionRef}
 						className="text-xs text-white leading-relaxed max-h-20 overflow-y-auto font-medium"
 					>
 						{live.caption ||
-							"Hold Spacebar or the Mic button to talk with Ananya..."}
+							"Hold Spacebar or the Mic button to converse with Ananya..."}
 					</p>
 				</div>
 
@@ -188,7 +189,9 @@ export default function AdvisorDock() {
 						onTouchEnd={() => talk(false)}
 						variant={live.talking ? "destructive" : "default"}
 						className={`rounded-full px-5 py-2 font-bold text-xs shadow-lg transition-transform ${
-							live.talking ? "scale-105" : "bg-white text-slate-950 hover:bg-slate-100"
+							live.talking
+								? "scale-105"
+								: "bg-amber-400 text-slate-950 hover:bg-amber-300"
 						}`}
 					>
 						<Mic className={`size-3.5 ${live.talking ? "animate-pulse" : ""}`} />
@@ -201,45 +204,74 @@ export default function AdvisorDock() {
 
 			{/* ===== STANDARD ADVISOR HEADER ===== */}
 			{!live.active && (
-				<div className="p-3.5 border-b border-border bg-gradient-to-r from-slate-900 to-[#0B2545] text-white flex items-center justify-between">
+				<div className="p-3.5 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-950/70 text-slate-900 dark:text-white flex items-center justify-between">
 					<div className="flex items-center gap-2.5">
 						<div className="relative">
-							<Avatar className="size-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-200 text-slate-950 shadow-md">
+							<Avatar className="size-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 shadow-md border border-amber-400/40">
 								<AvatarFallback className="rounded-xl bg-transparent text-slate-950 font-black text-sm">
 									A
 								</AvatarFallback>
 							</Avatar>
-							<span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-400 border-2 border-slate-900" />
+							<span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-950 shadow-xs" />
 						</div>
 						<div>
 							<div className="flex items-center gap-1.5">
-								<h3 className="font-bold text-sm leading-none text-white">Ananya</h3>
-								<Badge variant="gold" className="text-[10px] py-0 px-1.5">
+								<h3 className="font-bold text-sm leading-none text-slate-900 dark:text-white">Ananya</h3>
+								<span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-400/15 text-amber-900 dark:text-amber-300 border border-amber-400/30">
 									Senior RM
-								</Badge>
+								</span>
 							</div>
-							<p className="text-[10px] text-slate-300 mt-1 flex items-center gap-1">
-								<ShieldCheck className="size-3 text-emerald-400" />
+							<p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
+								<ShieldCheck className="size-3 text-emerald-600 dark:text-emerald-400" />
 								<span>{status}</span>
 							</p>
 						</div>
 					</div>
 
 					<div className="flex items-center gap-1.5">
+						{/* Audio Pulse Visualizer */}
+						{(speaking || thinking) && (
+							<div className="flex items-center gap-0.5 px-2 py-1 bg-amber-400/10 rounded-lg border border-amber-400/25 mr-1">
+								<span className="size-1 bg-amber-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+								<span className="size-1 bg-amber-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+								<span className="size-1 bg-amber-400 rounded-full animate-bounce" />
+							</div>
+						)}
+
+						{/* Expand Toggle */}
+						<Button
+							variant="ghost"
+							size="iconSm"
+							onClick={() => set({ expandedAdvisor: !expandedAdvisor })}
+							className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 size-7 rounded-lg hidden xl:flex"
+							title={expandedAdvisor ? "Collapse Advisor Stage" : "Expand Advisor Stage"}
+						>
+							{expandedAdvisor ? (
+								<Minimize2 className="size-3.5" />
+							) : (
+								<Maximize2 className="size-3.5" />
+							)}
+						</Button>
+
+						{/* Voice Mute Toggle */}
 						<Button
 							variant="ghost"
 							size="iconSm"
 							onClick={() => set({ voiceOn: !voiceOn })}
-							className="text-white hover:bg-white/10 hover:text-white"
-							title={voiceOn ? "Mute Advisor Voice" : "Unmute Advisor Voice"}
+							className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 size-7 rounded-lg"
+							title={voiceOn ? "Mute Voice" : "Unmute Voice"}
 						>
-							{voiceOn ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
+							{voiceOn ? (
+								<Volume2 className="size-3.5 text-amber-500 dark:text-amber-400" />
+							) : (
+								<VolumeX className="size-3.5 text-slate-400" />
+							)}
 						</Button>
+
+						{/* Go Live Button */}
 						<Button
-							variant="gold"
-							size="sm"
 							onClick={startLive}
-							className="h-8 gap-1.5 rounded-lg text-xs"
+							className="h-8 gap-1.5 rounded-xl text-xs font-bold bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-xs"
 							title="Start Photoreal Live Video Avatar"
 						>
 							<Video className="size-3.5" />
@@ -253,7 +285,7 @@ export default function AdvisorDock() {
 			{!live.active && (
 				<div
 					ref={scrollRef}
-					className="flex-1 p-3.5 overflow-y-auto space-y-3 min-h-0 bg-muted/20"
+					className="flex-1 p-3.5 overflow-y-auto space-y-3 min-h-0 bg-slate-50/50 dark:bg-slate-950/30"
 				>
 					{chat.map((m) => (
 						<div
@@ -263,71 +295,77 @@ export default function AdvisorDock() {
 							}`}
 						>
 							<div
-								className={`max-w-[88%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${
+								className={`max-w-[90%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${
 									m.role === "user"
-										? "bg-primary text-primary-foreground rounded-br-none shadow-xs"
-										: "bg-card text-card-foreground border border-border rounded-bl-none shadow-xs"
+										? "bg-amber-400/20 dark:bg-amber-400/15 border border-amber-400/30 text-amber-950 dark:text-amber-100 rounded-br-none shadow-xs"
+										: "bg-white dark:bg-slate-900/90 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-white/10 rounded-bl-none shadow-xs"
 								}`}
 							>
 								{m.text}
 							</div>
-							<span className="text-[9px] text-muted-foreground mt-1 px-1">
-								{m.role === "user" ? "Rahul" : "Ananya (Advisory)"}
+							<span className="text-[9px] text-slate-400 dark:text-slate-500 mt-1 px-1 font-mono">
+								{m.role === "user" ? "Rahul Sharma" : "Ananya • Private Wealth"}
 							</span>
 						</div>
 					))}
 
 					{thinking && (
-						<div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-card border border-border rounded-2xl px-3.5 py-2 w-fit">
-							<Sparkles className="size-3.5 text-amber-500 animate-spin" />
-							<span>Ananya is calculating allocations…</span>
+						<div className="flex items-center gap-2 text-xs text-amber-900 dark:text-amber-300 bg-amber-400/10 dark:bg-slate-900/90 border border-amber-400/30 rounded-2xl px-3.5 py-2 w-fit shadow-xs">
+							<Sparkles className="size-3.5 text-amber-500 dark:text-amber-400 animate-spin" />
+							<span>Ananya is calculating strategic allocations…</span>
+						</div>
+					)}
+
+					{/* Helpful Suggested Actions when chat is young */}
+					{chat.length <= 2 && !thinking && (
+						<div className="pt-2 space-y-2">
+							<p className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 px-1">
+								Suggested Advisory Prompts
+							</p>
+							<div className="grid grid-cols-1 gap-1.5">
+								{WEALTH_STARTERS.slice(0, 3).map((s, i) => (
+									<button
+										key={i}
+										type="button"
+										onClick={() => sendUserText(s)}
+										className="text-left p-2.5 rounded-xl bg-white/90 dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/5 text-xs text-slate-700 dark:text-slate-300 hover:border-amber-400/40 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all shadow-2xs group"
+									>
+										<div className="flex items-center justify-between">
+											<span className="line-clamp-1">{s}</span>
+											<Sparkles className="size-3 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2" />
+										</div>
+									</button>
+								))}
+							</div>
 						</div>
 					)}
 				</div>
 			)}
 
-			{/* ===== QUICK PROMPT CHIPS ===== */}
+			{/* ===== TEXT INPUT DOCK ===== */}
 			{!live.active && (
-				<div className="p-2 border-t border-border bg-card overflow-x-auto scrollbar-none flex items-center gap-1.5">
-					{WEALTH_STARTERS.map((s, i) => (
-						<Button
-							key={i}
-							variant="outline"
-							size="sm"
-							onClick={() => sendUserText(s)}
-							className="h-7 text-[11px] font-medium whitespace-nowrap bg-muted/40 hover:bg-muted"
-						>
-							{s}
-						</Button>
-					))}
-				</div>
-			)}
-
-			{/* ===== TEXT & MIC INPUT DOCK ===== */}
-			{!live.active && (
-				<div className="p-3 border-t border-border bg-card">
+				<div className="p-2.5 border-t border-slate-200/80 dark:border-white/10 bg-white/95 dark:bg-slate-950/80">
 					<form
 						onSubmit={(e) => {
 							e.preventDefault();
 							submit();
 						}}
-						className="flex items-center gap-2"
+						className="flex items-center gap-1.5"
 					>
 						<Input
 							type="text"
 							value={text}
 							onChange={(e) => setText(e.target.value)}
 							placeholder="Ask Ananya (e.g. 'How can I reach ₹5 Cr by 2042?')..."
-							className="bg-muted/40 text-xs"
+							className="bg-slate-100 dark:bg-slate-900/90 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-amber-400/50 text-xs h-9 rounded-lg"
 						/>
 						<Button
 							type="submit"
-							size="iconSm"
-							variant="wealth"
 							disabled={!text.trim()}
-							className="size-9 rounded-xl shrink-0"
+							size="iconSm"
+							className="size-9 rounded-lg shrink-0 bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-xs"
 						>
-							<Send className="size-4" />
+							<Send className="size-3.5" />
 						</Button>
 					</form>
 				</div>
@@ -335,3 +373,4 @@ export default function AdvisorDock() {
 		</div>
 	);
 }
+

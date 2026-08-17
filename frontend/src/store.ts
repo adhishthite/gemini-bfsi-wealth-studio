@@ -26,6 +26,9 @@ type Store = {
 	};
 
 	// Fund catalog & Active Views
+	activeTab: "explorer" | "diagnostics" | "simulation";
+	explorerView: "carousel" | "grid" | "matrix";
+	expandedAdvisor: boolean;
 	funds: FundProduct[];
 	profile: Profile | null;
 	portfolio: Profile | null;
@@ -64,6 +67,10 @@ type Store = {
 	listening: boolean;
 	speaking: boolean;
 
+	// Theme
+	theme: "dark" | "light";
+	toggleTheme: () => void;
+
 	// Actions
 	set: (p: Partial<Store>) => void;
 	setFilter: (p: Partial<Store["filter"]>) => void;
@@ -77,7 +84,12 @@ let _id = 1;
 const nid = () => _id++;
 
 if (typeof window !== "undefined") {
-	setTimeout(() => ((window as any).__store = useStore), 0);
+	const savedTheme = (localStorage.getItem("cymbal_theme") as "dark" | "light") || "dark";
+	document.documentElement.classList.toggle("dark", savedTheme === "dark");
+	setTimeout(() => {
+		useStore.setState({ theme: savedTheme });
+		(window as any).__store = useStore;
+	}, 0);
 }
 
 export const useStore = create<Store>((set, get) => ({
@@ -94,6 +106,9 @@ export const useStore = create<Store>((set, get) => ({
 		caption: "",
 	},
 
+	activeTab: "explorer",
+	explorerView: "carousel",
+	expandedAdvisor: false,
 	funds: [],
 	profile: null,
 	portfolio: null,
@@ -133,6 +148,16 @@ export const useStore = create<Store>((set, get) => ({
 	voiceOn: true,
 	listening: false,
 	speaking: false,
+
+	theme: "dark",
+	toggleTheme: () => {
+		const next = get().theme === "dark" ? "light" : "dark";
+		if (typeof window !== "undefined") {
+			localStorage.setItem("cymbal_theme", next);
+			document.documentElement.classList.toggle("dark", next === "dark");
+		}
+		set({ theme: next });
+	},
 
 	set: (p) => set(p),
 	setFilter: (p) => set((s) => ({ filter: { ...s.filter, ...p } })),

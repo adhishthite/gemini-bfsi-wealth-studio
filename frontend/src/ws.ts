@@ -27,7 +27,7 @@ export function handleUiCommand(command: string, args: any) {
 	const s = useStore.getState();
 	switch (command) {
 		case "filter_catalog":
-			s.set({ visibleFundIds: args.fund_ids || null });
+			s.set({ visibleFundIds: args.fund_ids || null, activeTab: "explorer" });
 			s.pushToast(
 				`Product Explorer filtered (${args.results_count || 0} funds matched)`,
 				"info",
@@ -35,17 +35,25 @@ export function handleUiCommand(command: string, args: any) {
 			break;
 
 		case "highlight_products":
-			s.set({ highlightIds: args.product_ids || [] });
+			s.set({ highlightIds: args.product_ids || [], activeTab: "explorer" });
 			setTimeout(() => s.set({ highlightIds: [] }), 4000);
 			break;
 
 		case "show_portfolio_diagnostics":
-			s.set({ diagnostics: args.diagnostics, diagnosticsOpen: true });
+			s.set({
+				diagnostics: args.diagnostics,
+				diagnosticsOpen: true,
+				activeTab: "diagnostics",
+			});
 			s.pushToast("Portfolio diagnostics & goal audit loaded", "info");
 			break;
 
 		case "update_simulation":
-			s.set({ simulation: args.simulation, simulationOpen: true });
+			s.set({
+				simulation: args.simulation,
+				simulationOpen: true,
+				activeTab: "simulation",
+			});
 			s.pushToast(
 				`Portfolio projected to ₹${((args.simulation?.projected_final_corpus_inr || 0) / 10000000).toFixed(2)} Cr by 2042`,
 				"success",

@@ -11,7 +11,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
 export default function ProposalDialog() {
@@ -22,18 +21,18 @@ export default function ProposalDialog() {
 			open={proposalOpen}
 			onOpenChange={(open) => set({ proposalOpen: open })}
 		>
-			<DialogContent className="max-w-lg p-0 overflow-hidden">
+			<DialogContent className="max-w-lg p-0 overflow-hidden bg-[#0A111E] border border-white/15 text-slate-200 shadow-2xl rounded-2xl">
 				{/* Header */}
-				<DialogHeader className="p-5 bg-gradient-to-r from-slate-900 to-[#0B2545] text-white">
+				<DialogHeader className="p-5 bg-slate-950/90 border-b border-white/10 text-white">
 					<div className="flex items-center gap-3">
-						<div className="size-9 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold">
+						<div className="size-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold shadow-xs">
 							<FileText className="size-5" />
 						</div>
 						<div>
 							<DialogTitle className="text-white text-base">
 								Strategic Wealth Advisory Proposal
 							</DialogTitle>
-							<DialogDescription className="text-slate-300">
+							<DialogDescription className="text-slate-400 text-xs">
 								Document ID: {proposal?.proposal_id || "CYMBAL-PROP-2026-0881"}
 							</DialogDescription>
 						</div>
@@ -42,43 +41,43 @@ export default function ProposalDialog() {
 
 				{/* Content */}
 				<div className="p-6 space-y-4 text-xs">
-					<Alert variant="success" className="p-3.5 flex items-center gap-3">
-						<CheckCircle2 className="size-5 text-emerald-600 shrink-0" />
+					<div className="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30 flex items-center gap-3">
+						<CheckCircle2 className="size-5 text-emerald-400 shrink-0" />
 						<div>
-							<AlertTitle className="font-bold text-xs text-emerald-950 dark:text-emerald-100">
-								Proposal PDF Generated
-							</AlertTitle>
-							<AlertDescription className="text-[11px] text-emerald-800 dark:text-emerald-300 mt-0.5">
-								Complete with asset shift matrix, advisory basket allocations, and SEBI statutory disclaimers.
-							</AlertDescription>
+							<p className="font-bold text-xs text-white">
+								Proposal PDF Successfully Generated
+							</p>
+							<p className="text-[11px] text-emerald-300/90 mt-0.5">
+								Asset shift matrix, strategic allocation weighting, and statutory SEBI disclaimers compiled.
+							</p>
 						</div>
-					</Alert>
+					</div>
 
-					<div className="p-3.5 bg-muted/40 rounded-2xl border border-border space-y-2">
-						<div className="flex justify-between text-muted-foreground">
+					<div className="p-4 bg-slate-950/70 rounded-2xl border border-white/10 space-y-2">
+						<div className="flex justify-between text-slate-400">
 							<span>Client Name:</span>
-							<span className="font-bold text-foreground">
+							<span className="font-bold text-white">
 								{proposal?.client_name || "Rahul Sharma"}
 							</span>
 						</div>
-						<div className="flex justify-between text-muted-foreground">
+						<div className="flex justify-between text-slate-400">
 							<span>Total Monthly SIP:</span>
-							<span className="font-bold text-emerald-700 dark:text-emerald-400">
+							<span className="font-mono font-black text-emerald-400">
 								₹{proposal?.total_sip_inr?.toLocaleString() || "60,000"} / mo
 							</span>
 						</div>
-						<div className="flex justify-between text-muted-foreground">
+						<div className="flex justify-between text-slate-400">
 							<span>Total Lump Sum:</span>
-							<span className="font-bold text-foreground">
+							<span className="font-mono font-bold text-slate-200">
 								₹{proposal?.total_lumpsum_inr?.toLocaleString() || "0"}
 							</span>
 						</div>
 						{proposal?.strategic_rationale && (
-							<div className="pt-2 border-t border-border text-[11px]">
-								<p className="font-bold text-foreground mb-0.5">
+							<div className="pt-2 border-t border-white/10 text-[11px]">
+								<p className="font-bold text-amber-300 mb-0.5">
 									Strategic Rationale:
 								</p>
-								<p className="text-muted-foreground leading-relaxed">
+								<p className="text-slate-300 leading-relaxed">
 									{proposal.strategic_rationale}
 								</p>
 							</div>
@@ -90,15 +89,14 @@ export default function ProposalDialog() {
 						{proposal?.download_url && (
 							<Button
 								asChild
-								variant="wealth"
-								className="w-full h-11 font-bold text-xs gap-2 shadow-md"
+								className="w-full h-11 font-bold text-xs gap-2 bg-amber-400 text-slate-950 hover:bg-amber-300 rounded-xl shadow-xs"
 							>
 								<a
 									href={proposal.download_url}
 									target="_blank"
 									rel="noopener noreferrer"
 								>
-									<Download className="size-4 text-amber-300" />
+									<Download className="size-4 text-slate-950" />
 									<span>Download Official Proposal PDF</span>
 								</a>
 							</Button>
@@ -107,7 +105,7 @@ export default function ProposalDialog() {
 						<Button
 							variant="outline"
 							onClick={() => set({ proposalOpen: false })}
-							className="w-full h-9 font-bold text-xs"
+							className="w-full h-9 font-bold text-xs bg-slate-900 border-white/10 text-slate-300 hover:text-white rounded-xl"
 						>
 							Close
 						</Button>
@@ -117,3 +115,4 @@ export default function ProposalDialog() {
 		</Dialog>
 	);
 }
+

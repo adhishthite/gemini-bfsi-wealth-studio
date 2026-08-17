@@ -5,10 +5,10 @@ import { useStore } from "@/store";
 import TopBar from "@/components/TopBar";
 import FilterBar from "@/components/FilterBar";
 import CatalogGrid from "@/components/CatalogGrid";
+import DiagnosticsView from "@/components/DiagnosticsView";
+import SimulationView from "@/components/SimulationView";
 import AdvisorDock from "@/components/AdvisorDock";
 import AdvisoryBasketSheet from "@/components/AdvisoryBasketSheet";
-import DiagnosticsDialog from "@/components/DiagnosticsDialog";
-import SimulationDialog from "@/components/SimulationDialog";
 import MandateDialog from "@/components/MandateDialog";
 import ProposalDialog from "@/components/ProposalDialog";
 import { Toaster } from "@/components/ui/sonner";
@@ -16,10 +16,13 @@ import { Button } from "@/components/ui/button";
 
 export default function App() {
 	const [sheetOpen, setSheetOpen] = useState(false);
+	const { activeTab, expandedAdvisor } = useStore();
 	const chatLen = useStore((s) => s.chat.length);
 
 	useEffect(() => {
 		connect();
+		const currentTheme = useStore.getState().theme;
+		document.documentElement.classList.toggle("dark", currentTheme === "dark");
 	}, []);
 
 	useEffect(() => {
@@ -27,21 +30,41 @@ export default function App() {
 	}, [chatLen]);
 
 	return (
-		<div className="min-h-dvh flex flex-col bg-background text-foreground">
+		<div className="min-h-dvh flex flex-col bg-background text-foreground transition-colors duration-200 selection:bg-amber-400 selection:text-slate-950">
 			<TopBar />
 
-			<main className="flex-1 mx-auto w-full max-w-[1650px] px-4 sm:px-6 py-4">
+			<main className="flex-1 mx-auto w-full max-w-[1750px] px-4 sm:px-6 py-4">
 				<div className="flex gap-5 h-[calc(100dvh-6rem)]">
-					{/* Left Column: FilterBar & Product Explorer */}
+					{/* Left Column: Studio Interactive Canvas */}
 					<div className="flex-1 min-w-0 flex flex-col gap-3 overflow-hidden">
-						<FilterBar />
-						<div className="flex-1 overflow-y-auto pr-1">
-							<CatalogGrid />
-						</div>
+						{activeTab === "explorer" && (
+							<>
+								<FilterBar />
+								<div className="flex-1 overflow-y-auto pr-1">
+									<CatalogGrid />
+								</div>
+							</>
+						)}
+
+						{activeTab === "diagnostics" && (
+							<div className="flex-1 overflow-y-auto pr-1">
+								<DiagnosticsView />
+							</div>
+						)}
+
+						{activeTab === "simulation" && (
+							<div className="flex-1 overflow-y-auto pr-1">
+								<SimulationView />
+							</div>
+						)}
 					</div>
 
 					{/* Right Column: Ananya Advisor Dock */}
-					<div className="hidden lg:block w-[420px] shrink-0 h-full">
+					<div
+						className={`hidden lg:block shrink-0 h-full transition-all duration-300 ${
+							expandedAdvisor ? "w-[560px]" : "w-[430px]"
+						}`}
+					>
 						<AdvisorDock />
 					</div>
 				</div>
@@ -51,14 +74,13 @@ export default function App() {
 			<Button
 				onClick={() => setSheetOpen((v) => !v)}
 				size="icon"
-				variant="wealth"
-				className="lg:hidden fixed bottom-5 right-5 z-[80] size-14 rounded-full shadow-xl active:scale-95"
+				className="lg:hidden fixed bottom-5 right-5 z-[80] size-14 rounded-full shadow-2xl bg-amber-400 text-slate-950 hover:bg-amber-300 active:scale-95 border-2 border-amber-300/60"
 				aria-label="Open advisor chat"
 			>
 				{sheetOpen ? (
-					<X className="size-6 text-amber-300" />
+					<X className="size-6" />
 				) : (
-					<MessageCircle className="size-6 text-amber-300" />
+					<MessageCircle className="size-6" />
 				)}
 			</Button>
 
@@ -75,11 +97,10 @@ export default function App() {
 
 			{/* ShadCN Dialogs, Sheets & Toast System */}
 			<AdvisoryBasketSheet />
-			<DiagnosticsDialog />
-			<SimulationDialog />
 			<MandateDialog />
 			<ProposalDialog />
 			<Toaster richColors position="bottom-right" />
 		</div>
 	);
 }
+

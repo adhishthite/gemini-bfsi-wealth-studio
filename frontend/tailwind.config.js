@@ -12,7 +12,13 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["DM Sans", "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ['"Plus Jakarta Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ['"JetBrains Mono"', "ui-monospace", "SFMono-Regular", "monospace"],
+      },
+      boxShadow: {
+        "gold-glow": "0 0 25px -5px rgba(229, 192, 123, 0.25)",
+        "card-luxury": "0 4px 20px -2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06)",
+        "card-highlight": "0 8px 30px -4px rgba(229, 192, 123, 0.2), 0 0 0 1.5px rgba(229, 192, 123, 0.6)",
       },
       colors: {
         border: "var(--border)",
