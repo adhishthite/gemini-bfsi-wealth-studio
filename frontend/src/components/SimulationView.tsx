@@ -1,45 +1,65 @@
 import { useState } from "react";
-import { TrendingUp, FileText, Sparkles, CheckCircle2, Sliders, DollarSign } from "lucide-react";
+import { FileText } from "lucide-react";
 import { useStore } from "@/store";
 import { sendAction } from "@/ws";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { inrCompact, inrParts, pct, rupee } from "@/lib";
 
+/* Scenario ids are wire values read by the backend simulator — the copy around
+	 them is ours, the ids are not. */
 const SCENARIOS = [
 	{
 		id: "baseline",
-		label: "Standard Baseline (12.8% CAGR)",
-		desc: "Balanced long-term compounding across asset classes",
-		badge: "Standard",
+		name: "Standard baseline",
+		cagr: 12.8,
+		note: "Balanced compounding across the four sleeves",
 	},
 	{
 		id: "bull_expansion",
-		label: "Bull Supercycle (15.4% CAGR)",
-		desc: "Strong earnings expansion, Capex, and foreign inflows",
-		badge: "Optimistic",
+		name: "Bull supercycle",
+		cagr: 15.4,
+		note: "Earnings expansion, capex and foreign inflows",
 	},
 	{
 		id: "bear_recession",
-		label: "Defensive / Recession (8.6% CAGR)",
-		desc: "Drawdown buffer; Sovereign Gold & Gilts cushion portfolio",
-		badge: "Conservative",
+		name: "Defensive recession",
+		cagr: 8.6,
+		note: "Sovereign gold and gilts cushion the drawdown",
 	},
 	{
 		id: "rate_cut_cycle",
-		label: "RBI Rate Cut Cycle (13.5% CAGR)",
-		desc: "Bond capital appreciation + equity PE multiple expansion",
-		badge: "Monetary Easing",
+		name: "RBI rate cut cycle",
+		cagr: 13.5,
+		note: "Bond appreciation with equity multiple expansion",
 	},
 	{
 		id: "high_inflation",
-		label: "High Inflation (11.2% CAGR)",
-		desc: "Commodities & Sovereign Gold outperform debt",
-		badge: "Inflation Hedge",
+		name: "High inflation",
+		cagr: 11.2,
+		note: "Commodities and sovereign gold outrun debt",
 	},
 ];
 
+/* The same ink ramp the audit page uses, in the same order. Two charts, one
+	 colour system. The accent is reserved for the projection line alone. */
+const SLEEVES = [
+	{ key: "equity", name: "Equity", ink: "var(--ink-strong)" },
+	{ key: "debt", name: "Debt", ink: "var(--ink)" },
+	{ key: "gold", name: "Gold", ink: "var(--ink-muted)" },
+	{ key: "liquid", name: "Liquid", ink: "var(--ink-faint)" },
+] as const;
+
+/* Chart frame. One plot, drawn from the trajectory the simulator returns. */
+const W = 720;
+const H = 240;
+const PAD_L = 14;
+const PAD_R = 14;
+const PAD_T = 44;
+const PAD_B = 44;
+
 export default function SimulationView() {
-	const { simulation, set, pushToast } = useStore();
+	const { simulation, pushToast } = useStore();
 
 	const [activeScenario, setActiveScenario] = useState("baseline");
 	const [eqPct, setEqPct] = useState(65);
@@ -53,8 +73,8 @@ export default function SimulationView() {
 		horizon_years: 15,
 		projected_final_corpus_inr: 58200000,
 		goals_feasibility: {
-			education_2032_status: "Fully Funded (108% probability)",
-			retirement_2042_status: "Achieved (₹5.82 Cr vs ₹5.0 Cr Target)",
+			education_2032_status: "Fully funded, 108% of target",
+			retirement_2042_status: "Met, \u20b95.82 Cr against a \u20b95.00 Cr target",
 		},
 		trajectory: [
 			{ year: 2026, projected_corpus_inr: 7500000 },
@@ -75,9 +95,42 @@ export default function SimulationView() {
 		],
 	};
 
-	const finalCrores = (
-		(currentSim.projected_final_corpus_inr || 58200000) / 10000000
-	).toFixed(2);
+	const corpus = currentSim.projected_final_corpus_inr || 58200000;
+	const finalCrores = (corpus / 10000000).toFixed(2);
+	const hero = inrParts(corpus);
+
+	const traj =
+		currentSim.trajectory && currentSim.trajectory.length > 1
+			? currentSim.trajectory
+			: [
+					{ year: 2026, projected_corpus_inr: 7500000 },
+					{ year: 2042, projected_corpus_inr: corpus },
+				];
+
+	const mandateTarget =
+		traj.find((p) => Boolean(p.retirement_goal_target))
+			?.retirement_goal_target || 50000000;
+	const surplus = corpus - mandateTarget;
+
+	const firstYear = traj[0].year;
+	const lastPoint = traj[traj.length - 1];
+	const span = Math.max(1, lastPoint.year - firstYear);
+	const peak =
+		Math.max(...traj.map((p) => p.projected_corpus_inr), mandateTarget) * 1.1;
+
+	const xOf = (year: number) =>
+		PAD_L + ((year - firstYear) / span) * (W - PAD_L - PAD_R);
+	const yOf = (value: number) =>
+		H - PAD_B - (value / peak) * (H - PAD_T - PAD_B);
+
+	const projectionPath = traj
+		.map(
+			(p, i) =>
+				`${i === 0 ? "M" : "L"} ${xOf(p.year).toFixed(1)},${yOf(
+					p.projected_corpus_inr,
+				).toFixed(1)}`,
+		)
+		.join(" ");
 
 	const handleScenarioChange = (scId: string) => {
 		setActiveScenario(scId);
@@ -100,7 +153,7 @@ export default function SimulationView() {
 			liquid_pct: 5,
 			monthly_sip_inr: sip,
 		});
-		pushToast("Simulation recalculated with updated parameters", "info");
+		pushToast("Projection recalculated", "info");
 	};
 
 	const handleGenerateProposal = () => {
@@ -108,225 +161,297 @@ export default function SimulationView() {
 			strategic_rationale: `Strategic rebalancing to ${eqPct}% Equity, ${Math.max(
 				0,
 				95 - eqPct - 10,
-			)}% Debt, 10% Gold, 5% Liquid with ₹${(sipAmt / 1000).toFixed(
+			)}% Debt, 10% Gold, 5% Liquid with \u20b9${(sipAmt / 1000).toFixed(
 				0,
-			)}k/mo SIP, projecting ₹${finalCrores} Cr corpus for 2042 Early Retirement.`,
+			)}k/mo SIP, projecting \u20b9${finalCrores} Cr corpus for 2042 Early Retirement.`,
 		});
-		pushToast("Generating Official Wealth Advisory Proposal PDF...", "info");
+		pushToast("Preparing the advisory proposal", "info");
 	};
 
+	const activeName =
+		SCENARIOS.find((s) => s.id === activeScenario)?.name || "Standard baseline";
+
 	return (
-		<div className="space-y-5 pb-6">
-			{/* Top Metric Cards */}
-			<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-				{/* 2042 Retirement Corpus */}
-				<div className="glass-panel rounded-2xl p-5 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-card-luxury relative overflow-hidden">
-					<div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-					<p className="text-[11px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">
-						2042 Early Retirement Corpus
-					</p>
-					<p className="text-3xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-1">
-						₹{finalCrores} Cr
-					</p>
-					<div className="flex items-center gap-1.5 mt-1.5 text-xs text-emerald-700 dark:text-emerald-300">
-						<CheckCircle2 className="size-3.5" />
-						<span className="font-semibold">Target ₹5.00 Cr (116% Probability)</span>
-					</div>
-				</div>
-
-				{/* Blended Expected CAGR */}
-				<div className="glass-panel rounded-2xl p-5 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-card-luxury relative overflow-hidden">
-					<div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
-					<p className="text-[11px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">
-						Blended Expected Return
-					</p>
-					<p className="text-3xl font-black font-mono text-amber-600 dark:text-amber-400 mt-1">
-						{currentSim.blended_expected_cagr_pct}% p.a.
-					</p>
-					<p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 font-medium">
-						Multi-asset strategic weighting
-					</p>
-				</div>
-
-				{/* 2032 Higher Education */}
-				<div className="glass-panel rounded-2xl p-5 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-card-luxury relative overflow-hidden">
-					<div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
-					<p className="text-[11px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">
-						2032 Children Higher Education
-					</p>
-					<p className="text-3xl font-black font-mono text-slate-900 dark:text-white mt-1">₹54.2 L</p>
-					<div className="flex items-center gap-1.5 mt-1.5 text-xs text-emerald-700 dark:text-emerald-300">
-						<CheckCircle2 className="size-3.5" />
-						<span className="font-semibold">Target ₹50.0 L (Fully Funded)</span>
-					</div>
-				</div>
-			</div>
-
-			{/* Compounding Growth Cone (SVG Chart Canvas) */}
-			<div className="glass-panel rounded-2xl p-6 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-card-luxury space-y-3">
-				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-					<div>
-						<h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-							15-Year Compounding Growth Cone & Goal Milestones
-						</h3>
-						<p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-							Interactive trajectory from ₹75L baseline to ₹5.82 Cr 2042 milestone
+		<div className="space-y-rhythm pb-10">
+			{/* ---- The finding ------------------------------------------------ */}
+			<section className="paper reveal reveal-1">
+				<div className="doc-rule" />
+				<div className="space-y-7 p-gutter">
+					<div className="flex flex-wrap items-baseline justify-between gap-3">
+						<p className="label-strong">Goal simulation</p>
+						<p className="ref text-ink-muted">
+							{activeName} &middot; {currentSim.horizon_years} years
 						</p>
 					</div>
-					<span className="text-[11px] font-mono font-semibold text-amber-800 dark:text-amber-400 bg-amber-400/15 px-2.5 py-1 rounded-lg border border-amber-400/30">
-						₹{sipAmt.toLocaleString()} / mo SIP Active
-					</span>
-				</div>
 
-				{/* SVG Trajectory Chart */}
-				<div className="h-56 w-full relative pt-4">
-					<svg
-						viewBox="0 0 700 160"
-						className="w-full h-full overflow-visible"
-					>
-						{/* Horizontal grid lines */}
-						<line
-							x1="0"
-							y1="140"
-							x2="700"
-							y2="140"
-							stroke="rgba(150,150,150,0.25)"
-							strokeWidth="1"
-						/>
-						<line
-							x1="0"
-							y1="95"
-							x2="700"
-							y2="95"
-							stroke="rgba(150,150,150,0.2)"
-							strokeWidth="1"
-							strokeDasharray="3 3"
-						/>
-						<line
-							x1="0"
-							y1="45"
-							x2="700"
-							y2="45"
-							stroke="rgba(150,150,150,0.2)"
-							strokeWidth="1"
-							strokeDasharray="3 3"
-						/>
+					<div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+						<div className="space-y-4">
+							<h2 className="doc-title text-xl">
+								Projected corpus at {lastPoint.year}
+							</h2>
+							<div className="flex items-baseline gap-2">
+								<span className="figure-xl">{hero.value}</span>
+								<span className="figure-unit">{hero.unit}</span>
+							</div>
+							<p className="max-w-lg text-sm text-ink-muted">
+								{surplus >= 0 ? "+" : "-"}
+								{inrCompact(Math.abs(surplus))} against the{" "}
+								{inrCompact(mandateTarget)} retirement mandate, on a monthly
+								commitment of {rupee(sipAmt)}.
+							</p>
+						</div>
 
-						{/* Shaded Area Under Trajectory */}
-						<path
-							d="M 25,130 Q 180,122 340,85 T 675,28 L 675,140 L 25,140 Z"
-							fill="url(#goldGradient)"
-							opacity="0.18"
-						/>
-
-						{/* Gradients */}
-						<defs>
-							<linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-								<stop offset="0%" stopColor="#1E293B" />
-								<stop offset="50%" stopColor="#D97706" />
-								<stop offset="100%" stopColor="#10B981" />
-							</linearGradient>
-							<linearGradient id="trajectoryStroke" x1="0%" y1="0%" x2="100%" y2="0%">
-								<stop offset="0%" stopColor="#D97706" />
-								<stop offset="50%" stopColor="#F59E0B" />
-								<stop offset="100%" stopColor="#10B981" />
-							</linearGradient>
-						</defs>
-
-						{/* Main Trajectory Stroke */}
-						<path
-							d="M 25,130 Q 180,122 340,85 T 675,28"
-							fill="none"
-							stroke="url(#trajectoryStroke)"
-							strokeWidth="3.5"
-						/>
-
-						{/* Milestone Point 1: 2026 Baseline */}
-						<circle cx="25" cy="130" r="5" fill="#D97706" />
-						<text x="25" y="115" fontSize="10" fill="#D97706" fontWeight="bold">
-							2026: ₹75L
-						</text>
-
-						{/* Milestone Point 2: 2032 Education */}
-						<circle cx="340" cy="85" r="6" fill="#F59E0B" />
-						<text x="340" y="70" textAnchor="middle" fontSize="10" fill="#F59E0B" fontWeight="bold">
-							2032: ₹50L Education Goal
-						</text>
-
-						{/* Milestone Point 3: 2042 Early Retirement */}
-						<circle cx="675" cy="28" r="7" fill="#10B981" />
-						<text x="675" y="14" textAnchor="end" fontSize="11" fill="#10B981" fontWeight="black">
-							2042: ₹5.82 Cr Retirement Milestone
-						</text>
-
-						{/* X-Axis Year Labels */}
-						<text x="25" y="155" fontSize="10" fill="#64748B" fontFamily="monospace">
-							2026
-						</text>
-						<text x="180" y="155" fontSize="10" fill="#64748B" fontFamily="monospace">
-							2029 (₹1.2 Cr)
-						</text>
-						<text x="340" y="155" fontSize="10" fill="#64748B" fontFamily="monospace" textAnchor="middle">
-							2032 (₹2.4 Cr)
-						</text>
-						<text x="510" y="155" fontSize="10" fill="#64748B" fontFamily="monospace">
-							2037 (₹3.9 Cr)
-						</text>
-						<text x="675" y="155" fontSize="10" fill="#64748B" fontFamily="monospace" textAnchor="end">
-							2042 (₹5.82 Cr)
-						</text>
-					</svg>
-				</div>
-			</div>
-
-			{/* Interactive Parameter Controls & Macro Scenarios */}
-			<div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-				{/* Scenario Matrix (7 cols) */}
-				<div className="lg:col-span-7 glass-panel rounded-2xl p-5 space-y-3 shadow-sm dark:shadow-card-luxury border border-slate-200 dark:border-white/10">
-					<h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-						Macroeconomic Scenario Sensitivity
-					</h3>
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-						{SCENARIOS.map((sc) => {
-							const active = activeScenario === sc.id;
-							return (
-								<button
-									key={sc.id}
-									type="button"
-									onClick={() => handleScenarioChange(sc.id)}
-									className={`p-3 rounded-xl border text-left transition-all ${
-										active
-											? "bg-amber-400/20 border-amber-400/70 text-slate-900 dark:text-white shadow-xs ring-1 ring-amber-400/50"
-											: "bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 hover:border-slate-300 dark:hover:border-white/15"
-									}`}
-								>
-									<div className="flex items-center justify-between">
-										<p className="text-xs font-bold leading-tight">{sc.label}</p>
-										<span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-200 dark:bg-slate-900 text-amber-800 dark:text-amber-300 border border-slate-300 dark:border-white/10">
-											{sc.badge}
-										</span>
-									</div>
-									<p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 leading-snug">
-										{sc.desc}
-									</p>
-								</button>
-							);
-						})}
+						<div className="flex gap-10 lg:pb-1">
+							<div>
+								<p className="label">Blended return</p>
+								<div className="mt-1.5 flex items-baseline gap-1.5">
+									<span className="figure">
+										{pct(currentSim.blended_expected_cagr_pct)}
+									</span>
+									<span className="figure-unit">p.a.</span>
+								</div>
+							</div>
+							<div>
+								<p className="label">Monthly commitment</p>
+								<p className="figure mt-1.5">{rupee(sipAmt)}</p>
+							</div>
+						</div>
 					</div>
 				</div>
+			</section>
 
-				{/* Allocation & SIP Sliders (5 cols) */}
-				<div className="lg:col-span-5 glass-panel rounded-2xl p-5 space-y-4 shadow-sm dark:shadow-card-luxury border border-slate-200 dark:border-white/10 flex flex-col justify-between">
-					<div className="space-y-4">
-						<h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-							Simulation Levers & SIP Deployment
-						</h3>
+			{/* ---- The projection --------------------------------------------- */}
+			<section className="paper space-y-5 p-gutter reveal reveal-2">
+				<div className="flex flex-wrap items-baseline justify-between gap-3">
+					<h3 className="doc-title text-lg">
+						Path to {lastPoint.year}
+					</h3>
+					<p className="ref text-ink-muted">
+						{inrCompact(traj[0].projected_corpus_inr)} today &rarr;{" "}
+						{inrCompact(lastPoint.projected_corpus_inr)}
+					</p>
+				</div>
 
-						{/* Equity Slider */}
-						<div className="space-y-2">
-							<div className="flex justify-between text-xs font-semibold">
-								<span className="text-slate-500 dark:text-slate-400">Equity Target Weight:</span>
-								<span className="font-mono font-bold text-amber-600 dark:text-amber-400">{eqPct}%</span>
+				<svg
+					viewBox={`0 0 ${W} ${H}`}
+					className="h-[260px] w-full"
+					role="img"
+					aria-label={`Projected corpus rising to ${hero.value} ${hero.unit} by ${lastPoint.year}`}
+				>
+					{/* The retirement mandate: the only reference line on the plot. */}
+					<line
+						x1={PAD_L}
+						y1={yOf(mandateTarget)}
+						x2={W - PAD_R}
+						y2={yOf(mandateTarget)}
+						stroke="var(--rule-strong)"
+						strokeWidth="1"
+						strokeDasharray="4 4"
+					/>
+					<text
+						x={PAD_L}
+						y={yOf(mandateTarget) - 8}
+						fontSize="14"
+						fill="var(--ink-muted)"
+					>
+						Retirement mandate {inrCompact(mandateTarget)}
+					</text>
+
+					{/* Baseline */}
+					<line
+						x1={PAD_L}
+						y1={H - PAD_B}
+						x2={W - PAD_R}
+						y2={H - PAD_B}
+						stroke="var(--rule-strong)"
+						strokeWidth="1"
+					/>
+
+					{/* The projection. This is where the accent is spent. */}
+					<path
+						d={projectionPath}
+						fill="none"
+						stroke="var(--stamp)"
+						strokeWidth="2.5"
+						strokeLinejoin="round"
+						strokeLinecap="round"
+					/>
+
+					{traj.slice(0, -1).map((p) => (
+						<circle
+							key={p.year}
+							cx={xOf(p.year)}
+							cy={yOf(p.projected_corpus_inr)}
+							r="2.5"
+							fill="var(--stamp)"
+						/>
+					))}
+
+					<circle
+						cx={xOf(lastPoint.year)}
+						cy={yOf(lastPoint.projected_corpus_inr)}
+						r="5"
+						fill="var(--stamp)"
+					/>
+					<text
+						x={xOf(lastPoint.year)}
+						y={yOf(lastPoint.projected_corpus_inr) - 16}
+						textAnchor="end"
+						fontSize="16"
+						fontWeight="600"
+						fill="var(--ink-strong)"
+						style={{ fontVariantNumeric: "tabular-nums" }}
+					>
+						{inrCompact(lastPoint.projected_corpus_inr)}
+					</text>
+
+					{/* Year ticks */}
+					{traj.map((p, i) => (
+						<text
+							key={p.year}
+							x={xOf(p.year)}
+							y={H - PAD_B + 22}
+							textAnchor={
+								i === 0 ? "start" : i === traj.length - 1 ? "end" : "middle"
+							}
+							fontSize="14"
+							fill="var(--ink-muted)"
+							style={{ fontVariantNumeric: "tabular-nums" }}
+						>
+							{p.year}
+						</text>
+					))}
+				</svg>
+			</section>
+
+			{/* ---- Recommended allocation and goal feasibility ----------------- */}
+			<div className="grid grid-cols-1 gap-rhythm lg:grid-cols-12">
+				<section className="paper space-y-6 p-gutter reveal reveal-3 lg:col-span-7">
+					<h3 className="doc-title text-lg">Recommended allocation</h3>
+
+					<div className="flex h-4 w-full overflow-hidden border border-rule bg-paper-sunken">
+						{SLEEVES.map((s, i) => (
+							<div
+								key={s.key}
+								className={
+									i < SLEEVES.length - 1 ? "border-r-2 border-paper-sheet" : ""
+								}
+								style={{
+									width: `${currentSim.target_allocation[s.key]}%`,
+									backgroundColor: s.ink,
+								}}
+							/>
+						))}
+					</div>
+
+					<div className="divide-y divide-rule">
+						{SLEEVES.map((s) => (
+							<div
+								key={s.key}
+								className="flex flex-wrap items-baseline gap-x-8 gap-y-2 py-3.5"
+							>
+								<span className="flex w-28 items-center gap-2.5">
+									<span
+										className="size-2.5 shrink-0"
+										style={{ backgroundColor: s.ink }}
+									/>
+									<span className="text-base text-ink">{s.name}</span>
+								</span>
+								<span className="figure-sm w-16 tabular-nums">
+									{currentSim.target_allocation[s.key]}%
+								</span>
+								<span className="ml-auto text-sm tabular-nums text-ink-muted">
+									{rupee((corpus * currentSim.target_allocation[s.key]) / 100)}{" "}
+									at {lastPoint.year}
+								</span>
+							</div>
+						))}
+					</div>
+				</section>
+
+				<section className="paper space-y-6 p-gutter reveal reveal-3 lg:col-span-5">
+					<h3 className="doc-title text-lg">Goals under this plan</h3>
+
+					<div className="space-y-6">
+						<div className="mark-quiet">
+							<p className="label">Higher education, 2032</p>
+							<p className="mt-1.5 text-base text-ink-strong">
+								{currentSim.goals_feasibility.education_2032_status}
+							</p>
+						</div>
+						<div className="mark-quiet">
+							<p className="label">Financial independence, 2042</p>
+							<p className="mt-1.5 text-base text-ink-strong">
+								{currentSim.goals_feasibility.retirement_2042_status}
+							</p>
+						</div>
+					</div>
+
+					<p className="text-sm text-ink-muted">
+						Projections assume the monthly commitment continues uninterrupted
+						for the full {currentSim.horizon_years} years.
+					</p>
+				</section>
+			</div>
+
+			{/* ---- Assumptions. Every control still fires the simulator. ------- */}
+			<section className="paper space-y-6 p-gutter reveal reveal-4">
+				<div className="flex flex-wrap items-baseline justify-between gap-3">
+					<h3 className="doc-title text-lg">Assumptions</h3>
+					<p className="text-sm text-ink-muted">
+						Each change re-runs the projection
+					</p>
+				</div>
+
+				<div className="grid grid-cols-1 gap-rhythm lg:grid-cols-12">
+					<div className="space-y-3 lg:col-span-7">
+						<p className="label-strong">Market scenario</p>
+						<div className="paper-sunken divide-y divide-rule">
+							{SCENARIOS.map((sc) => {
+								const active = activeScenario === sc.id;
+								return (
+									<button
+										key={sc.id}
+										type="button"
+										onClick={() => handleScenarioChange(sc.id)}
+										className={`flex w-full items-baseline justify-between gap-6 border-l-[3px] px-4 py-3.5 text-left transition-colors ${
+											active
+												? "border-l-ink-strong bg-paper-sheet"
+												: "border-l-transparent hover:bg-paper-edge"
+										}`}
+									>
+										<span className="min-w-0">
+											<span
+												className={
+													active
+														? "block text-base font-semibold text-ink-strong"
+														: "block text-base text-ink"
+												}
+											>
+												{sc.name}
+											</span>
+											<span className="mt-1 block text-sm text-ink-muted">
+												{sc.note}
+											</span>
+										</span>
+										<span
+											className={`figure-sm shrink-0 tabular-nums ${
+												active ? "" : "text-ink-muted"
+											}`}
+										>
+											{pct(sc.cagr)}
+										</span>
+									</button>
+								);
+							})}
+						</div>
+					</div>
+
+					<div className="space-y-8 paper-sunken p-5 lg:col-span-5">
+						<div className="space-y-3">
+							<div className="flex items-baseline justify-between gap-4">
+								<span className="label-strong">Equity weight</span>
+								<span className="figure-sm tabular-nums">{eqPct}%</span>
 							</div>
 							<Slider
 								min={40}
@@ -337,18 +462,15 @@ export default function SimulationView() {
 								onValueCommit={(val) => handleRecalculate(val[0], sipAmt)}
 								className="py-1"
 							/>
-							<p className="text-[10px] text-slate-500 font-mono">
-								Debt: {Math.max(0, 95 - eqPct - 10)}% | Gold: 10% | Cash: 5%
+							<p className="text-sm text-ink-muted">
+								Debt {Math.max(0, 95 - eqPct - 10)}%, gold 10%, liquid 5%
 							</p>
 						</div>
 
-						{/* Monthly SIP Slider */}
-						<div className="space-y-2">
-							<div className="flex justify-between text-xs font-semibold">
-								<span className="text-slate-500 dark:text-slate-400">Monthly SIP Deployment:</span>
-								<span className="font-mono font-black text-emerald-600 dark:text-emerald-400">
-									₹{sipAmt.toLocaleString()} / mo
-								</span>
+						<div className="space-y-3">
+							<div className="flex items-baseline justify-between gap-4">
+								<span className="label-strong">Monthly commitment</span>
+								<span className="figure-sm tabular-nums">{rupee(sipAmt)}</span>
 							</div>
 							<Slider
 								min={50000}
@@ -359,21 +481,33 @@ export default function SimulationView() {
 								onValueCommit={(val) => handleRecalculate(eqPct, val[0])}
 								className="py-1"
 							/>
-							<p className="text-[10px] text-slate-500 font-mono">
-								Deploying ₹90k unallocated surplus + ₹60k base SIP
+							<p className="text-sm text-ink-muted">
+								The idle {rupee(90000)} surplus plus the {rupee(60000)} already
+								running
 							</p>
 						</div>
 					</div>
-
-					<Button
-						onClick={handleGenerateProposal}
-						className="w-full h-10 bg-amber-400 text-slate-950 hover:bg-amber-300 font-bold text-xs gap-2 rounded-xl mt-2 shadow-xs"
-					>
-						<FileText className="size-4 text-slate-950" />
-						<span>Generate Advisory Proposal PDF</span>
-					</Button>
 				</div>
-			</div>
+			</section>
+
+			{/* ---- The document ------------------------------------------------ */}
+			<section className="paper flex flex-col gap-6 p-gutter reveal reveal-5 sm:flex-row sm:items-center sm:justify-between">
+				<div className="space-y-2">
+					<h3 className="doc-title text-lg">Advisory proposal</h3>
+					<p className="max-w-xl text-sm text-ink-muted">
+						Sets out the rebalancing, the monthly commitment and the goal
+						projection for the client to sign. Issued under the SEBI
+						(Investment Advisers) Regulations, 2013.
+					</p>
+				</div>
+				<Button
+					onClick={handleGenerateProposal}
+					className="h-11 shrink-0 gap-2 rounded-lg px-5 text-sm font-semibold"
+				>
+					<FileText className="size-4" />
+					<span>Generate the proposal</span>
+				</Button>
+			</section>
 		</div>
 	);
 }

@@ -2,20 +2,29 @@ import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
+/**
+ * Alerts carry no hue either.
+ *
+ * The old amber / emerald / blue trio is collapsed onto the ink system:
+ * severity is a LEFT RULE and a type weight, not a coloured panel. Variant
+ * keys are preserved so call sites keep compiling. `destructive` stays
+ * chromatic because a genuine failure is the one place a warm hue earns its
+ * place — and it is deliberately desaturated.
+ */
 const alertVariants = cva(
-  "relative w-full rounded-2xl border p-4 text-xs [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
+  "relative w-full rounded-lg border border-rule bg-paper-sheet p-4 text-xs text-ink [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-ink-muted",
   {
     variants: {
       variant: {
-        default: "bg-background text-foreground",
+        default: "",
         destructive:
-          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive bg-destructive/5",
+          "border-destructive text-destructive [&>svg]:text-destructive",
+        // Needs attention: a heavy left rule, the way a margin mark works.
         warning:
-          "border-amber-200/80 bg-amber-50/80 text-amber-950 dark:border-amber-500/30 dark:bg-amber-950/20 dark:text-amber-200 [&>svg]:text-amber-600",
-        success:
-          "border-emerald-200 bg-emerald-50 text-emerald-950 dark:border-emerald-500/30 dark:bg-emerald-950/20 dark:text-emerald-200 [&>svg]:text-emerald-600",
-        info:
-          "border-blue-200 bg-blue-50 text-blue-950 dark:border-blue-500/30 dark:bg-blue-950/20 dark:text-blue-200 [&>svg]:text-blue-600",
+          "border-l-[3px] border-l-ink-strong text-ink-strong [&>svg]:text-ink-strong",
+        // Settled / on track: quiet. The seal lives on the document itself.
+        success: "bg-paper-sunken text-ink [&>svg]:text-ink-muted",
+        info: "text-ink-muted [&>svg]:text-ink-faint",
       },
     },
     defaultVariants: {

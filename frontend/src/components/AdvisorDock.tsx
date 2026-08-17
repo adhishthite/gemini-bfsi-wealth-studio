@@ -4,28 +4,55 @@ import {
 	Send,
 	Volume2,
 	VolumeX,
-	Sparkles,
 	Video,
 	PhoneOff,
-	ShieldCheck,
 	Maximize2,
 	Minimize2,
-	Activity,
 } from "lucide-react";
 import { useStore } from "@/store";
 import { sendUserText } from "@/ws";
+import { inrCompact, rupee } from "@/lib";
 import { LiveAvatar } from "@/lib/liveClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-const WEALTH_STARTERS = [
-	"Review my ₹75L portfolio & goal progress",
-	"Show top Flexi Cap & Global Tech funds",
+/* Seeded openings for the advisory conversation. Amounts run through the
+   Indian grouping helpers so the chips and the transcript agree. */
+const ADVISORY_OPENERS = [
+	`Review my ${inrCompact(7500000)} portfolio and goal progress`,
+	"Show the top flexi cap and global tech funds",
 	"Add all-weather volatility protection",
-	"Simulate ₹1 Lakh/month SIP for 2042 Retirement",
-	"Generate official Advisory Proposal PDF",
+	`Simulate a ${rupee(100000)} monthly SIP for the 2042 retirement goal`,
+	"Generate the official advisory proposal",
 ];
+
+const CLIENT_NAME = "Rahul Sharma";
+
+/**
+ * Audio level indicator, demoted to chrome.
+ *
+ * Three hairlines that breathe in opacity — no bouncing, no glow, no layout
+ * movement. It only renders while Ananya is genuinely listening, thinking or
+ * speaking, so an idle dock on a projected screen holds perfectly still.
+ */
+function AudioLevel({ active }: { active: boolean }) {
+	if (!active) return null;
+	return (
+		<span className="inline-flex h-3 items-end gap-[3px]" aria-hidden="true">
+			{[7, 11, 8].map((h, i) => (
+				<span
+					key={i}
+					className="w-[2px] animate-pulse bg-ink-muted"
+					style={{
+						height: `${h}px`,
+						animationDelay: `${i * 200}ms`,
+						animationDuration: "1.8s",
+					}}
+				/>
+			))}
+		</span>
+	);
+}
 
 export default function AdvisorDock() {
 	const {
@@ -67,7 +94,7 @@ export default function AdvisorDock() {
 			useStore
 				.getState()
 				.pushToast(
-					"Couldn't start the live avatar (mic permission?)",
+					"Couldn't start the live advisor (mic permission?)",
 					"warning",
 				);
 		}
@@ -123,217 +150,223 @@ export default function AdvisorDock() {
 
 	const status = live.active
 		? live.status === "connecting"
-			? "Connecting Live…"
+			? "Connecting"
 			: live.status === "speaking"
-				? "Ananya Speaking…"
-				: "Listening…"
+				? "Speaking"
+				: "Listening"
 		: !connected
-			? "Connecting…"
+			? "Connecting"
 			: thinking
-				? "Analyzing Allocations…"
+				? "Reviewing the portfolio"
 				: listening
-					? "Listening…"
+					? "Listening"
 					: speaking
-						? "Ananya Speaking…"
-						: "Senior Advisory Online";
+						? "Speaking"
+						: "Available";
+
+	/* Consecutive messages from the same speaker are one minuted turn: one
+	   attribution, one rule, several paragraphs. */
+	const turns: { role: string; items: typeof chat }[] = [];
+	for (const m of chat) {
+		const last = turns[turns.length - 1];
+		if (last && last.role === m.role) last.items.push(m);
+		else turns.push({ role: m.role, items: [m] });
+	}
 
 	return (
-		<div className="glass-panel rounded-2xl flex flex-col h-full overflow-hidden border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-card-luxury">
-			{/* ===== LIVE VIDEO STAGE (Gemini 3.1 Live Avatar) ===== */}
+		<div className="paper flex h-full flex-col overflow-hidden">
+			{/* ===== LIVE STAGE ===== */}
 			<div
 				className={
 					live.active
-						? "relative flex-1 min-h-0 bg-slate-950 overflow-hidden"
+						? "relative min-h-0 flex-1 overflow-hidden bg-black"
 						: "hidden"
 				}
 			>
 				<canvas
 					ref={canvasRef}
-					className="absolute inset-0 h-full w-full object-cover object-center scale-[1.08] origin-bottom"
+					className="absolute inset-0 h-full w-full origin-bottom scale-[1.08] object-cover object-center"
 				/>
 
-				{/* Live Status Overlay */}
-				<div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
-					<div className="flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs font-semibold border border-white/10">
-						<span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
-						<span>Photoreal Live Advisor</span>
-					</div>
-					<Button
-						size="sm"
-						variant="destructive"
+				{/* Live marker + the one control that matters on stage */}
+				<div className="absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-3 px-4 py-3">
+					<span className="border-l-2 border-white bg-black/70 px-2.5 py-1 text-[0.75rem] font-medium uppercase leading-4 tracking-[0.09em] text-white">
+						Live · Senior Relationship Manager
+					</span>
+					<button
+						type="button"
 						onClick={stopLive}
-						className="h-7 px-2.5 rounded-full text-xs font-bold gap-1 shadow-lg"
+						className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/30 bg-black/70 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-black"
 					>
-						<PhoneOff className="size-3.5" />
-						<span>End Live</span>
-					</Button>
+						<PhoneOff className="size-4" />
+						<span>End live</span>
+					</button>
 				</div>
 
-				{/* Live Subtitle Transcript */}
-				<div className="absolute bottom-16 left-3 right-3 bg-slate-950/85 backdrop-blur-md rounded-xl p-3 z-10 border border-white/10 shadow-2xl">
+				{/* Spoken transcript, sized to read from across the room */}
+				<div className="absolute inset-x-0 bottom-[4.75rem] z-10 border-t border-white/20 bg-black/75 px-4 py-3">
 					<p
 						ref={captionRef}
-						className="text-xs text-white leading-relaxed max-h-20 overflow-y-auto font-medium"
+						className="scrollbar-none max-h-24 overflow-y-auto text-base leading-relaxed text-white"
 					>
 						{live.caption ||
-							"Hold Spacebar or the Mic button to converse with Ananya..."}
+							"Hold the spacebar, or the talk button, to speak with Ananya."}
 					</p>
 				</div>
 
-				{/* Push-to-Talk Floating Bar */}
-				<div className="absolute bottom-3 left-0 right-0 flex justify-center z-10">
-					<Button
+				{/* Push to talk */}
+				<div className="absolute inset-x-0 bottom-4 z-10 flex justify-center">
+					<button
+						type="button"
 						onMouseDown={() => talk(true)}
 						onMouseUp={() => talk(false)}
 						onTouchStart={() => talk(true)}
 						onTouchEnd={() => talk(false)}
-						variant={live.talking ? "destructive" : "default"}
-						className={`rounded-full px-5 py-2 font-bold text-xs shadow-lg transition-transform ${
+						className={`inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-xs font-semibold transition-colors ${
 							live.talking
-								? "scale-105"
-								: "bg-amber-400 text-slate-950 hover:bg-amber-300"
+								? "bg-stamp text-stamp-foreground"
+								: "bg-white text-ink-strong hover:bg-white/90"
 						}`}
 					>
-						<Mic className={`size-3.5 ${live.talking ? "animate-pulse" : ""}`} />
+						<Mic className="size-4" />
 						<span>
-							{live.talking ? "Release to Send" : "Hold to Talk (or Spacebar)"}
+							{live.talking ? "Release to send" : "Hold to talk — or spacebar"}
 						</span>
-					</Button>
+					</button>
 				</div>
 			</div>
 
-			{/* ===== STANDARD ADVISOR HEADER ===== */}
+			{/* ===== HEADER: name, status, one action ===== */}
 			{!live.active && (
-				<div className="p-3.5 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-950/70 text-slate-900 dark:text-white flex items-center justify-between">
-					<div className="flex items-center gap-2.5">
-						<div className="relative">
-							<Avatar className="size-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 shadow-md border border-amber-400/40">
-								<AvatarFallback className="rounded-xl bg-transparent text-slate-950 font-black text-sm">
-									A
-								</AvatarFallback>
-							</Avatar>
-							<span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-950 shadow-xs" />
+				<header className="flex items-start justify-between gap-4 border-b border-rule bg-paper-sheet px-5 py-4">
+					<div className="flex min-w-0 items-start gap-3">
+						<div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-rule bg-paper-sunken">
+							<span className="font-display text-lg leading-none text-ink-strong">
+								A
+							</span>
 						</div>
-						<div>
-							<div className="flex items-center gap-1.5">
-								<h3 className="font-bold text-sm leading-none text-slate-900 dark:text-white">Ananya</h3>
-								<span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-400/15 text-amber-900 dark:text-amber-300 border border-amber-400/30">
-									Senior RM
+						<div className="min-w-0">
+							<h2 className="doc-title text-lg leading-tight">Ananya</h2>
+							<p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-muted">
+								<span>Senior Relationship Manager</span>
+								<span className="h-3 w-px bg-rule" aria-hidden="true" />
+								<span className="inline-flex items-center gap-1.5">
+									<span
+										className={`size-1.5 rounded-full ${
+											connected ? "bg-ink-strong" : "bg-ink-faint"
+										}`}
+										aria-hidden="true"
+									/>
+									<span>{status}</span>
 								</span>
-							</div>
-							<p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
-								<ShieldCheck className="size-3 text-emerald-600 dark:text-emerald-400" />
-								<span>{status}</span>
+								<AudioLevel active={listening || speaking || thinking} />
 							</p>
 						</div>
 					</div>
 
-					<div className="flex items-center gap-1.5">
-						{/* Audio Pulse Visualizer */}
-						{(speaking || thinking) && (
-							<div className="flex items-center gap-0.5 px-2 py-1 bg-amber-400/10 rounded-lg border border-amber-400/25 mr-1">
-								<span className="size-1 bg-amber-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
-								<span className="size-1 bg-amber-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
-								<span className="size-1 bg-amber-400 rounded-full animate-bounce" />
-							</div>
-						)}
-
-						{/* Expand Toggle */}
-						<Button
-							variant="ghost"
-							size="iconSm"
+					<div className="flex shrink-0 items-center gap-1">
+						{/* Quiet chrome: stage size and voice. Both stay live for the demo. */}
+						<button
+							type="button"
 							onClick={() => set({ expandedAdvisor: !expandedAdvisor })}
-							className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 size-7 rounded-lg hidden xl:flex"
-							title={expandedAdvisor ? "Collapse Advisor Stage" : "Expand Advisor Stage"}
+							title={
+								expandedAdvisor ? "Collapse the advisor" : "Expand the advisor"
+							}
+							aria-label={
+								expandedAdvisor ? "Collapse the advisor" : "Expand the advisor"
+							}
+							className="inline-flex size-8 items-center justify-center rounded-lg text-ink-faint transition-colors hover:bg-paper-sunken hover:text-ink-strong focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rule-strong"
 						>
 							{expandedAdvisor ? (
-								<Minimize2 className="size-3.5" />
+								<Minimize2 className="size-4" />
 							) : (
-								<Maximize2 className="size-3.5" />
+								<Maximize2 className="size-4" />
 							)}
-						</Button>
-
-						{/* Voice Mute Toggle */}
-						<Button
-							variant="ghost"
-							size="iconSm"
+						</button>
+						<button
+							type="button"
 							onClick={() => set({ voiceOn: !voiceOn })}
-							className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 size-7 rounded-lg"
-							title={voiceOn ? "Mute Voice" : "Unmute Voice"}
+							title={voiceOn ? "Mute Ananya" : "Unmute Ananya"}
+							aria-label={voiceOn ? "Mute Ananya" : "Unmute Ananya"}
+							className="inline-flex size-8 items-center justify-center rounded-lg text-ink-faint transition-colors hover:bg-paper-sunken hover:text-ink-strong focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rule-strong"
 						>
 							{voiceOn ? (
-								<Volume2 className="size-3.5 text-amber-500 dark:text-amber-400" />
+								<Volume2 className="size-4" />
 							) : (
-								<VolumeX className="size-3.5 text-slate-400" />
+								<VolumeX className="size-4" />
 							)}
-						</Button>
+						</button>
 
-						{/* Go Live Button */}
+						{/* The single accent on this screen: the moment the demo turns on. */}
 						<Button
 							onClick={startLive}
-							className="h-8 gap-1.5 rounded-xl text-xs font-bold bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-xs"
-							title="Start Photoreal Live Video Avatar"
+							title="Start the live video advisor"
+							className="ml-1.5 h-9 gap-2 rounded-lg bg-stamp px-4 text-xs font-semibold text-stamp-foreground shadow-none hover:bg-stamp-strong"
 						>
-							<Video className="size-3.5" />
-							<span>Go Live</span>
+							<Video className="size-4" />
+							<span>Go live</span>
 						</Button>
 					</div>
-				</div>
+				</header>
 			)}
 
-			{/* ===== CHAT STREAM ===== */}
+			{/* ===== TRANSCRIPT ===== */}
 			{!live.active && (
 				<div
 					ref={scrollRef}
-					className="flex-1 p-3.5 overflow-y-auto space-y-3 min-h-0 bg-slate-50/50 dark:bg-slate-950/30"
+					className="min-h-0 flex-1 overflow-y-auto bg-paper px-5 py-5"
 				>
-					{chat.map((m) => (
-						<div
-							key={m.id}
-							className={`flex flex-col ${
-								m.role === "user" ? "items-end" : "items-start"
-							}`}
-						>
-							<div
-								className={`max-w-[90%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${
-									m.role === "user"
-										? "bg-amber-400/20 dark:bg-amber-400/15 border border-amber-400/30 text-amber-950 dark:text-amber-100 rounded-br-none shadow-xs"
-										: "bg-white dark:bg-slate-900/90 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-white/10 rounded-bl-none shadow-xs"
-								}`}
-							>
-								{m.text}
-							</div>
-							<span className="text-[9px] text-slate-400 dark:text-slate-500 mt-1 px-1 font-mono">
-								{m.role === "user" ? "Rahul Sharma" : "Ananya • Private Wealth"}
-							</span>
-						</div>
-					))}
+					<ol className="space-y-6">
+						{turns.map((turn, ti) => {
+							const isClient = turn.role === "user";
+							return (
+								<li
+									key={turn.items[0].id ?? ti}
+									className={isClient ? "pl-8" : "mark-quiet"}
+								>
+									<p className={`mb-1.5 ${isClient ? "label" : "label-strong"}`}>
+										{isClient ? CLIENT_NAME : "Ananya"}
+									</p>
+									<div className="space-y-2.5">
+										{turn.items.map((m) => (
+											<p
+												key={m.id}
+												className={`text-base leading-relaxed ${
+													isClient
+														? "font-medium text-ink-strong"
+														: "text-ink"
+												}`}
+											>
+												{m.text}
+											</p>
+										))}
+									</div>
+								</li>
+							);
+						})}
 
-					{thinking && (
-						<div className="flex items-center gap-2 text-xs text-amber-900 dark:text-amber-300 bg-amber-400/10 dark:bg-slate-900/90 border border-amber-400/30 rounded-2xl px-3.5 py-2 w-fit shadow-xs">
-							<Sparkles className="size-3.5 text-amber-500 dark:text-amber-400 animate-spin" />
-							<span>Ananya is calculating strategic allocations…</span>
-						</div>
-					)}
+						{thinking && (
+							<li className="mark-quiet">
+								<p className="label-strong mb-1.5">Ananya</p>
+								<p className="text-base leading-relaxed text-ink-faint">
+									Reviewing your allocation and goal funding…
+								</p>
+							</li>
+						)}
+					</ol>
 
-					{/* Helpful Suggested Actions when chat is young */}
 					{chat.length <= 2 && !thinking && (
-						<div className="pt-2 space-y-2">
-							<p className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 px-1">
-								Suggested Advisory Prompts
-							</p>
-							<div className="grid grid-cols-1 gap-1.5">
-								{WEALTH_STARTERS.slice(0, 3).map((s, i) => (
+						<div className="mt-8 border-t border-rule pt-5">
+							<p className="label">Suggested</p>
+							<div className="mt-3 grid gap-2">
+								{ADVISORY_OPENERS.slice(0, 3).map((s) => (
 									<button
-										key={i}
+										key={s}
 										type="button"
 										onClick={() => sendUserText(s)}
-										className="text-left p-2.5 rounded-xl bg-white/90 dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/5 text-xs text-slate-700 dark:text-slate-300 hover:border-amber-400/40 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all shadow-2xs group"
+										className="paper-interactive px-3.5 py-2.5 text-left text-xs text-ink"
 									>
-										<div className="flex items-center justify-between">
-											<span className="line-clamp-1">{s}</span>
-											<Sparkles className="size-3 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2" />
-										</div>
+										{s}
 									</button>
 								))}
 							</div>
@@ -342,30 +375,31 @@ export default function AdvisorDock() {
 				</div>
 			)}
 
-			{/* ===== TEXT INPUT DOCK ===== */}
+			{/* ===== COMPOSER ===== */}
 			{!live.active && (
-				<div className="p-2.5 border-t border-slate-200/80 dark:border-white/10 bg-white/95 dark:bg-slate-950/80">
+				<div className="border-t border-rule bg-paper-sheet px-5 py-4">
 					<form
 						onSubmit={(e) => {
 							e.preventDefault();
 							submit();
 						}}
-						className="flex items-center gap-1.5"
+						className="flex items-center gap-2"
 					>
 						<Input
 							type="text"
 							value={text}
 							onChange={(e) => setText(e.target.value)}
-							placeholder="Ask Ananya (e.g. 'How can I reach ₹5 Cr by 2042?')..."
-							className="bg-slate-100 dark:bg-slate-900/90 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-amber-400/50 text-xs h-9 rounded-lg"
+							placeholder="Ask Ananya about the portfolio, the goals or the mandate"
+							className="paper-sunken h-10 flex-1 rounded-lg border-rule text-sm text-ink placeholder:text-ink-faint focus-visible:ring-1 focus-visible:ring-rule-strong focus-visible:ring-offset-0"
 						/>
 						<Button
 							type="submit"
 							disabled={!text.trim()}
-							size="iconSm"
-							className="size-9 rounded-lg shrink-0 bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-xs"
+							size="icon"
+							aria-label="Send"
+							className="size-10 shrink-0 rounded-lg shadow-none"
 						>
-							<Send className="size-3.5" />
+							<Send className="size-4" />
 						</Button>
 					</form>
 				</div>
@@ -373,4 +407,3 @@ export default function AdvisorDock() {
 		</div>
 	);
 }
-

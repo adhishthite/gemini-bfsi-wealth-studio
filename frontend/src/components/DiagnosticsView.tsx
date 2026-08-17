@@ -1,8 +1,21 @@
-import { ShieldAlert, AlertTriangle, TrendingUp, PieChart, ArrowRight, CheckCircle, Clock } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useStore } from "@/store";
 import { sendAction } from "@/ws";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { inrCompact, inrParts, pct, pctDelta, rupee } from "@/lib";
+
+/* The strategic mandate the book is audited against. Identical to the weights
+	 the goal simulation opens with, so the two pages tell one story. */
+const MANDATE = { equity: 65, debt: 20, gold: 10, cash_liquid: 5 } as const;
+
+/* One ink ramp for every chart in the studio: the weight of the ink follows
+	 the weight of the holding. Ink only — the accent is never spent in a chart. */
+const SLEEVES = [
+	{ key: "equity", name: "Equity", ink: "var(--ink-strong)" },
+	{ key: "debt", name: "Debt", ink: "var(--ink)" },
+	{ key: "gold", name: "Gold", ink: "var(--ink-muted)" },
+	{ key: "cash_liquid", name: "Cash", ink: "var(--ink-faint)" },
+] as const;
 
 export default function DiagnosticsView() {
 	const { diagnostics, set } = useStore();
@@ -17,14 +30,14 @@ export default function DiagnosticsView() {
 			cash_liquid: 0.05,
 		},
 		concentration_risks: [
-			"Heavy concentration risk in Large Cap Equity (80% of equity book in a single fund).",
-			"Under-allocated in Mid/Small Cap growth (0%) and Global Tech diversification (0%).",
-			"Monthly SIP capacity of ₹1.5L has ₹90k unallocated idle cash surplus in savings account.",
+			"80% of the equity book sits in a single large-cap fund.",
+			"No allocation to mid and small cap growth, and none to global technology.",
+			"Of a monthly surplus of \u20b91.5 L, \u20b990,000 stays idle in the savings account.",
 		],
 		goals: [
 			{
 				id: "GOAL-01",
-				name: "Children's Higher Education",
+				name: "Children's higher education",
 				target_year: 2032,
 				target_amount_inr: 5000000,
 				current_funded_inr: 2200000,
@@ -32,7 +45,7 @@ export default function DiagnosticsView() {
 			},
 			{
 				id: "GOAL-02",
-				name: "Early Financial Independence (Retire @ 54)",
+				name: "Early financial independence, age 54",
 				target_year: 2042,
 				target_amount_inr: 50000000,
 				current_funded_inr: 5300000,
@@ -43,278 +56,303 @@ export default function DiagnosticsView() {
 		unallocated_surplus_inr: 90000,
 	};
 
+	const aum = activeDiag.total_aum_inr;
+	const alloc = activeDiag.current_allocation;
+
+	/* The finding: what the stated goals need, less what stands funded today. */
+	const unfunded = activeDiag.goals.reduce(
+		(sum, g) => sum + Math.max(0, g.target_amount_inr - g.current_funded_inr),
+		0,
+	);
+	const committed = activeDiag.goals.reduce(
+		(sum, g) => sum + g.target_amount_inr,
+		0,
+	);
+	const funded = activeDiag.goals.reduce(
+		(sum, g) => sum + g.current_funded_inr,
+		0,
+	);
+	const fundedShare = committed ? (funded / committed) * 100 : 0;
+	const gap = inrParts(unfunded);
+	const horizon = Math.max(...activeDiag.goals.map((g) => g.target_year));
+	const deployed = Math.max(
+		0,
+		activeDiag.monthly_surplus_inr - activeDiag.unallocated_surplus_inr,
+	);
+
+	const runSimulation = () => {
+		set({ activeTab: "simulation", simulationOpen: true });
+		sendAction("simulate_portfolio", {
+			equity_pct: MANDATE.equity,
+			debt_pct: MANDATE.debt,
+			gold_pct: MANDATE.gold,
+			liquid_pct: MANDATE.cash_liquid,
+			monthly_sip_inr: 100000,
+		});
+	};
+
 	return (
-		<div className="space-y-5 pb-6">
-			{/* Executive Summary Card */}
-			<div className="glass-panel rounded-2xl p-5 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-card-luxury relative overflow-hidden">
-				<div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-amber-500/10 via-amber-400/5 to-transparent rounded-full blur-3xl pointer-events-none" />
-
-				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
-					<div className="flex items-center gap-3.5">
-						<div className="size-12 rounded-2xl bg-gradient-to-br from-amber-400/20 to-amber-500/10 border border-amber-400/30 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-xs">
-							<ShieldAlert className="size-6" />
-						</div>
-						<div>
-							<div className="flex items-center gap-2">
-								<h2 className="text-base font-extrabold text-slate-900 dark:text-white">
-									Portfolio Health & Diagnostic Audit
-								</h2>
-								<span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-400/15 border border-amber-400/30 text-amber-800 dark:text-amber-300">
-									3 Actionable Skews
-								</span>
-							</div>
-							<p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-								Comprehensive risk audit & asset allocation analysis for Rahul Sharma (₹75 Lakh AUM)
-							</p>
-						</div>
+		<div className="space-y-rhythm pb-10">
+			{/* ---- The finding ------------------------------------------------ */}
+			<section className="paper reveal reveal-1">
+				<div className="doc-rule" />
+				<div className="space-y-7 p-gutter">
+					<div className="flex flex-wrap items-baseline justify-between gap-3">
+						<p className="label-strong">Portfolio audit</p>
+						<p className="ref text-ink-muted">
+							{activeDiag.client_name} &middot; {rupee(aum)} under advice
+						</p>
 					</div>
 
-					<Button
-						onClick={() => {
-							set({ activeTab: "simulation", simulationOpen: true });
-							sendAction("simulate_portfolio", {
-								equity_pct: 65,
-								debt_pct: 20,
-								gold_pct: 10,
-								liquid_pct: 5,
-								monthly_sip_inr: 100000,
-							});
-						}}
-						className="bg-amber-400 text-slate-950 hover:bg-amber-300 font-bold text-xs h-10 px-4 rounded-xl gap-2 shadow-xs shrink-0"
-					>
-						<span>Launch Goal Simulation</span>
-						<ArrowRight className="size-4" />
-					</Button>
-				</div>
-			</div>
-
-			{/* Middle Grid: Asset Allocation Drift & Concentration Risks */}
-			<div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-				{/* Asset Allocation Breakdown (7 cols) */}
-				<div className="lg:col-span-7 glass-panel rounded-2xl p-5 space-y-4 shadow-sm dark:shadow-card-luxury border border-slate-200 dark:border-white/10">
-					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-2">
-							<PieChart className="size-4 text-amber-500 dark:text-amber-400" />
-							<h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-								Asset Allocation Drift vs Strategic Target
-							</h3>
-						</div>
-						<span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">Total ₹75,00,000</span>
-					</div>
-
-					{/* Asset Allocation Cards */}
-					<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-						{/* Equity */}
-						<div className="p-3 rounded-xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-500/30 text-center space-y-1">
-							<p className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider">
-								Equity
-							</p>
-							<p className="text-lg font-black font-mono text-slate-900 dark:text-white">70%</p>
-							<p className="text-[10px] font-mono text-slate-500 dark:text-slate-400">₹52.5 L</p>
-							<div className="text-[9px] font-bold text-amber-800 dark:text-amber-400 bg-amber-400/10 py-0.5 rounded border border-amber-400/20">
-								Target: 65% (-5%)
+					<div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+						<div className="space-y-4">
+							<h2 className="doc-title text-xl">Unfunded goal capital</h2>
+							<div className="flex items-baseline gap-2">
+								<span className="figure-xl">{gap.value}</span>
+								<span className="figure-unit">{gap.unit}</span>
 							</div>
-						</div>
-
-						{/* Debt */}
-						<div className="p-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/30 text-center space-y-1">
-							<p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
-								Debt
+							<p className="max-w-lg text-sm text-ink-muted">
+								Across {activeDiag.goals.length} goals running to {horizon}.{" "}
+								{inrCompact(funded)} of {inrCompact(committed)} committed is
+								funded today, or {pct(fundedShare, 0)}.
 							</p>
-							<p className="text-lg font-black font-mono text-slate-900 dark:text-white">15%</p>
-							<p className="text-[10px] font-mono text-slate-500 dark:text-slate-400">₹11.25 L</p>
-							<div className="text-[9px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-400/10 py-0.5 rounded border border-emerald-400/20">
-								Target: 20% (+5%)
-							</div>
 						</div>
 
-						{/* Gold */}
-						<div className="p-3 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-500/30 text-center space-y-1">
-							<p className="text-[10px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">
-								Gold
-							</p>
-							<p className="text-lg font-black font-mono text-slate-900 dark:text-white">10%</p>
-							<p className="text-[10px] font-mono text-slate-500 dark:text-slate-400">₹7.5 L</p>
-							<div className="text-[9px] font-bold text-slate-700 dark:text-slate-300 bg-slate-200/60 dark:bg-slate-800/60 py-0.5 rounded border border-slate-300 dark:border-white/5">
-								Target: 10% (Optimal)
-							</div>
-						</div>
-
-						{/* Liquid */}
-						<div className="p-3 rounded-xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 text-center space-y-1">
-							<p className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-								Liquid
-							</p>
-							<p className="text-lg font-black font-mono text-slate-900 dark:text-white">5%</p>
-							<p className="text-[10px] font-mono text-slate-500 dark:text-slate-400">₹3.75 L</p>
-							<div className="text-[9px] font-bold text-slate-700 dark:text-slate-300 bg-slate-200/60 dark:bg-slate-800/60 py-0.5 rounded border border-slate-300 dark:border-white/5">
-								Target: 5% (Optimal)
-							</div>
-						</div>
-					</div>
-
-					{/* Allocation Progress Bar comparison */}
-					<div className="space-y-2 pt-2 border-t border-slate-200 dark:border-white/5">
-						<div className="flex justify-between text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-							<span>Current Allocation Spread</span>
-							<span className="font-mono">70% Eq • 15% Debt • 10% Gold • 5% Cash</span>
-						</div>
-						<div className="h-3 w-full rounded-full overflow-hidden flex bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-white/10">
-							<div style={{ width: "70%" }} className="bg-indigo-500 h-full" title="Equity: 70%" />
-							<div style={{ width: "15%" }} className="bg-emerald-500 h-full" title="Debt: 15%" />
-							<div style={{ width: "10%" }} className="bg-amber-400 h-full" title="Gold: 10%" />
-							<div style={{ width: "5%" }} className="bg-slate-400 h-full" title="Liquid: 5%" />
-						</div>
+						<Button
+							onClick={runSimulation}
+							className="h-11 shrink-0 gap-2 rounded-lg bg-stamp px-5 text-sm font-semibold text-stamp-foreground hover:bg-stamp-strong"
+						>
+							<span>Run the goal simulation</span>
+							<ArrowRight className="size-4" />
+						</Button>
 					</div>
 				</div>
+			</section>
 
-				{/* Concentration Risk Alerts (5 cols) */}
-				<div className="lg:col-span-5 glass-panel rounded-2xl p-5 space-y-3 shadow-sm dark:shadow-card-luxury border border-slate-200 dark:border-white/10">
-					<div className="flex items-center gap-2">
-						<AlertTriangle className="size-4 text-amber-500 dark:text-amber-400" />
-						<h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-							Concentration Risk Audit Findings
-						</h3>
-					</div>
+			{/* ---- Allocation against mandate --------------------------------- */}
+			<section className="paper space-y-6 p-gutter reveal reveal-2">
+				<div className="flex flex-wrap items-baseline justify-between gap-3">
+					<h3 className="doc-title text-lg">Allocation against mandate</h3>
+					<p className="ref text-ink-muted">Book {rupee(aum)}</p>
+				</div>
 
-					<div className="space-y-2.5">
-						{activeDiag.concentration_risks.map((risk, i) => (
+				{/* The whole book as one rule of ink. No legend: the swatch on each
+						row below is the key, and the row carries the number. */}
+				<div className="flex h-4 w-full overflow-hidden border border-rule bg-paper-sunken">
+					{SLEEVES.map((s, i) => (
+						<div
+							key={s.key}
+							className={
+								i < SLEEVES.length - 1 ? "border-r-2 border-paper-sheet" : ""
+							}
+							style={{
+								width: `${alloc[s.key] * 100}%`,
+								backgroundColor: s.ink,
+							}}
+						/>
+					))}
+				</div>
+
+				<div className="divide-y divide-rule">
+					{SLEEVES.map((s) => {
+						const current = alloc[s.key] * 100;
+						const target = MANDATE[s.key];
+						const drift = current - target;
+						const off = Math.abs(drift) >= 1;
+						return (
 							<div
-								key={i}
-								className="p-3 rounded-xl bg-amber-50/80 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-500/30 text-xs text-amber-900 dark:text-amber-200/90 leading-relaxed flex items-start gap-2.5"
+								key={s.key}
+								className={`flex flex-wrap items-baseline gap-x-8 gap-y-2 py-4 ${
+									off ? "mark-attention" : "mark-quiet"
+								}`}
 							>
-								<span className="grid place-items-center size-5 rounded-full bg-amber-400/20 text-amber-800 dark:text-amber-300 font-mono text-[10px] font-black shrink-0 mt-0.5">
-									{i + 1}
+								<span className="flex w-28 items-center gap-2.5">
+									<span
+										className="size-2.5 shrink-0"
+										style={{ backgroundColor: s.ink }}
+									/>
+									<span
+										className={
+											off
+												? "text-base font-semibold text-ink-strong"
+												: "text-base text-ink"
+										}
+									>
+										{s.name}
+									</span>
 								</span>
-								<span>{risk}</span>
+								<span className="figure-sm w-16 tabular-nums">
+									{pct(current, 0)}
+								</span>
+								<span className="w-32 text-sm tabular-nums text-ink-muted">
+									{rupee(aum * alloc[s.key])}
+								</span>
+								<span className="text-sm text-ink-muted">
+									Mandate {target}%
+								</span>
+								<span
+									className={`ml-auto text-sm tabular-nums ${
+										off ? "font-semibold text-ink-strong" : "text-ink-muted"
+									}`}
+								>
+									{off ? pctDelta(drift, 0) : "On mandate"}
+								</span>
 							</div>
-						))}
-					</div>
+						);
+					})}
 				</div>
-			</div>
+			</section>
 
-			{/* Bottom Grid: Goal Milestones & Cash Surplus Audit */}
-			<div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-				{/* Goal Milestones (8 cols) */}
-				<div className="lg:col-span-8 glass-panel rounded-2xl p-5 space-y-4 shadow-sm dark:shadow-card-luxury border border-slate-200 dark:border-white/10">
-					<div className="flex items-center gap-2">
-						<TrendingUp className="size-4 text-emerald-600 dark:text-emerald-400" />
-						<h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-							Target Financial Goals & Funding Milestones
-						</h3>
-					</div>
+			{/* ---- What the audit found --------------------------------------- */}
+			<section className="paper space-y-5 p-gutter reveal reveal-3">
+				<h3 className="doc-title text-lg">What the audit found</h3>
+				<ol className="space-y-5">
+					{activeDiag.concentration_risks.map((risk, i) => (
+						<li key={i} className="mark-attention flex gap-4">
+							<span className="ref shrink-0 pt-0.5 text-ink-muted">
+								{i + 1}.
+							</span>
+							<p className="max-w-3xl text-sm leading-relaxed text-ink">
+								{risk}
+							</p>
+						</li>
+					))}
+				</ol>
+			</section>
 
-					<div className="space-y-3">
+			{/* ---- Goals and monthly cash ------------------------------------- */}
+			<div className="grid grid-cols-1 gap-rhythm lg:grid-cols-12">
+				<section className="paper space-y-6 p-gutter reveal reveal-4 lg:col-span-8">
+					<h3 className="doc-title text-lg">Goals and funding</h3>
+
+					<div className="space-y-7">
 						{activeDiag.goals.map((g) => {
-							const pct = Math.min(
+							const share = Math.min(
 								100,
-								Math.round((g.current_funded_inr / g.target_amount_inr) * 100),
+								(g.current_funded_inr / g.target_amount_inr) * 100,
 							);
-							const isOnTrack = g.on_track === true;
+							const behind = g.on_track !== true;
+							const shortfall = Math.max(
+								0,
+								g.target_amount_inr - g.current_funded_inr,
+							);
+							const parts = inrParts(shortfall);
 
 							return (
 								<div
 									key={g.id}
-									className="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-950/60 border border-slate-200 dark:border-white/10 space-y-2.5"
+									className={`space-y-3 ${
+										behind ? "mark-attention" : "mark-quiet"
+									}`}
 								>
-									<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-										<div className="flex items-center gap-2">
-											<span className="font-bold text-slate-900 dark:text-white text-xs">
+									<div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2">
+										<div className="space-y-1.5">
+											<p
+												className={
+													behind
+														? "text-base font-semibold text-ink-strong"
+														: "text-base text-ink"
+												}
+											>
 												{g.name}
-											</span>
-											<span className="px-2 py-0.2 rounded text-[10px] font-mono font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-white/10">
-												Target Year: {g.target_year}
-											</span>
+											</p>
+											<p className="label">
+												{g.id} &middot; Target {g.target_year}
+											</p>
 										</div>
-										<div className="flex items-center gap-2">
-											<span className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300">
-												₹{(g.current_funded_inr / 100000).toFixed(1)}L / ₹
-												{(g.target_amount_inr / 100000).toFixed(0)}L
-											</span>
-											<span className="text-xs font-mono font-black text-amber-600 dark:text-amber-400">
-												({pct}%)
-											</span>
+										<div className="text-right">
+											<div className="flex items-baseline justify-end gap-1.5">
+												<span className="figure">{parts.value}</span>
+												{parts.unit ? (
+													<span className="figure-unit">{parts.unit}</span>
+												) : null}
+											</div>
+											<p className="label mt-1.5">Still to fund</p>
 										</div>
 									</div>
 
-									<Progress
-										value={pct}
-										className="h-2 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-white/5"
-									/>
+									<div className="h-2 w-full border border-rule bg-paper-sunken">
+										<div
+											className="h-full"
+											style={{
+												width: `${share}%`,
+												backgroundColor: behind
+													? "var(--ink-strong)"
+													: "var(--ink-muted)",
+											}}
+										/>
+									</div>
 
-									<div className="flex items-center justify-between text-[11px]">
-										<span className="text-slate-500 dark:text-slate-400">
-											{isOnTrack
-												? "On track with current asset allocation"
-												: "Requires ₹40k/mo SIP boost to achieve full corpus"}
+									<div className="flex flex-wrap justify-between gap-x-6 gap-y-1 text-sm text-ink-muted">
+										<span className="tabular-nums">
+											{rupee(g.current_funded_inr)} funded of{" "}
+											{rupee(g.target_amount_inr)}
 										</span>
 										<span
-											className={`font-bold ${
-												isOnTrack ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
-											}`}
+											className={
+												behind
+													? "font-semibold text-ink-strong"
+													: "text-ink-muted"
+											}
 										>
-											{isOnTrack ? "Fully Funded" : "SIP Boost Recommended"}
+											{behind
+												? "Needs a larger monthly commitment"
+												: "On track"}{" "}
+											&middot;{" "}
+											<span className="tabular-nums">{pct(share, 0)}</span>{" "}
+											funded
 										</span>
 									</div>
 								</div>
 							);
 						})}
 					</div>
-				</div>
+				</section>
 
-				{/* Cashflow & Surplus Audit (4 cols) */}
-				<div className="lg:col-span-4 glass-panel rounded-2xl p-5 space-y-4 shadow-sm dark:shadow-card-luxury border border-slate-200 dark:border-white/10 flex flex-col justify-between">
-					<div>
-						<div className="flex items-center gap-2 mb-3">
-							<Clock className="size-4 text-amber-500 dark:text-amber-400" />
-							<h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-								Monthly Cashflow Surplus
-							</h3>
+				<section className="paper flex flex-col justify-between gap-6 p-gutter reveal reveal-5 lg:col-span-4">
+					<div className="space-y-6">
+						<h3 className="doc-title text-lg">Monthly cash</h3>
+
+						<div className="paper-sunken px-4 py-3.5">
+							<p className="label">Investable surplus</p>
+							<p className="figure mt-1.5">
+								{rupee(activeDiag.monthly_surplus_inr)}
+							</p>
+							<p className="mt-1.5 text-sm text-ink-muted">
+								Every month, after household commitments
+							</p>
 						</div>
 
-						<div className="space-y-3">
-							<div className="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-950/60 border border-slate-200 dark:border-white/10">
-								<p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">
-									Total Monthly Surplus
-								</p>
-								<p className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">
-									₹1,50,000 / mo
-								</p>
-							</div>
+						<div className="mark-attention">
+							<p className="label">Idle in savings</p>
+							<p className="figure mt-1.5">
+								{rupee(activeDiag.unallocated_surplus_inr)}
+							</p>
+							<p className="mt-1.5 text-sm text-ink-muted">
+								Uninvested each month, earning below inflation
+							</p>
+						</div>
 
-							<div className="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-950/60 border border-slate-200 dark:border-white/10">
-								<p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">
-									Active SIP Commitments
-								</p>
-								<p className="text-lg font-black font-mono text-slate-800 dark:text-slate-200 mt-0.5">
-									₹60,000 / mo
-								</p>
-							</div>
-
-							<div className="p-3 rounded-xl bg-rose-50/90 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-500/30">
-								<p className="text-[10px] text-rose-700 dark:text-rose-300 uppercase font-bold">
-									Idle Unallocated Cash
-								</p>
-								<p className="text-xl font-black font-mono text-rose-600 dark:text-rose-400 mt-0.5">
-									₹90,000 / mo
-								</p>
-								<p className="text-[10px] text-rose-700/80 dark:text-rose-300/80 mt-1">
-									Losing purchasing power to inflation in savings account.
-								</p>
-							</div>
+						<div className="mark-quiet">
+							<p className="label">Committed to SIPs</p>
+							<p className="figure-sm mt-1.5">{rupee(deployed)}</p>
+							<p className="mt-1.5 text-sm text-ink-muted">
+								Running against the education goal
+							</p>
 						</div>
 					</div>
 
 					<Button
+						variant="ghost"
 						onClick={() => {
 							set({ activeTab: "explorer" });
 						}}
-						variant="outline"
-						className="w-full h-9 rounded-xl border-amber-500/40 text-amber-800 dark:text-amber-300 hover:bg-amber-400/10 text-xs font-bold mt-2"
+						className="h-11 w-full justify-between rounded-lg border border-rule px-4 text-sm font-medium text-ink hover:bg-paper-sunken"
 					>
-						Deploy Surplus in Product Explorer
+						<span>Deploy the surplus</span>
+						<ArrowRight className="size-4" />
 					</Button>
-				</div>
+				</section>
 			</div>
 		</div>
 	);

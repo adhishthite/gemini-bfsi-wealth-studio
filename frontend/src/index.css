@@ -2,77 +2,125 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==========================================================================
+   Cymbal Premier — "The private mandate, not the dashboard"
+
+   Ground truth for every surface in this app. Three ideas only:
+
+   1. PAPER, NOT SCREEN. A warm bond-paper ground with near-white sheets
+      sitting on it. No blur, no gradients, no glow, no lift.
+   2. INK CARRIES STATE. Weight, position and rule-lines say what amber /
+      emerald / rose used to say. There is exactly ONE hue in this system.
+   3. THE STAMP IS THE ACCENT. A banker's attestation ink — the violet-blue
+      of the rubber stamp on an Indian mandate form. It appears roughly once
+      per screen, on the one action or fact that matters. Spending it twice
+      is a bug.
+   ========================================================================== */
+
 @layer base {
   :root {
-    --background: oklch(0.975 0.005 245);
-    --foreground: oklch(0.16 0.04 245);
+    /* ---- Paper ---------------------------------------------------------- */
+    --paper: oklch(0.978 0.0035 85);        /* page ground: bond stock      */
+    --paper-sheet: oklch(0.995 0.0018 85);  /* panels: sheets on the desk   */
+    --paper-sunken: oklch(0.955 0.005 85);  /* wells, inputs, table stripes */
+    --paper-edge: oklch(0.928 0.006 85);    /* the folded edge / deep well  */
 
-    --card: oklch(0.995 0.002 245);
-    --card-foreground: oklch(0.16 0.04 245);
+    /* ---- Ink ------------------------------------------------------------ */
+    --ink-strong: oklch(0.205 0.018 280);   /* headings, hero numerals      */
+    --ink: oklch(0.295 0.014 280);          /* body                         */
+    --ink-muted: oklch(0.505 0.012 280);    /* secondary, captions          */
+    --ink-faint: oklch(0.645 0.010 280);    /* labels, placeholders         */
 
-    --popover: oklch(0.995 0.002 245);
-    --popover-foreground: oklch(0.16 0.04 245);
+    /* ---- Rules ---------------------------------------------------------- */
+    --rule: oklch(0.905 0.005 280);
+    --rule-strong: oklch(0.815 0.008 280);
 
-    --primary: oklch(0.24 0.07 245);
+    /* ---- The stamp: the single accent ----------------------------------- */
+    --stamp: oklch(0.445 0.148 282);
+    --stamp-strong: oklch(0.375 0.150 282);
+    --stamp-rule: oklch(0.700 0.100 282);
+    --stamp-wash: oklch(0.960 0.020 282);
+    --stamp-foreground: oklch(0.99 0 0);
+
+    /* ---- shadcn contract (mapped onto the above) ------------------------ */
+    --background: var(--paper);
+    --foreground: var(--ink);
+
+    --card: var(--paper-sheet);
+    --card-foreground: var(--ink);
+
+    --popover: var(--paper-sheet);
+    --popover-foreground: var(--ink);
+
+    --primary: var(--ink-strong);
     --primary-foreground: oklch(0.99 0 0);
 
-    --secondary: oklch(0.94 0.01 245);
-    --secondary-foreground: oklch(0.20 0.04 245);
+    --secondary: var(--paper-sunken);
+    --secondary-foreground: var(--ink-strong);
 
-    --muted: oklch(0.94 0.01 245);
-    --muted-foreground: oklch(0.48 0.03 245);
+    --muted: var(--paper-sunken);
+    --muted-foreground: var(--ink-muted);
 
-    --accent: oklch(0.94 0.01 245);
-    --accent-foreground: oklch(0.16 0.04 245);
+    --accent: var(--paper-sunken);
+    --accent-foreground: var(--ink-strong);
 
-    --destructive: oklch(0.58 0.22 25);
+    /* Deeply desaturated oxblood. Reserved for genuine error states — never
+       for layout, never for "negative return". */
+    --destructive: oklch(0.455 0.135 25);
     --destructive-foreground: oklch(0.99 0 0);
 
-    --border: oklch(0.88 0.015 245);
-    --input: oklch(0.88 0.015 245);
-    --ring: oklch(0.72 0.16 75);
+    --border: var(--rule);
+    --input: var(--rule-strong);
+    --ring: var(--stamp-rule);
 
-    --radius: 0.875rem;
+    /* ---- Tokens that must carry their own alpha -------------------------
+       Tailwind v3 CANNOT apply an opacity modifier to a bare `var()` colour.
+       Writing a slash-opacity suffix on any token in this palette emits NO
+       RULE AT ALL, silently — the element simply loses that property. So
+       anything needing translucency, or a hover tone, is a real token here,
+       never a modifier. */
+    --scrim: oklch(0.205 0.018 280 / 0.42);
+    --primary-hover: var(--ink);
+    --destructive-hover: oklch(0.395 0.135 25);
 
-    --wealth-navy: oklch(0.24 0.07 245);
-    --wealth-gold: oklch(0.72 0.16 75);
-    --wealth-emerald: oklch(0.62 0.17 155);
-    --wealth-surface: oklch(0.975 0.006 245);
+    /* ---- Geometry & rhythm ---------------------------------------------- */
+    --radius: 0.25rem;   /* a document corner, not a pill and not a razor */
+    --gutter: 1.75rem;   /* horizontal breathing room                     */
+    --rhythm: 1.25rem;   /* vertical step between stacked blocks          */
   }
 
+  /* Dark mode is DEMOTED, not deleted — the toggle still works. Retuned from
+     the old near-black #060a12 to a warm graphite so it reads as ink on
+     slate rather than a trading terminal. */
   .dark {
-    --background: oklch(0.11 0.025 245);
-    --foreground: oklch(0.96 0.01 245);
+    --paper: oklch(0.192 0.008 280);
+    --paper-sheet: oklch(0.238 0.009 280);
+    --paper-sunken: oklch(0.168 0.008 280);
+    --paper-edge: oklch(0.145 0.008 280);
 
-    --card: oklch(0.15 0.03 245);
-    --card-foreground: oklch(0.96 0.01 245);
+    --ink-strong: oklch(0.965 0.004 280);
+    --ink: oklch(0.905 0.005 280);
+    --ink-muted: oklch(0.705 0.010 280);
+    --ink-faint: oklch(0.565 0.012 280);
 
-    --popover: oklch(0.14 0.03 245);
-    --popover-foreground: oklch(0.96 0.01 245);
+    --rule: oklch(0.315 0.010 280);
+    --rule-strong: oklch(0.415 0.012 280);
 
-    --primary: oklch(0.78 0.16 75);
-    --primary-foreground: oklch(0.12 0.03 245);
+    --stamp: oklch(0.735 0.130 284);
+    --stamp-strong: oklch(0.800 0.120 284);
+    --stamp-rule: oklch(0.560 0.115 284);
+    --stamp-wash: oklch(0.275 0.038 284);
+    --stamp-foreground: oklch(0.16 0.02 284);
 
-    --secondary: oklch(0.20 0.035 245);
-    --secondary-foreground: oklch(0.95 0.01 245);
+    --primary: oklch(0.965 0.004 280);
+    --primary-foreground: oklch(0.18 0.01 280);
+    --secondary-foreground: var(--ink-strong);
+    --accent-foreground: var(--ink-strong);
+    --destructive: oklch(0.585 0.150 25);
 
-    --muted: oklch(0.18 0.025 245);
-    --muted-foreground: oklch(0.68 0.02 245);
-
-    --accent: oklch(0.20 0.03 245);
-    --accent-foreground: oklch(0.96 0.01 245);
-
-    --destructive: oklch(0.55 0.22 25);
-    --destructive-foreground: oklch(0.98 0 0);
-
-    --border: oklch(0.24 0.03 245);
-    --input: oklch(0.22 0.03 245);
-    --ring: oklch(0.78 0.16 75);
-
-    --wealth-navy: oklch(0.15 0.03 245);
-    --wealth-gold: oklch(0.78 0.16 75);
-    --wealth-emerald: oklch(0.70 0.17 155);
-    --wealth-surface: oklch(0.17 0.03 245);
+    --scrim: oklch(0.115 0.008 280 / 0.62);
+    --primary-hover: var(--ink);
+    --destructive-hover: oklch(0.645 0.150 25);
   }
 }
 
@@ -80,102 +128,285 @@
   * {
     @apply border-border;
   }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     @apply bg-background text-foreground;
-    font-family: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    /* No radial gradients. The ground is paper. */
+    background-image: none;
+    font-family: theme("fontFamily.sans");
+    font-size: 0.9375rem;   /* 15px — comfortably above the 14px floor */
+    line-height: 1.55;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    background-color: #F8F9FB;
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(220, 230, 245, 0.45) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(245, 235, 220, 0.35) 0px, transparent 40%);
-    background-attachment: fixed;
-    min-height: 100vh;
   }
 
-  .dark body {
-    background-color: #060a12;
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(20, 35, 65, 0.45) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(35, 25, 10, 0.3) 0px, transparent 40%),
-      radial-gradient(at 50% 100%, rgba(10, 20, 40, 0.5) 0px, transparent 60%);
+  /* Every figure in this app is a lining, tabular figure. Portfolio numbers
+     must align down a column and must not wobble as they tick. */
+  table,
+  input,
+  output,
+  time,
+  .figure,
+  .figure-sm,
+  .figure-lg,
+  .figure-xl,
+  .tabular-nums {
+    font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: "tnum" 1, "lnum" 1, "kern" 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply text-ink-strong;
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: var(--stamp-wash);
+    color: var(--ink-strong);
   }
 }
 
-.tabular-nums {
-  font-variant-numeric: tabular-nums;
+@layer components {
+  /* ---- Sheets ----------------------------------------------------------
+     `.paper` is the replacement for the old blurred translucent panels. A
+     sheet of stock with a real rule around it. No backdrop-filter, no
+     shadow, no hover lift.                                                  */
+  .paper {
+    background-color: var(--paper-sheet);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+  }
+
+  .paper-sunken {
+    background-color: var(--paper-sunken);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+  }
+
+  /* A sheet the user can act on. The feedback is the rule darkening — the
+     sheet does not move and does not glow. */
+  .paper-interactive {
+    background-color: var(--paper-sheet);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    transition: border-color 150ms ease, background-color 150ms ease;
+  }
+  .paper-interactive:hover {
+    border-color: var(--rule-strong);
+    background-color: var(--paper-sheet);
+  }
+
+  /* The ONE selected/recommended thing on a screen. This is where the accent
+     is spent. */
+  .paper-marked {
+    background-color: var(--paper-sheet);
+    border: 1px solid var(--stamp-rule);
+    border-left: 3px solid var(--stamp);
+    border-radius: var(--radius);
+  }
+
+  /* ---- Rule-lines: the state system ------------------------------------
+     Position and weight instead of hue. A gap/attention item gets a solid
+     left rule; an on-track item gets a faint one. No red, no green.        */
+  .mark-attention {
+    border-left: 3px solid var(--ink-strong);
+    padding-left: 0.875rem;
+  }
+  .mark-quiet {
+    border-left: 3px solid var(--rule);
+    padding-left: 0.875rem;
+  }
+  .mark-stamp {
+    border-left: 3px solid var(--stamp);
+    padding-left: 0.875rem;
+  }
+
+  /* ---- Type roles ------------------------------------------------------- */
+
+  /* Document voice. Caslon. Section titles, dialog titles, the proposal and
+     mandate headings. Never for UI chrome. */
+  .doc-title {
+    font-family: theme("fontFamily.display");
+    font-weight: 400;
+    letter-spacing: -0.005em;
+    @apply text-ink-strong;
+  }
+
+  /* 12px is the absolute floor and it only exists here: a tracked, uppercase
+     field label on a form or a column head. */
+  .label {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    font-weight: 500;
+    @apply text-ink-faint;
+  }
+  .label-strong {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    font-weight: 600;
+    @apply text-ink-muted;
+  }
+
+  /* ---- Numerals are the hero -------------------------------------------
+     Indian digit grouping, lining tabular figures, tight tracking. Size is
+     what makes them the hero; nothing else needs to. */
+  .figure-sm {
+    font-size: 1.125rem;
+    line-height: 1.2;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    @apply text-ink-strong;
+  }
+  .figure {
+    font-size: 1.75rem;
+    line-height: 1.1;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    @apply text-ink-strong;
+  }
+  .figure-lg {
+    font-size: 2.75rem;
+    line-height: 1.02;
+    font-weight: 500;
+    letter-spacing: -0.028em;
+    @apply text-ink-strong;
+  }
+  .figure-xl {
+    font-size: 4rem;
+    line-height: 0.98;
+    font-weight: 500;
+    letter-spacing: -0.032em;
+    @apply text-ink-strong;
+  }
+  /* The unit that trails a hero figure: "Cr", "%", "p.a." */
+  .figure-unit {
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    @apply text-ink-muted;
+  }
+
+  /* Reference codes: ISIN, folio, UMRN, mandate ref, transaction id. */
+  .ref {
+    font-family: theme("fontFamily.mono");
+    font-size: 0.8125rem;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums lining-nums;
+    @apply text-ink-muted;
+  }
+
+  /* ---- Credibility beats -----------------------------------------------
+     The SEBI / compliance / mandate moments. An attested stamp: outlined,
+     letterspaced, in the accent ink. Use once per document. */
+  .stamp-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    line-height: 1;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 0.45rem 0.7rem;
+    border: 1px solid var(--stamp-rule);
+    border-radius: var(--radius);
+    color: var(--stamp);
+    background-color: transparent;
+  }
+  /* The quiet version, for a compliance line that is a fact rather than a
+     seal. */
+  .stamp-note {
+    font-size: 0.75rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--stamp);
+  }
+
+  /* A document header rule: the double line at the top of a certificate. */
+  .doc-rule {
+    border-top: 2px solid var(--ink-strong);
+    box-shadow: 0 3px 0 -2px var(--rule-strong);
+  }
+
+  /* ---- Scroll ----------------------------------------------------------- */
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-none {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+@layer utilities {
+  /* ---- One orchestrated page-load reveal. That is the whole motion budget.
+     Nothing else in this app animates on mount. */
+  .reveal {
+    animation: rise 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  }
+  .reveal-1 { animation-delay: 0ms; }
+  .reveal-2 { animation-delay: 70ms; }
+  .reveal-3 { animation-delay: 140ms; }
+  .reveal-4 { animation-delay: 210ms; }
+  .reveal-5 { animation-delay: 280ms; }
+  .reveal-6 { animation-delay: 350ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      animation: none !important;
+    }
+  }
 }
 
-/* Glassmorphism utility */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
-}
-
-.dark .glass-panel {
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
-}
-
-.glass-card {
-  background: rgba(255, 255, 255, 0.80);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.07);
-}
-
-.dark .glass-card {
-  background: rgba(18, 28, 48, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.glass-card-hover {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.glass-card-hover:hover {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(217, 119, 6, 0.35);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.08);
-}
-.dark .glass-card-hover:hover {
-  background: rgba(24, 38, 64, 0.7);
-  border-color: rgba(229, 192, 123, 0.35);
-  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.5), 0 0 20px -4px rgba(229, 192, 123, 0.15);
-}
-
-/* Custom Scrollbars */
+/* Scrollbars: a paper edge, not a chrome element. */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 9999px;
-}
-.dark ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--rule-strong);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
-}
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: var(--ink-faint);
+  background-clip: content-box;
 }
 
-
+/* Recharts: strip the default chart chrome so the analysis surfaces inherit
+   the paper system instead of fighting it. */
+.recharts-cartesian-grid line {
+  stroke: var(--rule);
+}
+.recharts-cartesian-axis-line,
+.recharts-cartesian-axis-tick-line {
+  stroke: var(--rule-strong);
+}
+.recharts-text {
+  fill: var(--ink-muted);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.recharts-surface:focus,
+.recharts-wrapper:focus {
+  outline: none;
+}

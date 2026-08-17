@@ -84,7 +84,9 @@ let _id = 1;
 const nid = () => _id++;
 
 if (typeof window !== "undefined") {
-	const savedTheme = (localStorage.getItem("cymbal_theme") as "dark" | "light") || "dark";
+	// Light ground is the default: this is a mandate document, and it is read
+	// off a projector or a shared screen. Dark mode stays available.
+	const savedTheme = (localStorage.getItem("cymbal_theme") as "dark" | "light") || "light";
 	document.documentElement.classList.toggle("dark", savedTheme === "dark");
 	setTimeout(() => {
 		useStore.setState({ theme: savedTheme });
@@ -149,7 +151,7 @@ export const useStore = create<Store>((set, get) => ({
 	listening: false,
 	speaking: false,
 
-	theme: "dark",
+	theme: "light",
 	toggleTheme: () => {
 		const next = get().theme === "dark" ? "light" : "dark";
 		if (typeof window !== "undefined") {

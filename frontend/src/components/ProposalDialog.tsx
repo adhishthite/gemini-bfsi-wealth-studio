@@ -1,8 +1,4 @@
-import {
-	FileText,
-	Download,
-	CheckCircle2,
-} from "lucide-react";
+import { Download } from "lucide-react";
 import { useStore } from "@/store";
 import {
 	Dialog,
@@ -12,92 +8,167 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { inr, inrCompact } from "@/lib";
+
+/* ---------------------------------------------------------------------------
+   The advisory proposal is the document the client signs against. It is set
+   the way a prospectus is: a certificate rule at the head, a Caslon title,
+   the document number in monospace beneath it, 12px field heads over 15px
+   values, and the recommended schedule as a ruled tabular list. The one
+   accent on this surface is the attestation seal — the adviser's SEBI
+   registration — because that is the fact that makes the paper credible.
+   ------------------------------------------------------------------------ */
+
+/** The adviser's SEBI registration, printed on every proposal it issues. */
+const ADVISER_REGISTRATION = "INA000012345";
 
 export default function ProposalDialog() {
-	const { proposalOpen, proposal, set } = useStore();
+	const { proposal, proposalOpen, set } = useStore();
+
+	const documentId = proposal?.proposal_id || "CYMBAL-PROP-2026-0881";
+	const clientName = proposal?.client_name || "Rahul Sharma";
+	const issuedOn = proposal?.date || "17 August 2026";
+	const monthly = proposal?.total_sip_inr ?? 60000;
+	const lumpsum = proposal?.total_lumpsum_inr ?? 0;
+	const firstYear = monthly * 12 + lumpsum;
+	const items = proposal?.basket_items ?? [];
 
 	return (
 		<Dialog
 			open={proposalOpen}
 			onOpenChange={(open) => set({ proposalOpen: open })}
 		>
-			<DialogContent className="max-w-lg p-0 overflow-hidden bg-[#0A111E] border border-white/15 text-slate-200 shadow-2xl rounded-2xl">
-				{/* Header */}
-				<DialogHeader className="p-5 bg-slate-950/90 border-b border-white/10 text-white">
-					<div className="flex items-center gap-3">
-						<div className="size-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold shadow-xs">
-							<FileText className="size-5" />
-						</div>
-						<div>
-							<DialogTitle className="text-white text-base">
-								Strategic Wealth Advisory Proposal
-							</DialogTitle>
-							<DialogDescription className="text-slate-400 text-xs">
-								Document ID: {proposal?.proposal_id || "CYMBAL-PROP-2026-0881"}
-							</DialogDescription>
-						</div>
-					</div>
+			<DialogContent className="max-w-lg gap-0 overflow-hidden rounded-lg border border-rule bg-paper-sheet p-0 text-ink shadow-raise">
+				{/* Head of the document */}
+				<DialogHeader className="doc-rule space-y-0 px-gutter pb-5 pt-6 text-left">
+					<p className="label">Advisory proposal</p>
+					<DialogTitle className="doc-title mt-2 text-xl font-normal">
+						Strategic wealth advisory proposal
+					</DialogTitle>
+					<DialogDescription className="ref mt-2">
+						{documentId}
+					</DialogDescription>
 				</DialogHeader>
 
-				{/* Content */}
-				<div className="p-6 space-y-4 text-xs">
-					<div className="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30 flex items-center gap-3">
-						<CheckCircle2 className="size-5 text-emerald-400 shrink-0" />
+				<div className="max-h-[72vh] space-y-rhythm overflow-y-auto px-gutter pb-6">
+					{/* The attestation — the single accent on this document */}
+					<div className="flex items-center justify-between border-t border-rule pt-5">
+						<span className="stamp-mark">SEBI registered adviser</span>
+						<p className="ref text-ink-faint">{ADVISER_REGISTRATION}</p>
+					</div>
+
+					<div className="grid grid-cols-2 gap-x-6 gap-y-4">
 						<div>
-							<p className="font-bold text-xs text-white">
-								Proposal PDF Successfully Generated
+							<p className="label">Client</p>
+							<p className="mt-1.5 text-sm text-ink-strong">{clientName}</p>
+						</div>
+						<div>
+							<p className="label">Issued</p>
+							<p className="mt-1.5 text-sm text-ink-strong">{issuedOn}</p>
+						</div>
+						<div>
+							<p className="label">Prepared by</p>
+							<p className="mt-1.5 text-sm text-ink-strong">
+								Ananya, Senior Relationship Manager
 							</p>
-							<p className="text-[11px] text-emerald-300/90 mt-0.5">
-								Asset shift matrix, strategic allocation weighting, and statutory SEBI disclaimers compiled.
+						</div>
+						<div>
+							<p className="label">Review cycle</p>
+							<p className="mt-1.5 text-sm text-ink-strong">
+								Half-yearly, next February
 							</p>
 						</div>
 					</div>
 
-					<div className="p-4 bg-slate-950/70 rounded-2xl border border-white/10 space-y-2">
-						<div className="flex justify-between text-slate-400">
-							<span>Client Name:</span>
-							<span className="font-bold text-white">
-								{proposal?.client_name || "Rahul Sharma"}
-							</span>
+					{/* The commitment, at hero scale */}
+					<div className="paper-sunken px-5 py-5">
+						<div className="flex items-end justify-between">
+							<div>
+								<p className="label">Monthly commitment</p>
+								<p className="figure-lg mt-2 tabular-nums">{inr(monthly)}</p>
+							</div>
+							<span className="figure-unit pb-2">per month</span>
 						</div>
-						<div className="flex justify-between text-slate-400">
-							<span>Total Monthly SIP:</span>
-							<span className="font-mono font-black text-emerald-400">
-								₹{proposal?.total_sip_inr?.toLocaleString() || "60,000"} / mo
-							</span>
+						<div className="mt-4 flex items-baseline justify-between border-t border-rule pt-4">
+							<p className="label">One-time deployment</p>
+							<p className="figure-sm tabular-nums">{inr(lumpsum)}</p>
 						</div>
-						<div className="flex justify-between text-slate-400">
-							<span>Total Lump Sum:</span>
-							<span className="font-mono font-bold text-slate-200">
-								₹{proposal?.total_lumpsum_inr?.toLocaleString() || "0"}
-							</span>
+						<div className="mt-3 flex items-baseline justify-between">
+							<p className="label">First-year commitment</p>
+							<p className="figure-sm tabular-nums">{inrCompact(firstYear)}</p>
 						</div>
-						{proposal?.strategic_rationale && (
-							<div className="pt-2 border-t border-white/10 text-[11px]">
-								<p className="font-bold text-amber-300 mb-0.5">
-									Strategic Rationale:
-								</p>
-								<p className="text-slate-300 leading-relaxed">
-									{proposal.strategic_rationale}
+					</div>
+
+					{/* The recommended schedule */}
+					{items.length > 0 && (
+						<div>
+							<div className="flex items-baseline justify-between border-b border-rule-strong pb-2">
+								<p className="label-strong">Recommended schedule</p>
+								<p className="label">
+									{items.length}{" "}
+									{items.length === 1 ? "instrument" : "instruments"}
 								</p>
 							</div>
-						)}
+							<ul className="max-h-44 divide-y divide-rule overflow-y-auto scrollbar-none">
+								{items.map((item) => (
+									<li
+										key={item.product_id}
+										className="flex items-baseline justify-between gap-4 py-3"
+									>
+										<div className="min-w-0">
+											<p className="truncate text-sm text-ink-strong">
+												{item.name}
+											</p>
+											<p className="ref mt-1">{item.product_id}</p>
+										</div>
+										<div className="shrink-0 text-right">
+											<p className="figure-sm tabular-nums">
+												{inr(item.monthly_sip_inr || item.lumpsum_inr)}
+											</p>
+											<p className="label mt-1">
+												{item.monthly_sip_inr ? "per month" : "one-time"}
+											</p>
+										</div>
+									</li>
+								))}
+							</ul>
+						</div>
+					)}
+
+					{proposal?.strategic_rationale && (
+						<div className="border-t border-rule pt-5">
+							<p className="label-strong">Rationale</p>
+							<p className="mt-2 text-sm leading-relaxed text-ink">
+								{proposal.strategic_rationale}
+							</p>
+						</div>
+					)}
+
+					<div className="border-t border-rule pt-5">
+						<p className="label-strong">Statutory disclosure</p>
+						<p className="mt-2 text-xs leading-relaxed text-ink-muted">
+							Mutual fund investments are subject to market risk. Read all
+							scheme related documents carefully. Past performance does not
+							indicate future returns. This proposal sets out the asset shift
+							matrix, allocation weighting and disclosures required under SEBI
+							(Investment Advisers) Regulations, 2013.
+						</p>
 					</div>
 
-					{/* Download & View Actions */}
-					<div className="space-y-2 pt-2">
+					<div className="space-y-2.5">
 						{proposal?.download_url && (
 							<Button
 								asChild
-								className="w-full h-11 font-bold text-xs gap-2 bg-amber-400 text-slate-950 hover:bg-amber-300 rounded-xl shadow-xs"
+								variant="wealth"
+								className="h-11 w-full gap-2 rounded-lg text-sm font-semibold"
 							>
 								<a
 									href={proposal.download_url}
 									target="_blank"
 									rel="noopener noreferrer"
 								>
-									<Download className="size-4 text-slate-950" />
-									<span>Download Official Proposal PDF</span>
+									<Download className="size-4" />
+									<span>Download proposal</span>
 								</a>
 							</Button>
 						)}
@@ -105,7 +176,7 @@ export default function ProposalDialog() {
 						<Button
 							variant="outline"
 							onClick={() => set({ proposalOpen: false })}
-							className="w-full h-9 font-bold text-xs bg-slate-900 border-white/10 text-slate-300 hover:text-white rounded-xl"
+							className="h-11 w-full rounded-lg text-sm font-semibold"
 						>
 							Close
 						</Button>
@@ -115,4 +186,3 @@ export default function ProposalDialog() {
 		</Dialog>
 	);
 }
-

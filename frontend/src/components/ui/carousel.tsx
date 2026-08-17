@@ -197,7 +197,7 @@ const CarouselPrevious = React.forwardRef<
 			variant={variant}
 			size={size}
 			className={cn(
-				"absolute size-8 rounded-full border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-200 hover:bg-amber-400 hover:text-slate-950 dark:hover:bg-amber-400 dark:hover:text-slate-950 shadow-md disabled:opacity-30",
+				"absolute size-8 rounded-sm border border-rule bg-paper-sheet text-ink-muted hover:border-rule-strong hover:bg-paper-sunken hover:text-ink-strong disabled:opacity-30",
 				orientation === "horizontal"
 					? "-left-4 top-1/2 -translate-y-1/2"
 					: "-top-4 left-1/2 -translate-x-1/2 rotate-90",
@@ -226,7 +226,7 @@ const CarouselNext = React.forwardRef<
 			variant={variant}
 			size={size}
 			className={cn(
-				"absolute size-8 rounded-full border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-200 hover:bg-amber-400 hover:text-slate-950 dark:hover:bg-amber-400 dark:hover:text-slate-950 shadow-md disabled:opacity-30",
+				"absolute size-8 rounded-sm border border-rule bg-paper-sheet text-ink-muted hover:border-rule-strong hover:bg-paper-sunken hover:text-ink-strong disabled:opacity-30",
 				orientation === "horizontal"
 					? "-right-4 top-1/2 -translate-y-1/2"
 					: "-bottom-4 left-1/2 -translate-x-1/2 rotate-90",

@@ -1,9 +1,8 @@
 import { useMemo } from "react";
 import { useStore } from "@/store";
-import ProductCard from "./ProductCard";
-import ProductTable from "./ProductTable";
-import ProductCarousel from "./ProductCarousel";
-import { AlertCircle } from "lucide-react";
+import InstrumentCard from "./InstrumentCard";
+import InstrumentTable from "./InstrumentTable";
+import InstrumentCarousel from "./InstrumentCarousel";
 
 export default function CatalogGrid() {
 	const { funds, visibleFundIds, filter, explorerView } = useStore();
@@ -71,13 +70,12 @@ export default function CatalogGrid() {
 
 	if (displayedFunds.length === 0) {
 		return (
-			<div className="glass-panel rounded-2xl p-12 text-center text-slate-400 space-y-3 shadow-xs border border-slate-200 dark:border-white/10">
-				<AlertCircle className="size-10 mx-auto text-amber-400/50" />
-				<p className="font-bold text-slate-900 dark:text-white text-sm">
-					No matching investment instruments found
-				</p>
-				<p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-					Try relaxing your filter settings or search keywords.
+			<div className="paper p-12 text-center">
+				<h3 className="doc-title text-xl text-ink-strong">
+					No instruments match this mandate
+				</h3>
+				<p className="mx-auto mt-2 max-w-md text-xs text-ink-muted">
+					Widen the category, risk band or search term to rebuild the shortlist.
 				</p>
 			</div>
 		);
@@ -86,13 +84,13 @@ export default function CatalogGrid() {
 	return (
 		<div className="space-y-4">
 			{explorerView === "carousel" ? (
-				<ProductCarousel funds={displayedFunds} />
+				<InstrumentCarousel funds={displayedFunds} />
 			) : explorerView === "matrix" ? (
-				<ProductTable funds={displayedFunds} />
+				<InstrumentTable funds={displayedFunds} />
 			) : (
-				<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5">
+				<div className="grid grid-cols-1 gap-rhythm sm:grid-cols-2 xl:grid-cols-3">
 					{displayedFunds.map((fund) => (
-						<ProductCard key={fund.id} fund={fund} />
+						<InstrumentCard key={fund.id} fund={fund} />
 					))}
 				</div>
 			)}

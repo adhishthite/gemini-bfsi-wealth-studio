@@ -1,28 +1,44 @@
 import { useState } from "react";
-import {
-	Briefcase,
-	TrendingUp,
-	ChevronDown,
-	ShieldAlert,
-	Sparkles,
-	Layers,
-	Activity,
-	Lock,
-	Sun,
-	Moon,
-} from "lucide-react";
+import { Briefcase, ChevronDown, Moon, Sun } from "lucide-react";
 import { useStore } from "@/store";
 import { sendAction } from "@/ws";
+import { inr, inrCompact, inrParts } from "@/lib";
 import Logo from "./Logo";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
+
+/**
+ * Client identity header.
+ *
+ * The executive reads two things here and nothing else: who the client is,
+ * and what they are worth. The workspace switcher sits quietly in the middle;
+ * the theme control, the advisory basket and the full client file recede to
+ * the right or behind the client name. No accent is spent on this surface —
+ * the stamp belongs to the canvas below.
+ */
+
+const FALLBACK_GOALS = [
+	{ name: "Children's education", year: 2032, amount: 5000000 },
+	{ name: "Early retirement", year: 2042, amount: 50000000 },
+];
+
+const TABS: Array<{
+	id: "explorer" | "diagnostics" | "simulation";
+	label: string;
+}> = [
+	{ id: "explorer", label: "Instrument shortlist" },
+	{ id: "diagnostics", label: "Portfolio audit" },
+	{ id: "simulation", label: "Goal projection" },
+];
+
+const MANDATE_LABEL: Record<string, string> = {
+	awaiting_otp: "Awaiting OTP confirmation",
+	authorized: "e-NACH mandate authorised",
+	error: "Authorisation did not complete",
+};
 
 export default function TopBar() {
 	const {
@@ -36,207 +52,240 @@ export default function TopBar() {
 		theme,
 		toggleTheme,
 	} = useStore();
-	const [profileOpen, setProfileOpen] = useState(false);
+	const [clientFileOpen, setClientFileOpen] = useState(false);
 
-	const activeUser = portfolio || profile;
-	const aum = activeUser?.total_aum_inr || 7500000;
-	const aumLakhs = (aum / 100000).toFixed(1);
+	const client = portfolio || profile;
+
+	const clientName = client?.name || "Rahul Sharma";
+	const occupation = client?.occupation || "Engineering director";
+	const city = client?.city || "Bengaluru";
+	const riskProfile = client?.risk_profile || "Moderately aggressive";
+	const aum = client?.total_aum_inr ?? 7500000;
+	const monthlySurplus = client?.monthly_surplus_inr ?? 150000;
+	const activeSip = client?.active_sip_inr ?? 60000;
+	const unallocated = Math.max(monthlySurplus - activeSip, 0);
+
+	const aumFigure = inrParts(aum);
+	const goals = client?.goals?.length
+		? client.goals.map((g) => ({
+				name: g.name,
+				year: g.target_year,
+				amount: g.target_amount_inr,
+			}))
+		: FALLBACK_GOALS;
+
+	const openTab = (id: (typeof TABS)[number]["id"]) => {
+		if (id === "explorer") {
+			set({ activeTab: "explorer" });
+			return;
+		}
+		if (id === "diagnostics") {
+			set({ activeTab: "diagnostics", diagnosticsOpen: true });
+			sendAction("get_portfolio_diagnostics");
+			return;
+		}
+		set({ activeTab: "simulation", simulationOpen: true });
+		sendAction("simulate_portfolio", {
+			equity_pct: 65,
+			debt_pct: 20,
+			gold_pct: 10,
+			liquid_pct: 5,
+			monthly_sip_inr: 100000,
+		});
+	};
 
 	return (
-		<header className="sticky top-0 z-40 bg-white/90 dark:bg-[#070D18]/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/10 shadow-sm dark:shadow-card-luxury transition-colors">
-			<div className="mx-auto max-w-[1700px] px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-				{/* Left Brand Identity */}
+		<header className="sticky top-0 z-40 border-b border-rule bg-paper">
+			<div className="mx-auto flex h-[4.5rem] max-w-[1700px] items-center gap-6 px-gutter">
+				{/* House mark */}
 				<Logo />
 
-				{/* Center: Studio Canvas Workspace Switcher */}
-				<nav className="hidden md:flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 shadow-inner">
-					<button
-						type="button"
-						onClick={() => set({ activeTab: "explorer" })}
-						className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-							activeTab === "explorer"
-								? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
-								: "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-						}`}
-					>
-						<Layers className="size-3.5" />
-						<span>Explorer</span>
-					</button>
+				<div className="hidden h-10 border-l border-rule lg:block" />
 
-					<button
-						type="button"
-						onClick={() => {
-							set({ activeTab: "diagnostics", diagnosticsOpen: true });
-							sendAction("get_portfolio_diagnostics");
-						}}
-						className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-							activeTab === "diagnostics"
-								? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
-								: "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-						}`}
-					>
-						<ShieldAlert className="size-3.5" />
-						<span>Diagnostics</span>
-					</button>
+				{/* Client identity — name and portfolio value, the two facts
+				    the room needs. The whole block opens the client file. */}
+				<Popover open={clientFileOpen} onOpenChange={setClientFileOpen}>
+					<PopoverTrigger asChild>
+						<button
+							type="button"
+							className="-mx-2 flex items-center gap-5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-paper-sunken"
+							aria-label="Open client file"
+						>
+							<div className="min-w-0">
+								<p className="label">Client under advisory</p>
+								<p className="mt-1 truncate text-lg font-semibold leading-none text-ink-strong">
+									{clientName}
+								</p>
+							</div>
 
-					<button
-						type="button"
-						onClick={() => {
-							set({ activeTab: "simulation", simulationOpen: true });
-							sendAction("simulate_portfolio", {
-								equity_pct: 65,
-								debt_pct: 20,
-								gold_pct: 10,
-								liquid_pct: 5,
-								monthly_sip_inr: 100000,
-							});
-						}}
-						className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-							activeTab === "simulation"
-								? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
-								: "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-						}`}
+							<div className="hidden border-l border-rule pl-5 sm:block">
+								<p className="label">Portfolio value</p>
+								<p className="mt-0.5 flex items-baseline gap-1.5 leading-none">
+									<span className="figure text-ink-strong">
+										{aumFigure.value}
+									</span>
+									{aumFigure.unit && (
+										<span className="figure-unit">{aumFigure.unit}</span>
+									)}
+								</p>
+							</div>
+
+							<ChevronDown
+								className={`size-4 shrink-0 text-ink-faint transition-transform duration-200 ${
+									clientFileOpen ? "rotate-180" : ""
+								}`}
+							/>
+						</button>
+					</PopoverTrigger>
+
+					<PopoverContent
+						align="start"
+						sideOffset={10}
+						className="w-[23rem] rounded-lg border-rule bg-paper-sheet p-0 text-ink shadow-raise"
 					>
-						<TrendingUp className="size-3.5" />
-						<span>Simulation</span>
-					</button>
+						<div className="px-5 pb-4 pt-5">
+							<p className="label">Client file</p>
+							<p className="doc-title mt-2 text-xl leading-tight text-ink-strong">
+								{clientName}
+							</p>
+							<p className="mt-2 text-xs text-ink-muted">
+								{occupation} · {city}
+								{client?.age ? ` · ${client.age}` : ""}
+							</p>
+						</div>
+
+						<div className="paper-sunken border-y border-rule px-5 py-1.5">
+							<dl className="text-xs">
+								<div className="flex items-baseline justify-between gap-6 py-2.5">
+									<dt className="text-ink-muted">Portfolio value</dt>
+									<dd className="tabular-nums font-semibold text-ink-strong">
+										{inr(aum)}
+									</dd>
+								</div>
+								<div className="flex items-baseline justify-between gap-6 py-2.5">
+									<dt className="text-ink-muted">Risk profile</dt>
+									<dd className="text-ink-strong">{riskProfile}</dd>
+								</div>
+								<div className="flex items-baseline justify-between gap-6 py-2.5">
+									<dt className="text-ink-muted">Monthly surplus</dt>
+									<dd className="tabular-nums text-ink-strong">
+										{inr(monthlySurplus)}
+										<span className="text-ink-faint"> /mo</span>
+									</dd>
+								</div>
+								<div className="flex items-baseline justify-between gap-6 py-2.5">
+									<dt className="text-ink-muted">Committed to SIPs</dt>
+									<dd className="tabular-nums text-ink-strong">
+										{inr(activeSip)}
+										<span className="text-ink-faint"> /mo</span>
+									</dd>
+								</div>
+								<div className="mark-attention my-1.5 flex items-baseline justify-between gap-6 py-1">
+									<dt className="text-ink">Unallocated surplus</dt>
+									<dd className="tabular-nums font-semibold text-ink-strong">
+										{inr(unallocated)}
+										<span className="text-ink-faint"> /mo</span>
+									</dd>
+								</div>
+							</dl>
+						</div>
+
+						<div className="px-5 py-4">
+							<p className="label-strong">Goals</p>
+							<div className="mt-3 space-y-2.5">
+								{goals.map((g) => (
+									<div
+										key={`${g.name}-${g.year}`}
+										className="flex items-baseline justify-between gap-6 text-xs"
+									>
+										<span className="text-ink-muted">{g.name}</span>
+										<span className="tabular-nums font-medium text-ink-strong">
+											{inrCompact(g.amount)}
+											<span className="font-normal text-ink-faint">
+												{" "}
+												· {g.year}
+											</span>
+										</span>
+									</div>
+								))}
+							</div>
+						</div>
+
+						{mandateStatus !== "idle" && (
+							<div className="border-t border-rule px-5 py-3.5">
+								<p className="label">Mandate</p>
+								<p className="mt-1.5 text-xs text-ink">
+									{MANDATE_LABEL[mandateStatus] || mandateStatus}
+								</p>
+							</div>
+						)}
+					</PopoverContent>
+				</Popover>
+
+				{/* Workspace switcher — one restrained segmented control */}
+				<nav
+					className="mx-auto hidden items-center gap-0.5 rounded-lg border border-rule bg-paper-sunken p-1 md:flex"
+					aria-label="Workspace"
+				>
+					{TABS.map((tab) => (
+						<button
+							key={tab.id}
+							type="button"
+							onClick={() => openTab(tab.id)}
+							aria-current={activeTab === tab.id ? "page" : undefined}
+							className={`rounded-lg px-3.5 py-1.5 text-xs transition-colors ${
+								activeTab === tab.id
+									? "bg-paper-sheet font-semibold text-ink-strong shadow-sheet"
+									: "font-medium text-ink-muted hover:text-ink"
+							}`}
+						>
+							{tab.label}
+						</button>
+					))}
 				</nav>
 
-				{/* Right Tools & Client Snapshot */}
-				<div className="flex items-center gap-2">
-					{/* Theme Mode Toggle (Obsidian Dark ↔ Porcelain Light) */}
-					<Button
-						variant="ghost"
-						size="iconSm"
+				{/* Quiet controls */}
+				<div className="ml-auto flex items-center gap-2 md:ml-0">
+					<button
+						type="button"
 						onClick={toggleTheme}
-						className="size-9 rounded-lg bg-slate-100 dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-						title={
-							theme === "dark"
-								? "Switch to Porcelain Light Mode"
-								: "Switch to Obsidian Dark Mode"
-						}
+						className="grid size-9 place-items-center rounded-lg text-ink-faint transition-colors hover:bg-paper-sunken hover:text-ink"
+						title={theme === "dark" ? "Switch to light" : "Switch to dark"}
+						aria-label={theme === "dark" ? "Switch to light" : "Switch to dark"}
 					>
 						{theme === "dark" ? (
-							<Sun className="size-4 text-amber-400" />
+							<Sun className="size-4" />
 						) : (
-							<Moon className="size-4 text-slate-700" />
+							<Moon className="size-4" />
 						)}
-					</Button>
+					</button>
 
-					{/* Advisory Basket Trigger */}
-					<Button
+					<button
+						type="button"
 						onClick={() => {
 							set({ basketOpen: true });
 							sendAction("view_basket");
 						}}
-						className="relative flex items-center gap-2 h-9 px-3 rounded-lg bg-slate-100 dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/5 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all shadow-xs"
-						aria-label="Open Advisory Basket"
+						className="paper-interactive flex h-9 items-center gap-2.5 px-3 text-xs font-medium text-ink"
+						aria-label="Open advisory basket"
+						title={
+							basket.length
+								? `Advisory basket — ${basket.length} instrument${
+										basket.length === 1 ? "" : "s"
+									}, ${inr(totalSip)} monthly`
+								: "Advisory basket"
+						}
 					>
-						<Briefcase className="size-3.5 text-amber-600 dark:text-amber-400" />
-						<span className="text-xs font-semibold hidden md:inline">
-							Basket
-						</span>
+						<Briefcase className="size-4 text-ink-muted" />
+						<span className="hidden md:inline">Basket</span>
 						{basket.length > 0 && (
-							<span className="grid place-items-center size-4.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-bold shadow-xs">
+							<span className="border-l border-rule pl-2.5 font-semibold tabular-nums text-ink-strong">
 								{basket.length}
 							</span>
 						)}
-					</Button>
-
-					{/* Client Profile Snapshot Popover */}
-					<Popover open={profileOpen} onOpenChange={setProfileOpen}>
-						<PopoverTrigger asChild>
-							<Button
-								variant="ghost"
-								className="flex items-center gap-2 h-9 pl-1.5 pr-2.5 rounded-lg bg-slate-100 dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/5 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-							>
-								<Avatar className="size-6 rounded-md">
-									<AvatarFallback className="rounded-md bg-amber-500 text-slate-950 text-[11px] font-bold">
-										RS
-									</AvatarFallback>
-								</Avatar>
-								<span className="text-xs font-semibold hidden sm:inline text-slate-800 dark:text-slate-200">
-									₹{aumLakhs}L AUM
-								</span>
-								<ChevronDown
-									className={`size-3 text-slate-400 transition-transform duration-200 ${
-										profileOpen ? "rotate-180" : ""
-									}`}
-								/>
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent
-							align="end"
-							className="w-84 p-4 text-xs space-y-3 bg-white dark:bg-[#0B1323] border-slate-200 dark:border-white/15 text-slate-800 dark:text-slate-200 shadow-2xl backdrop-blur-2xl rounded-2xl"
-						>
-							<div className="flex items-center gap-3 pb-2">
-								<Avatar className="size-10 rounded-xl border border-amber-400/40">
-									<AvatarFallback className="rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-slate-950 font-black text-sm">
-										RS
-									</AvatarFallback>
-								</Avatar>
-								<div>
-									<p className="font-bold text-sm text-slate-900 dark:text-white">Rahul Sharma</p>
-									<p className="text-slate-500 dark:text-slate-400 text-[11px]">
-										Engineering Director, Bengaluru
-									</p>
-								</div>
-							</div>
-
-							<Separator className="bg-slate-200 dark:bg-white/10" />
-
-							<div className="space-y-2">
-								<div className="flex justify-between items-center">
-									<span className="text-slate-500 dark:text-slate-400">Portfolio AUM:</span>
-									<span className="font-mono font-bold text-slate-900 dark:text-white text-sm">₹75,00,000</span>
-								</div>
-								<div className="flex justify-between items-center">
-									<span className="text-slate-500 dark:text-slate-400">Risk Profile:</span>
-									<Badge className="bg-amber-400/15 text-amber-900 dark:text-amber-300 border-amber-400/30 text-[10px]">
-										Moderately Aggressive
-									</Badge>
-								</div>
-								<div className="flex justify-between items-center">
-									<span className="text-slate-500 dark:text-slate-400">Monthly Surplus:</span>
-									<span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
-										₹1,50,000 / mo
-									</span>
-								</div>
-								<div className="flex justify-between items-center">
-									<span className="text-slate-500 dark:text-slate-400">Active SIPs:</span>
-									<span className="font-mono font-bold text-slate-700 dark:text-slate-300">₹60,000 / mo</span>
-								</div>
-								<div className="flex justify-between items-center">
-									<span className="text-slate-500 dark:text-slate-400">Unallocated Cash:</span>
-									<span className="font-mono font-bold text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-950/40 px-1.5 py-0.5 rounded border border-rose-300 dark:border-rose-800/40">
-										₹90,000 / mo
-									</span>
-								</div>
-							</div>
-
-							<Separator className="bg-slate-200 dark:bg-white/10" />
-
-							<div>
-								<p className="text-[11px] font-bold text-amber-800 dark:text-amber-300 mb-1.5 flex items-center gap-1.5">
-									<Activity className="size-3.5" />
-									<span>Milestone Targets:</span>
-								</p>
-								<div className="space-y-1 text-[11px] text-slate-700 dark:text-slate-300">
-									<p className="flex justify-between">
-										<span>Children Education:</span>
-										<span className="font-mono text-slate-800 dark:text-slate-200">₹50L (2032)</span>
-									</p>
-									<p className="flex justify-between">
-										<span>Early Retirement:</span>
-										<span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">₹5 Cr (2042)</span>
-									</p>
-								</div>
-							</div>
-						</PopoverContent>
-					</Popover>
+					</button>
 				</div>
 			</div>
 		</header>
 	);
 }
-

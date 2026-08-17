@@ -12,13 +12,13 @@ const toggleVariants = cva(
         outline:
           "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:border-primary",
         subtle:
-          "bg-secondary/70 text-secondary-foreground hover:bg-secondary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground",
+          "bg-secondary text-secondary-foreground hover:bg-secondary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground",
         risk:
-          "bg-secondary/70 text-secondary-foreground hover:bg-secondary data-[state=on]:bg-amber-600 data-[state=on]:text-white",
+          "bg-secondary text-secondary-foreground hover:bg-secondary data-[state=on]:bg-ink-strong data-[state=on]:text-paper-sheet",
       },
       size: {
         default: "h-8 px-3 text-xs",
-        sm: "h-7 px-2.5 text-[11px]",
+        sm: "h-7 px-2.5 text-xs",
         lg: "h-9 px-4 text-xs",
       },
     },

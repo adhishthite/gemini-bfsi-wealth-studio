@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { TrendingUp, FileText } from "lucide-react";
 import { useStore } from "@/store";
 import { sendAction } from "@/ws";
 import {
@@ -11,34 +10,54 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { inr, inrCompact, inrParts, pct } from "@/lib";
+import type { SimulationData } from "@/types";
+
+/* ---------------------------------------------------------------------------
+   The fifteen-year projection, set as a working note rather than a control
+   panel. The projected corpus is the hero numeral; the scenario tiles carry
+   state by rule weight, and the one selected scenario is the single accent
+   on this surface. The trajectory is drawn from the returned data, in ink.
+   ------------------------------------------------------------------------ */
 
 const SCENARIOS = [
 	{
 		id: "baseline",
-		label: "Standard Baseline (12.8% CAGR)",
-		desc: "Balanced market growth with moderate inflation",
+		label: "Baseline",
+		cagr: "12.8%",
+		desc: "Balanced growth, moderate inflation",
 	},
 	{
 		id: "bull_expansion",
-		label: "Bull Supercycle (15.4% CAGR)",
-		desc: "Rapid capex, earnings expansion, strong global inflows",
+		label: "Bull supercycle",
+		cagr: "15.4%",
+		desc: "Capex and earnings expansion, strong inflows",
 	},
 	{
 		id: "bear_recession",
-		label: "Defensive / Recession (8.6% CAGR)",
-		desc: "Market drawdown; gold & corporate debt stabilize returns",
+		label: "Recession",
+		cagr: "8.6%",
+		desc: "Drawdown; gold and corporate debt hold the line",
 	},
 	{
 		id: "rate_cut_cycle",
-		label: "RBI Rate Cut Cycle (13.5% CAGR)",
-		desc: "Bond capital appreciation + equity multiple expansion",
+		label: "RBI rate cuts",
+		cagr: "13.5%",
+		desc: "Bond appreciation with equity re-rating",
 	},
 	{
 		id: "high_inflation",
-		label: "High Inflation (11.2% CAGR)",
-		desc: "Commodities & Sovereign Gold outperform",
+		label: "High inflation",
+		cagr: "11.2%",
+		desc: "Commodities and sovereign gold outperform",
 	},
 ];
+
+const CHART_W = 600;
+const CHART_H = 150;
+const PAD_X = 24;
+const PAD_TOP = 22;
+const PAD_BOTTOM = 34;
 
 export default function SimulationDialog() {
 	const { simulation, simulationOpen, set, pushToast } = useStore();
@@ -47,7 +66,7 @@ export default function SimulationDialog() {
 	const [eqPct, setEqPct] = useState(65);
 	const [sipAmt, setSipAmt] = useState(100000);
 
-	const currentSim = simulation || {
+	const currentSim: SimulationData = simulation || {
 		scenario: "baseline",
 		target_allocation: { equity: 65, debt: 20, gold: 10, liquid: 5 },
 		blended_expected_cagr_pct: 12.8,
@@ -55,8 +74,8 @@ export default function SimulationDialog() {
 		horizon_years: 15,
 		projected_final_corpus_inr: 58200000,
 		goals_feasibility: {
-			education_2032_status: "Fully Funded (108% probability)",
-			retirement_2042_status: "Achieved (₹5.82 Cr vs ₹5.0 Cr Target)",
+			education_2032_status: "Fully funded, 108% of target",
+			retirement_2042_status: "Met — ₹5.82 Cr against a ₹5.0 Cr target",
 		},
 		trajectory: [
 			{ year: 2026, projected_corpus_inr: 7500000 },
@@ -77,9 +96,9 @@ export default function SimulationDialog() {
 		],
 	};
 
-	const finalCrores = (
-		(currentSim.projected_final_corpus_inr || 58200000) / 10000000
-	).toFixed(2);
+	const corpus = inrParts(currentSim.projected_final_corpus_inr || 58200000);
+	const horizonEnd =
+		currentSim.trajectory?.[currentSim.trajectory.length - 1]?.year ?? 2042;
 
 	const handleScenarioChange = (scId: string) => {
 		setActiveScenario(scId);
@@ -102,77 +121,96 @@ export default function SimulationDialog() {
 			liquid_pct: 5,
 			monthly_sip_inr: sip,
 		});
-		pushToast("Simulation recalculated with updated parameters", "info");
+		pushToast("Recalculating the projection", "info");
 	};
+
+	/* The trajectory, plotted from the returned series. */
+	const points = currentSim.trajectory ?? [];
+	const years = points.map((p) => p.year);
+	const values = points.map((p) => p.projected_corpus_inr);
+	const minYear = years.length ? Math.min(...years) : 2026;
+	const maxYear = years.length ? Math.max(...years) : horizonEnd;
+	const maxValue = values.length ? Math.max(...values) : 1;
+	const plotX = (year: number) =>
+		PAD_X +
+		((year - minYear) / Math.max(1, maxYear - minYear)) * (CHART_W - PAD_X * 2);
+	const plotY = (value: number) =>
+		PAD_TOP +
+		(1 - value / Math.max(1, maxValue)) * (CHART_H - PAD_TOP - PAD_BOTTOM);
+	const line = points
+		.map((p, i) => `${i === 0 ? "M" : "L"} ${plotX(p.year)},${plotY(p.projected_corpus_inr)}`)
+		.join(" ");
 
 	return (
 		<Dialog
 			open={simulationOpen}
 			onOpenChange={(open) => set({ simulationOpen: open })}
 		>
-			<DialogContent className="max-w-4xl p-0 overflow-hidden max-h-[90vh] flex flex-col">
-				{/* Modal Header */}
-				<DialogHeader className="p-5 bg-gradient-to-r from-slate-900 to-[#0B2545] text-white">
-					<div className="flex items-center gap-3">
-						<div className="size-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold">
-							<TrendingUp className="size-5" />
-						</div>
-						<div>
-							<DialogTitle className="text-white text-base">
-								Strategic Portfolio Simulation & Goal Projections
-							</DialogTitle>
-							<DialogDescription className="text-slate-300">
-								Monte Carlo multi-decade compounding forecast for Rahul Sharma
-							</DialogDescription>
-						</div>
-					</div>
+			<DialogContent className="flex max-h-[90vh] max-w-4xl flex-col gap-0 overflow-hidden rounded-lg border border-rule bg-paper-sheet p-0 text-ink shadow-raise">
+				<DialogHeader className="doc-rule space-y-0 px-gutter pb-5 pt-6 text-left">
+					<p className="label">Goal projection</p>
+					<DialogTitle className="doc-title mt-2 text-xl font-normal">
+						Fifteen-year rebalancing simulation
+					</DialogTitle>
+					<DialogDescription className="mt-2 text-xs text-ink-muted">
+						Modelled to {horizonEnd} on the target allocation and the monthly
+						commitment below
+					</DialogDescription>
 				</DialogHeader>
 
-				{/* Modal Body */}
-				<div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
-					{/* Key Metric Highlights */}
-					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-						<div className="p-4 rounded-2xl bg-card border border-border shadow-xs">
-							<p className="text-xs text-muted-foreground font-semibold">
-								2042 Retirement Corpus
-							</p>
-							<p className="text-2xl font-black text-emerald-600 mt-1">
-								₹{finalCrores} Cr
-							</p>
-							<p className="text-[11px] text-emerald-700 font-medium mt-1">
-								Target ₹5.00 Cr (116% Probability)
-							</p>
+				<div className="flex-1 space-y-rhythm overflow-y-auto px-gutter pb-6">
+					{/* The projected corpus, and the two facts that qualify it */}
+					<div className="grid grid-cols-1 gap-6 border-t border-rule pt-5 sm:grid-cols-3">
+						<div>
+							<p className="label">Projected corpus, {horizonEnd}</p>
+							<div className="mt-2 flex items-end gap-2">
+								<p className="figure-lg tabular-nums">{corpus.value}</p>
+								<span className="figure-unit pb-1.5">{corpus.unit}</span>
+							</div>
 						</div>
-
-						<div className="p-4 rounded-2xl bg-card border border-border shadow-xs">
-							<p className="text-xs text-muted-foreground font-semibold">
-								Blended Expected CAGR
-							</p>
-							<p className="text-2xl font-black text-blue-600 mt-1">
-								{currentSim.blended_expected_cagr_pct}% p.a.
-							</p>
-							<p className="text-[11px] text-muted-foreground mt-1 font-medium">
-								Weighted across 4 asset classes
-							</p>
+						<div>
+							<p className="label">Blended expected return</p>
+							<div className="mt-2 flex items-end gap-2">
+								<p className="figure tabular-nums">
+									{pct(currentSim.blended_expected_cagr_pct)}
+								</p>
+								<span className="figure-unit pb-1">p.a.</span>
+							</div>
 						</div>
-
-						<div className="p-4 rounded-2xl bg-card border border-border shadow-xs">
-							<p className="text-xs text-muted-foreground font-semibold">
-								2032 Higher Education
-							</p>
-							<p className="text-2xl font-black text-foreground mt-1">₹54.2 L</p>
-							<p className="text-[11px] text-emerald-700 font-medium mt-1">
-								Target ₹50.0 L (Fully Funded)
+						<div>
+							<p className="label">Monthly commitment</p>
+							<p className="figure mt-2 tabular-nums">
+								{inr(currentSim.monthly_sip_inr)}
 							</p>
 						</div>
 					</div>
 
-					{/* Scenario Selector */}
-					<div className="space-y-2">
-						<label className="text-xs font-bold text-foreground block">
-							Macroeconomic Market Scenario:
-						</label>
-						<div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+					{/* Goal feasibility, as ruled statements */}
+					<div className="divide-y divide-rule border-y border-rule">
+						<div className="flex items-baseline justify-between gap-4 py-3.5">
+							<p className="text-sm text-ink-strong">
+								Children's higher education, 2032
+							</p>
+							<p className="text-xs text-ink-muted">
+								{currentSim.goals_feasibility?.education_2032_status}
+							</p>
+						</div>
+						<div className="flex items-baseline justify-between gap-4 py-3.5">
+							<p className="text-sm text-ink-strong">
+								Financial independence, 2042
+							</p>
+							<p className="text-xs text-ink-muted">
+								{currentSim.goals_feasibility?.retirement_2042_status}
+							</p>
+						</div>
+					</div>
+
+					{/* Scenario — the selected tile is the one accent on this screen */}
+					<div>
+						<p className="label-strong border-b border-rule-strong pb-2">
+							Market scenario
+						</p>
+						<div className="grid grid-cols-1 gap-2 pt-4 sm:grid-cols-3 lg:grid-cols-5">
 							{SCENARIOS.map((sc) => {
 								const active = activeScenario === sc.id;
 								return (
@@ -180,14 +218,18 @@ export default function SimulationDialog() {
 										key={sc.id}
 										type="button"
 										onClick={() => handleScenarioChange(sc.id)}
-										className={`p-2.5 rounded-xl border text-left transition-colors ${
-											active
-												? "bg-primary text-primary-foreground border-primary shadow-xs"
-												: "bg-muted/40 text-foreground border-border hover:bg-muted"
-										}`}
+										className={`${
+											active ? "paper-marked" : "paper-interactive"
+										} px-3.5 py-3 text-left`}
 									>
-										<p className="text-[11px] font-bold leading-tight">
+										<p className="text-sm font-medium text-ink-strong">
 											{sc.label}
+										</p>
+										<p className="mt-1 text-xs tabular-nums text-ink-muted">
+											{sc.cagr} p.a.
+										</p>
+										<p className="mt-1.5 text-xs leading-snug text-ink-faint">
+											{sc.desc}
 										</p>
 									</button>
 								);
@@ -195,16 +237,14 @@ export default function SimulationDialog() {
 						</div>
 					</div>
 
-					{/* Interactive Allocation & SIP Controls with ShadCN Slider */}
-					<div className="bg-muted/30 p-4 rounded-2xl border border-border space-y-4">
-						<h4 className="text-xs font-bold text-foreground">
-							Target Allocation & Surplus Deployment
-						</h4>
-						<div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-							<div className="space-y-2">
-								<div className="flex justify-between text-xs font-semibold text-muted-foreground">
-									<span>Equity Allocation:</span>
-									<span className="font-bold text-indigo-700 dark:text-indigo-300">{eqPct}%</span>
+					{/* Allocation and surplus deployment */}
+					<div className="paper-sunken px-5 py-5">
+						<p className="label-strong">Target allocation and deployment</p>
+						<div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
+							<div>
+								<div className="flex items-baseline justify-between">
+									<span className="label">Equity</span>
+									<span className="figure-sm tabular-nums">{eqPct}%</span>
 								</div>
 								<Slider
 									min={40}
@@ -213,19 +253,17 @@ export default function SimulationDialog() {
 									value={[eqPct]}
 									onValueChange={(val) => setEqPct(val[0])}
 									onValueCommit={(val) => handleRecalculate(val[0], sipAmt)}
-									className="py-1"
+									className="py-3"
 								/>
-								<p className="text-[10px] text-muted-foreground mt-1">
-									Debt: {Math.max(0, 95 - eqPct - 10)}% | Gold: 10% | Cash: 5%
+								<p className="text-xs tabular-nums text-ink-muted">
+									Debt {Math.max(0, 95 - eqPct - 10)}% · Gold 10% · Cash 5%
 								</p>
 							</div>
 
-							<div className="space-y-2">
-								<div className="flex justify-between text-xs font-semibold text-muted-foreground">
-									<span>Total Monthly SIP:</span>
-									<span className="font-bold text-emerald-700 dark:text-emerald-400">
-										₹{sipAmt.toLocaleString()} / mo
-									</span>
+							<div>
+								<div className="flex items-baseline justify-between">
+									<span className="label">Monthly SIP</span>
+									<span className="figure-sm tabular-nums">{inr(sipAmt)}</span>
 								</div>
 								<Slider
 									min={50000}
@@ -234,144 +272,138 @@ export default function SimulationDialog() {
 									value={[sipAmt]}
 									onValueChange={(val) => setSipAmt(val[0])}
 									onValueCommit={(val) => handleRecalculate(eqPct, val[0])}
-									className="py-1"
+									className="py-3"
 								/>
-								<p className="text-[10px] text-muted-foreground mt-1">
-									Deploying ₹90k unallocated surplus + existing ₹60k base
+								<p className="text-xs text-ink-muted">
+									Deploys the idle {inr(90000)} surplus on top of the existing{" "}
+									{inr(60000)} base
 								</p>
 							</div>
 						</div>
 					</div>
 
-					{/* Visual Milestone Trajectory (SVG Chart) */}
-					<div className="border border-border rounded-2xl p-4 bg-card space-y-2">
-						<div className="flex items-center justify-between">
-							<h4 className="text-xs font-bold text-foreground">
-								15-Year Compounding Growth Cone
-							</h4>
-							<span className="text-[10px] font-semibold text-muted-foreground">
-								Values in ₹ Lakhs & Crores
-							</span>
+					{/* Trajectory */}
+					<div>
+						<div className="flex items-baseline justify-between border-b border-rule-strong pb-2">
+							<p className="label-strong">Compounding trajectory</p>
+							<p className="label">{minYear} to {maxYear}</p>
 						</div>
-
-						<div className="h-44 w-full relative pt-4">
+						<div className="relative h-48 w-full pt-5">
 							<svg
-								viewBox="0 0 600 140"
-								className="w-full h-full overflow-visible"
+								viewBox={`0 0 ${CHART_W} ${CHART_H}`}
+								className="h-full w-full overflow-visible"
 							>
-								{/* Grid lines */}
-								<line
-									x1="0"
-									y1="120"
-									x2="600"
-									y2="120"
-									stroke="currentColor"
-									className="text-border"
-									strokeWidth="1"
-								/>
-								<line
-									x1="0"
-									y1="80"
-									x2="600"
-									y2="80"
-									stroke="currentColor"
-									className="text-border"
-									strokeWidth="1"
-									strokeDasharray="3 3"
-								/>
-								<line
-									x1="0"
-									y1="40"
-									x2="600"
-									y2="40"
-									stroke="currentColor"
-									className="text-border"
-									strokeWidth="1"
-									strokeDasharray="3 3"
-								/>
+								{[0.25, 0.5, 0.75, 1].map((f) => (
+									<line
+										key={f}
+										x1={PAD_X}
+										x2={CHART_W - PAD_X}
+										y1={plotY(maxValue * f)}
+										y2={plotY(maxValue * f)}
+										stroke="currentColor"
+										className="text-rule"
+										strokeWidth="1"
+									/>
+								))}
 
-								{/* Target Milestones */}
-								{/* 2032 Education */}
-								<circle cx="280" cy="78" r="5" fill="#B8860B" />
-								<text
-									x="280"
-									y="65"
-									textAnchor="middle"
-									fill="#B8860B"
-									fontSize="9"
-									fontWeight="bold"
-								>
-									2032: ₹50L Edu
-								</text>
-
-								{/* 2042 Retirement */}
-								<circle cx="580" cy="22" r="6" fill="#059669" />
-								<text
-									x="580"
-									y="12"
-									textAnchor="end"
-									fill="#059669"
-									fontSize="10"
-									fontWeight="bold"
-								>
-									2042: ₹5.82 Cr Retirement
-								</text>
-
-								{/* Trajectory Path */}
 								<path
-									d="M 20,112 Q 150,105 280,72 T 580,22"
+									d={line}
 									fill="none"
-									stroke="#0B2545"
-									strokeWidth="3.5"
+									stroke="currentColor"
+									className="text-ink-strong"
+									strokeWidth="2.5"
+									strokeLinejoin="round"
+									strokeLinecap="round"
 								/>
 
-								{/* Milestone X Labels */}
-								<text x="20" y="135" fontSize="9" fill="#64748B">
-									2026 (₹75L)
-								</text>
-								<text x="150" y="135" fontSize="9" fill="#64748B">
-									2029
-								</text>
-								<text x="280" y="135" fontSize="9" fill="#64748B">
-									2032 (₹1.8 Cr)
-								</text>
-								<text x="430" y="135" fontSize="9" fill="#64748B">
-									2037 (₹3.6 Cr)
-								</text>
-								<text
-									x="580"
-									y="135"
-									fontSize="9"
-									fill="#64748B"
-									textAnchor="end"
-								>
-									2042 (₹5.82 Cr)
-								</text>
+								{points.map((p) => {
+									const milestone =
+										p.education_goal_target || p.retirement_goal_target;
+									return (
+										<g key={p.year}>
+											<circle
+												cx={plotX(p.year)}
+												cy={plotY(p.projected_corpus_inr)}
+												r={milestone ? 5 : 3}
+												fill="currentColor"
+												className="text-ink-strong"
+											/>
+											{milestone ? (
+												<text
+													x={plotX(p.year)}
+													y={plotY(p.projected_corpus_inr) - 13}
+													textAnchor={p.year === maxYear ? "end" : "middle"}
+													fontSize="13"
+													fontWeight="500"
+													fill="currentColor"
+													className="text-ink-strong"
+												>
+													{inrCompact(p.projected_corpus_inr)}
+												</text>
+											) : null}
+										</g>
+									);
+								})}
+
+								{points.map((p, i) =>
+									i % 2 === 0 || p.year === maxYear ? (
+										<text
+											key={`x-${p.year}`}
+											x={plotX(p.year)}
+											y={CHART_H - 8}
+											textAnchor={
+												p.year === maxYear
+													? "end"
+													: p.year === minYear
+														? "start"
+														: "middle"
+											}
+											fontSize="12"
+											fill="currentColor"
+											className="text-ink-faint"
+										>
+											{p.year}
+										</text>
+									) : null,
+								)}
 							</svg>
 						</div>
 					</div>
 				</div>
 
-				{/* Modal Footer */}
-				<div className="p-4 border-t border-border bg-muted/20 flex items-center justify-between">
-					<p className="text-[11px] text-muted-foreground font-medium">
-						Projections are modeled estimates based on asset class historical returns.
+				{/* Foot of the note */}
+				<div className="flex items-center justify-between gap-4 border-t border-rule-strong px-gutter py-4">
+					<p className="text-xs text-ink-muted">
+						Projections are modelled estimates based on asset class history, not
+						a guarantee of return.
 					</p>
-					<Button
-						variant="wealth"
-						onClick={() => {
-							sendAction("generate_advisory_proposal", {
-								strategic_rationale:
-									"Optimized allocation with 65% Equity, 20% Debt, 10% Gold, 5% Liquid achieving ₹5.82 Cr corpus by 2042.",
-							});
-							set({ simulationOpen: false });
-							pushToast("Generating Advisory Proposal PDF...", "info");
-						}}
-						className="gap-1.5 font-bold text-xs"
-					>
-						<FileText className="size-4 text-amber-300" />
-						<span>Generate Proposal PDF</span>
-					</Button>
+					<div className="flex shrink-0 items-center gap-2.5">
+						<Button
+							variant="outline"
+							onClick={() => set({ simulationOpen: false })}
+							className="h-10 rounded-lg text-sm font-semibold"
+						>
+							Close
+						</Button>
+						<Button
+							variant="wealth"
+							onClick={() => {
+								sendAction("generate_advisory_proposal", {
+									strategic_rationale: `Target allocation of ${eqPct}% equity, ${Math.max(
+										0,
+										95 - eqPct - 10,
+									)}% debt, 10% gold and 5% liquid, projected to reach ${inrCompact(
+										currentSim.projected_final_corpus_inr,
+									)} by ${horizonEnd}.`,
+								});
+								set({ simulationOpen: false });
+								pushToast("Generating the advisory proposal", "info");
+							}}
+							className="h-10 rounded-lg text-sm font-semibold"
+						>
+							Generate advisory proposal
+						</Button>
+					</div>
 				</div>
 			</DialogContent>
 		</Dialog>

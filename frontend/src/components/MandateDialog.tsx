@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-	CheckCircle2,
-	ShieldCheck,
-	Lock,
-	Building,
-} from "lucide-react";
+import type { ReactNode } from "react";
 import { useStore } from "@/store";
 import { sendAction } from "@/ws";
 import {
@@ -22,6 +17,118 @@ import {
 	InputOTPGroup,
 	InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { inr } from "@/lib";
+
+/* ---------------------------------------------------------------------------
+   The e-NACH mandate is an instrument, not a modal. It is set as a document:
+   a certificate rule at the head, a Caslon instruction title, a monospaced
+   UMRN beneath it, field heads at 12px over 15px values, and the debit
+   schedule as a ruled tabular list. The single accent on this surface is
+   spent once — on the authorise action before execution, and on the
+   attestation seal after it.
+   ------------------------------------------------------------------------ */
+
+/** Unique Mandate Registration Number — this instrument's own identifier. */
+const UMRN = "CYMB6421078821";
+
+/** The registered debits, shown on the executed instrument when the staged
+ *  basket has already been cleared by the backend. */
+const REGISTERED_DEBITS = [
+	{
+		name: "Cymbal Flexi Cap Opportunities Fund",
+		ref: "INF200K01WT4",
+		amount: 35000,
+	},
+	{
+		name: "Cymbal Multi-Asset Strategy Fund",
+		ref: "INF200K01XR2",
+		amount: 25000,
+	},
+	{
+		name: "Cymbal CRISIL SDL 2030 Index Fund",
+		ref: "INF200K01YH9",
+		amount: 20000,
+	},
+	{
+		name: "Cymbal US & Global Tech Feeder Fund",
+		ref: "INF200K01ZB6",
+		amount: 20000,
+	},
+];
+
+type DebitLine = {
+	name: string;
+	ref: string;
+	amount: number;
+	recurring: boolean;
+};
+
+function Field({
+	label,
+	value,
+	mono,
+}: {
+	label: string;
+	value: ReactNode;
+	mono?: boolean;
+}) {
+	return (
+		<div>
+			<p className="label">{label}</p>
+			<p
+				className={
+					mono ? "ref mt-1.5 text-ink-strong" : "mt-1.5 text-sm text-ink-strong"
+				}
+			>
+				{value}
+			</p>
+		</div>
+	);
+}
+
+function DebitSchedule({
+	heading,
+	lines,
+}: {
+	heading: string;
+	lines: DebitLine[];
+}) {
+	return (
+		<div>
+			<div className="flex items-baseline justify-between border-b border-rule-strong pb-2">
+				<p className="label-strong">{heading}</p>
+				<p className="label">
+					{lines.length} {lines.length === 1 ? "instrument" : "instruments"}
+				</p>
+			</div>
+			{lines.length === 0 ? (
+				<p className="py-4 text-sm text-ink-muted">
+					No instruments staged. Add funds to the advisory basket first.
+				</p>
+			) : (
+				<ul className="max-h-44 divide-y divide-rule overflow-y-auto scrollbar-none">
+					{lines.map((line) => (
+						<li
+							key={line.ref}
+							className="flex items-baseline justify-between gap-4 py-3"
+						>
+							<div className="min-w-0">
+								<p className="truncate text-sm text-ink-strong">{line.name}</p>
+								<p className="ref mt-1">{line.ref}</p>
+							</div>
+							<div className="shrink-0 text-right">
+								<p className="figure-sm tabular-nums">{inr(line.amount)}</p>
+								<p className="label mt-1">
+									{line.recurring ? "per month" : "one-time"}
+								</p>
+							</div>
+						</li>
+					))}
+				</ul>
+			)}
+		</div>
+	);
+}
 
 export default function MandateDialog() {
 	const {
@@ -38,9 +145,15 @@ export default function MandateDialog() {
 	const [otp, setOtp] = useState("7701");
 	const [agreed, setAgreed] = useState(true);
 
+	const authorized = mandateStatus === "authorized";
+	const failed = mandateStatus === "error";
+
 	const handleAuthorize = () => {
 		if (!agreed) {
-			pushToast("Please accept the SEBI statutory declaration", "warning");
+			pushToast(
+				"Accept the statutory declaration to authorise the mandate",
+				"warning",
+			);
 			return;
 		}
 		sendAction("execute_mandate", { otp });
@@ -50,182 +163,184 @@ export default function MandateDialog() {
 		set({ mandateModalOpen: false });
 	};
 
-	const isSuccess = mandateStatus === "authorized";
+	const debits: DebitLine[] = basket.length
+		? basket.map((b) => ({
+				name: b.name,
+				ref: b.product_id,
+				amount: b.monthly_sip_inr || b.lumpsum_inr,
+				recurring: Boolean(b.monthly_sip_inr),
+			}))
+		: authorized
+			? REGISTERED_DEBITS.map((d) => ({ ...d, recurring: true }))
+			: [];
+
+	const monthlyDebit =
+		totalSip ||
+		debits.filter((d) => d.recurring).reduce((sum, d) => sum + d.amount, 0);
+
+	const bank = portfolio?.bank_account?.bank || "Cymbal Premier Private Bank";
+	const last4 = portfolio?.bank_account?.account_number_last4 || "8821";
+	const txnId = lastTransactionId || "CYMB-TXN-2026-004417";
 
 	return (
 		<Dialog
 			open={mandateModalOpen}
 			onOpenChange={(open) => set({ mandateModalOpen: open })}
 		>
-			<DialogContent className="max-w-lg p-0 overflow-hidden bg-[#0A111E] border border-white/15 text-slate-200 shadow-2xl rounded-2xl">
-				{/* Header */}
-				<DialogHeader className="p-5 bg-slate-950/90 border-b border-white/10 text-white">
-					<div className="flex items-center gap-3">
-						<div className="size-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold shadow-xs">
-							<ShieldCheck className="size-5" />
-						</div>
-						<div>
-							<DialogTitle className="text-white text-base">
-								{isSuccess
-									? "Mandate Successfully Executed"
-									: "e-NACH Mandate Authorization"}
-							</DialogTitle>
-							<DialogDescription className="text-slate-400 text-xs">
-								{isSuccess
-									? "Transaction Authorized & Live"
-									: "Bank Auto-Debit & Statutory Risk Consent"}
-							</DialogDescription>
-						</div>
-					</div>
+			<DialogContent className="max-w-lg gap-0 overflow-hidden rounded-lg border border-rule bg-paper-sheet p-0 text-ink shadow-raise">
+				{/* Head of the instrument: certificate rule, document voice, reference */}
+				<DialogHeader className="doc-rule space-y-0 px-gutter pb-5 pt-6 text-left">
+					<p className="label">
+						{authorized ? "Executed instrument" : "Instruction to debit"}
+					</p>
+					<DialogTitle className="doc-title mt-2 text-xl font-normal">
+						{authorized ? "Mandate authorised" : "e-NACH mandate authorisation"}
+					</DialogTitle>
+					<DialogDescription className="ref mt-2">
+						UMRN {UMRN}
+					</DialogDescription>
 				</DialogHeader>
 
-				{/* Content */}
-				<div className="p-6 space-y-5">
-					{!isSuccess ? (
+				<div className="max-h-[72vh] space-y-rhythm overflow-y-auto px-gutter pb-6">
+					{failed && (
+						<div className="mark-attention py-1">
+							<p className="text-sm font-semibold text-ink-strong">
+								Authorisation did not go through
+							</p>
+							<p className="mt-1 text-xs text-ink-muted">
+								The code entered does not match the one sent to the client's
+								registered mobile. Re-enter the four-digit code and authorise
+								again. The mandate has not been registered and no debit has been
+								raised.
+							</p>
+						</div>
+					)}
+
+					{!authorized ? (
 						<>
-							{/* Bank Account Details */}
-							<div className="p-4 rounded-2xl bg-slate-950/70 border border-white/10 space-y-2 text-xs">
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-2">
-										<Building className="size-4 text-amber-400" />
-										<span className="font-bold text-white">
-											{portfolio?.bank_account?.bank || "Cymbal Premier Private Bank"}
-										</span>
-									</div>
-									<span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-										Verified Tier 1
-									</span>
-								</div>
-								<div className="flex justify-between text-slate-400 text-[11px]">
-									<span>Account Number:</span>
-									<span className="font-mono font-bold text-slate-200">
-										•••• •••• ••••{" "}
-										{portfolio?.bank_account?.account_number_last4 || "8821"}
-									</span>
-								</div>
-								<div className="flex justify-between text-slate-400 text-[11px]">
-									<span>Monthly Auto-Debit Mandate:</span>
-									<span className="font-mono font-black text-emerald-400 text-xs">
-										₹{totalSip.toLocaleString()} / month
-									</span>
-								</div>
+							<div className="grid grid-cols-2 gap-x-6 gap-y-4 border-t border-rule pt-5">
+								<Field label="Debit account" value={bank} />
+								<Field
+									label="Account number"
+									value={`XXXX XXXX ${last4}`}
+									mono
+								/>
+								<Field label="Frequency" value="Monthly, 5th of each month" />
+								<Field label="Valid until" value="Cancelled by the client" />
 							</div>
 
-							{/* Mandate Items */}
-							<div className="space-y-1.5">
-								<p className="text-xs font-bold uppercase tracking-wider text-slate-300">
-									Executing Allocations ({basket.length} Instruments):
-								</p>
-								<div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
-									{basket.map((b) => (
-										<div
-											key={b.product_id}
-											className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/50 border border-white/5 text-xs"
-										>
-											<span className="font-medium text-slate-200 truncate max-w-[240px]">
-												{b.name}
-											</span>
-											<span className="font-mono font-bold text-emerald-400 whitespace-nowrap">
-												{b.monthly_sip_inr
-													? `₹${(b.monthly_sip_inr / 1000).toFixed(0)}k/mo`
-													: `₹${(b.lumpsum_inr / 1000).toFixed(0)}k`}
-											</span>
-										</div>
-									))}
+							<div className="paper-sunken flex items-end justify-between px-5 py-4">
+								<div>
+									<p className="label">Monthly debit</p>
+									<p className="figure-lg mt-2 tabular-nums">
+										{inr(monthlyDebit)}
+									</p>
 								</div>
+								<span className="figure-unit pb-2">per month</span>
 							</div>
 
-							{/* SEBI Statutory Checkbox */}
-							<div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-amber-950/20 border border-amber-400/25">
+							<DebitSchedule heading="Debit schedule" lines={debits} />
+
+							<div className="paper-sunken flex items-start gap-3 px-5 py-4">
 								<Checkbox
 									id="sebi-consent"
 									checked={agreed}
 									onCheckedChange={(checked) => setAgreed(!!checked)}
-									className="mt-0.5 border-amber-400/50 data-[state=checked]:bg-amber-400 data-[state=checked]:text-slate-950"
+									className="mt-0.5 border-rule-strong"
 								/>
 								<Label
 									htmlFor="sebi-consent"
-									className="text-[11px] text-amber-200/90 leading-snug cursor-pointer font-normal"
+									className="cursor-pointer text-xs font-normal leading-relaxed text-ink-muted"
 								>
-									I authorize Cymbal Premier to establish an e-NACH auto-debit mandate on my registered bank account. I acknowledge mutual fund market risks as mandated by SEBI guidelines.
+									The client authorises Cymbal Premier to register an e-NACH
+									auto-debit on the account above, and acknowledges that mutual
+									fund investments carry market risk as set out under SEBI
+									regulations.
 								</Label>
 							</div>
 
-							{/* OTP Input */}
-							<div className="space-y-2">
-								<div className="flex justify-between items-center">
-									<Label className="text-xs font-bold text-slate-200">
-										Enter 4-Digit Authorization OTP:
-									</Label>
-									<span className="text-[10px] text-amber-400 font-mono bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
-										Demo OTP: 7701
-									</span>
+							<div className="border-t border-rule pt-5">
+								<div className="flex items-baseline justify-between">
+									<p className="label-strong">One-time password</p>
+									<p className="ref text-ink-faint">Demo code 7701</p>
 								</div>
-								<div className="flex justify-center py-1">
+								<p className="mt-1.5 text-xs text-ink-muted">
+									Sent to the client's registered mobile ending {last4}.
+								</p>
+								<div className="mt-3 flex justify-center">
 									<InputOTP
 										maxLength={4}
 										value={otp}
 										onChange={(val) => setOtp(val)}
 									>
 										<InputOTPGroup className="gap-2">
-											<InputOTPSlot index={0} className="bg-slate-950 border-white/20 text-white font-mono font-bold size-11" />
-											<InputOTPSlot index={1} className="bg-slate-950 border-white/20 text-white font-mono font-bold size-11" />
-											<InputOTPSlot index={2} className="bg-slate-950 border-white/20 text-white font-mono font-bold size-11" />
-											<InputOTPSlot index={3} className="bg-slate-950 border-white/20 text-white font-mono font-bold size-11" />
+											{[0, 1, 2, 3].map((i) => (
+												<InputOTPSlot
+													key={i}
+													index={i}
+													className="size-12 rounded-lg border border-rule bg-paper text-lg tabular-nums text-ink-strong"
+												/>
+											))}
 										</InputOTPGroup>
 									</InputOTP>
 								</div>
 							</div>
 
-							<Button
-								onClick={handleAuthorize}
-								className="w-full h-11 font-bold text-xs gap-2 bg-amber-400 text-slate-950 hover:bg-amber-300 rounded-xl shadow-xs"
-							>
-								<Lock className="size-4" />
-								<span>Confirm & Authorize e-NACH Mandate</span>
-							</Button>
+							<div className="space-y-2.5">
+								<Button
+									onClick={handleAuthorize}
+									className="h-11 w-full rounded-lg bg-stamp text-sm font-semibold text-stamp-foreground hover:bg-stamp-strong"
+								>
+									{failed ? "Authorise again" : "Authorise mandate"}
+								</Button>
+								<p className="text-center text-xs text-ink-faint">
+									Registered over NPCI e-NACH. Cymbal Premier is a SEBI
+									registered investment adviser, INA000012345.
+								</p>
+							</div>
 						</>
 					) : (
-						<div className="text-center py-4 space-y-4">
-							<div className="size-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/40">
-								<CheckCircle2 className="size-9" />
-							</div>
-							<div>
-								<h4 className="text-base font-bold text-white">
-									Mandate Active & Executed
-								</h4>
-								<p className="text-xs text-slate-400 mt-1">
-									Transaction Reference:{" "}
-									<span className="font-mono font-bold text-amber-300">
-										{lastTransactionId}
-									</span>
-								</p>
-								<p className="text-xs text-emerald-400 font-semibold mt-0.5">
-									e-NACH auto-debit registered for ₹{totalSip.toLocaleString()} / month.
+						<>
+							<div className="flex items-center justify-between border-t border-rule pt-5">
+								<span className="stamp-mark">e-NACH registered</span>
+								<p className="text-xs text-ink-muted">
+									Live from the 5th of next month
 								</p>
 							</div>
 
-							<div className="p-3.5 bg-slate-950/70 rounded-xl border border-white/10 text-xs text-left text-slate-300 space-y-1">
-								<p className="font-bold text-white mb-1">
-									Allocations Live:
-								</p>
-								<p>• ₹35k / mo → Cymbal Flexi Cap Opportunities Fund (SIP Active)</p>
-								<p>• ₹25k / mo → Cymbal Multi-Asset Strategy Fund (SIP Active)</p>
-								<p>• ₹20k / mo → Cymbal CRISIL SDL 2030 Fund (SIP Active)</p>
-								<p>• ₹20k / mo → Cymbal US & Global Tech Feeder (SIP Active)</p>
+							<div className="paper-sunken flex items-end justify-between px-5 py-4">
+								<div>
+									<p className="label">Authorised monthly debit</p>
+									<p className="figure-lg mt-2 tabular-nums">
+										{inr(monthlyDebit)}
+									</p>
+								</div>
+								<span className="figure-unit pb-2">per month</span>
 							</div>
+
+							<div className="grid grid-cols-2 gap-x-6 gap-y-4">
+								<Field label="Transaction reference" value={txnId} mono />
+								<Field label="Mandate reference" value={`UMRN ${UMRN}`} mono />
+								<Field
+									label="Debit account"
+									value={`${bank} · XXXX ${last4}`}
+								/>
+								<Field label="Frequency" value="Monthly, 5th of each month" />
+							</div>
+
+							<DebitSchedule heading="Registered debits" lines={debits} />
 
 							<Button
+								variant="outline"
 								onClick={handleClose}
-								className="w-full h-10 font-bold text-xs bg-amber-400 text-slate-950 hover:bg-amber-300 rounded-xl"
+								className="h-11 w-full rounded-lg text-sm font-semibold"
 							>
-								Close & Return to Studio
+								Close
 							</Button>
-						</div>
+						</>
 					)}
 				</div>
 			</DialogContent>
 		</Dialog>
 	);
 }
-

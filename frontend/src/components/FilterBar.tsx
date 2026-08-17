@@ -1,27 +1,25 @@
-import { useState } from "react";
-import { Search, RotateCcw, SlidersHorizontal, LayoutGrid, TableProperties, Filter, GalleryHorizontal } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import {
+	GalleryHorizontal,
+	LayoutGrid,
+	Search,
+	SlidersHorizontal,
+	TableProperties,
+} from "lucide-react";
 import { useStore } from "@/store";
 import { sendAction } from "@/ws";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
 
+/* The one axis that stays on the surface — it is what Ananya narrates. */
 const CATEGORIES = [
 	{ key: "All", label: "All" },
 	{ key: "Equity", label: "Equity" },
 	{ key: "Debt", label: "Debt" },
-	{ key: "Commodities", label: "Gold & Comms" },
+	{ key: "Commodities", label: "Commodities" },
 	{ key: "Hybrid", label: "Hybrid" },
 ];
 
@@ -39,11 +37,66 @@ const SUB_CATEGORIES = [
 	"Multi-Asset Allocation",
 ];
 
-const RISK_LEVELS = ["All", "Low", "Moderate", "Moderately High", "High", "Very High"];
+const RISK_LEVELS = [
+	"All",
+	"Low",
+	"Moderate",
+	"Moderately High",
+	"High",
+	"Very High",
+];
+
+const DEFAULT_SORT = "cagr_desc";
+
+const SORTS = [
+	{ key: "cagr_desc" as const, label: "Highest 3Y CAGR" },
+	{ key: "rating_desc" as const, label: "Highest rating" },
+	{ key: "ter_asc" as const, label: "Lowest expense ratio" },
+	{ key: "aum_desc" as const, label: "Largest AUM" },
+];
+
+const VIEWS = [
+	{ key: "carousel" as const, label: "Curated", Icon: GalleryHorizontal },
+	{ key: "grid" as const, label: "Cards", Icon: LayoutGrid },
+	{ key: "matrix" as const, label: "Comparison", Icon: TableProperties },
+];
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+	return (
+		<section className="border-b border-rule px-5 py-4 last:border-b-0">
+			<p className="label mb-2.5">{title}</p>
+			{children}
+		</section>
+	);
+}
+
+function OptionRow({
+	selected,
+	onClick,
+	children,
+}: {
+	selected: boolean;
+	onClick: () => void;
+	children: ReactNode;
+}) {
+	return (
+		<button
+			type="button"
+			onClick={onClick}
+			className={`rounded-lg border px-3 py-2 text-left text-xs leading-snug transition-colors ${
+				selected
+					? "border-rule-strong bg-paper-sunken font-semibold text-ink-strong"
+					: "border-transparent text-ink-muted hover:bg-paper-sunken hover:text-ink"
+			}`}
+		>
+			{children}
+		</button>
+	);
+}
 
 export default function FilterBar() {
 	const { filter, setFilter, set, visibleFundIds, explorerView } = useStore();
-	const [filterOpen, setFilterOpen] = useState(false);
+	const [refineOpen, setRefineOpen] = useState(false);
 
 	const resetFilters = () => {
 		setFilter({
@@ -64,212 +117,172 @@ export default function FilterBar() {
 		filter.query !== "" ||
 		visibleFundIds !== null;
 
+	/* Refinements held behind the trigger. Counted so the room can see that
+		 state changed without the controls being on screen. */
+	const refineCount = [
+		filter.subCategory !== "All",
+		filter.risk !== "All",
+		filter.sort !== DEFAULT_SORT,
+	].filter(Boolean).length;
+
 	return (
-		<div className="bg-white/70 dark:bg-slate-900/40 border border-slate-200/80 dark:border-white/[0.06] rounded-xl p-2.5 shadow-xs backdrop-blur-md">
-			<div className="flex flex-col sm:flex-row gap-2.5 items-center justify-between">
-				{/* Search Input */}
-				<div className="relative flex-1 w-full sm:w-auto min-w-[220px]">
-					<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-slate-400" />
-					<Input
-						type="text"
-						value={filter.query}
-						onChange={(e) => {
-							const q = e.target.value;
-							setFilter({ query: q });
-							sendAction("filter_products", { query: q || null });
-						}}
-						placeholder="Search funds, managers, tags..."
-						className="pl-9 pr-3 bg-slate-100/80 dark:bg-slate-950/50 border-slate-200/80 dark:border-white/[0.06] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-amber-400/50 rounded-lg text-xs h-8.5"
-					/>
-				</div>
+		<div className="reveal reveal-1 flex flex-col gap-3 border-b border-rule pb-3.5 sm:flex-row sm:items-center sm:gap-4">
+			{/* Search */}
+			<div className="relative w-full sm:max-w-xs">
+				<Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint" />
+				<input
+					type="text"
+					value={filter.query}
+					onChange={(e) => {
+						const q = e.target.value;
+						setFilter({ query: q });
+						sendAction("filter_products", { query: q || null });
+					}}
+					placeholder="Search funds, managers or ISIN"
+					className="paper-sunken h-10 w-full rounded-lg pl-9 pr-3 text-sm text-ink transition-colors placeholder:text-ink-faint focus-visible:border-rule-strong focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+				/>
+			</div>
 
-				{/* Primary Category Quick Switcher (Minimalist Segment Tabs) */}
-				<div className="flex items-center gap-1 overflow-x-auto scrollbar-none p-0.5 bg-slate-100/70 dark:bg-slate-950/60 rounded-lg border border-slate-200/60 dark:border-white/[0.04] w-full sm:w-auto">
-					{CATEGORIES.map((c) => {
-						const active = filter.category === c.key;
-						return (
-							<button
-								key={c.key}
-								type="button"
-								onClick={() => {
-									setFilter({ category: c.key, subCategory: "All" });
-									set({ visibleFundIds: null });
-									sendAction("filter_products", {
-										category: c.key === "All" ? null : c.key,
-									});
-								}}
-								className={`px-3 py-1 rounded-md text-xs font-semibold transition-all whitespace-nowrap ${
-									active
-										? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
-										: "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-								}`}
-							>
-								{c.label}
-							</button>
-						);
-					})}
-				</div>
-
-				{/* Right Controls: Filter Popover + Sort + Grid/Table Toggle */}
-				<div className="flex items-center gap-1.5 w-full sm:w-auto justify-end">
-					{/* Advanced Filter Popover */}
-					<Popover open={filterOpen} onOpenChange={setFilterOpen}>
-						<PopoverTrigger asChild>
-							<Button
-								variant="ghost"
-								size="sm"
-								className={`h-8.5 px-2.5 text-xs font-medium rounded-lg border gap-1.5 ${
-									filter.subCategory !== "All" || filter.risk !== "All"
-										? "bg-amber-400/10 text-amber-900 dark:text-amber-300 border-amber-400/30"
-										: "bg-slate-100/80 dark:bg-slate-950/50 border-slate-200/80 dark:border-white/[0.06] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800"
-								}`}
-							>
-								<Filter className="size-3" />
-								<span>Filters</span>
-								{(filter.subCategory !== "All" || filter.risk !== "All") && (
-									<span className="size-1.5 rounded-full bg-amber-400" />
-								)}
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent
-							align="end"
-							className="w-72 p-3.5 space-y-3 bg-white dark:bg-slate-950 border-slate-200 dark:border-white/10 text-xs shadow-xl rounded-xl"
+			{/* Asset class — the single segmented control on the surface */}
+			<div className="scrollbar-none flex items-center gap-0.5 overflow-x-auto rounded-lg border border-rule bg-paper-sunken p-1">
+				{CATEGORIES.map((c) => {
+					const active = filter.category === c.key;
+					return (
+						<button
+							key={c.key}
+							type="button"
+							onClick={() => {
+								setFilter({ category: c.key, subCategory: "All" });
+								set({ visibleFundIds: null });
+								sendAction("filter_products", {
+									category: c.key === "All" ? null : c.key,
+								});
+							}}
+							className={`whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs transition-colors ${
+								active
+									? "bg-paper-sheet font-semibold text-ink-strong shadow-sheet"
+									: "font-medium text-ink-muted hover:text-ink"
+							}`}
 						>
-							<div className="space-y-1.5">
-								<p className="font-bold text-slate-700 dark:text-slate-300 text-[11px]">
-									Subcategory
-								</p>
-								<select
-									value={filter.subCategory}
-									onChange={(e) => {
-										const val = e.target.value;
-										setFilter({ subCategory: val });
-										sendAction("filter_products", {
-											sub_category: val === "All" ? null : val,
-										});
-									}}
-									className="w-full h-8 text-xs bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg px-2 text-slate-800 dark:text-slate-200 font-medium"
-								>
-									{SUB_CATEGORIES.map((s) => (
-										<option key={s} value={s}>
-											{s}
-										</option>
-									))}
-								</select>
-							</div>
+							{c.label}
+						</button>
+					);
+				})}
+			</div>
 
-							<div className="space-y-1.5">
-								<p className="font-bold text-slate-700 dark:text-slate-300 text-[11px]">
-									Risk Level
-								</p>
-								<select
-									value={filter.risk}
-									onChange={(e) => {
-										const val = e.target.value;
-										setFilter({ risk: val });
-										sendAction("filter_products", {
-											risk_level: val === "All" ? null : val,
-										});
-									}}
-									className="w-full h-8 text-xs bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg px-2 text-slate-800 dark:text-slate-200 font-medium"
-								>
-									{RISK_LEVELS.map((r) => (
-										<option key={r} value={r}>
-											{r}
-										</option>
-									))}
-								</select>
-							</div>
-
-							{isFiltered && (
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={resetFilters}
-									className="w-full h-7 text-[11px] text-slate-500 hover:text-rose-500"
-								>
-									Reset all filters
-								</Button>
+			{/* Everything else lives behind one quiet affordance */}
+			<div className="sm:ml-auto">
+				<Popover open={refineOpen} onOpenChange={setRefineOpen}>
+					<PopoverTrigger asChild>
+						<button
+							type="button"
+							className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-rule bg-paper-sheet px-4 text-xs font-medium text-ink-muted transition-colors hover:border-rule-strong hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring sm:w-auto"
+						>
+							<SlidersHorizontal className="size-4 text-ink-faint" />
+							<span>Refine</span>
+							{refineCount > 0 && (
+								<span className="font-semibold tabular-nums text-ink-strong">
+									&middot; {refineCount}
+								</span>
 							)}
-						</PopoverContent>
-					</Popover>
+						</button>
+					</PopoverTrigger>
+					<PopoverContent
+						align="end"
+						sideOffset={8}
+						className="w-[min(92vw,30rem)] rounded-lg border-rule bg-paper-sheet p-0 shadow-raise"
+					>
+						<div className="flex items-center justify-between border-b border-rule px-5 py-3.5">
+							<p className="label-strong">Refine</p>
+							<button
+								type="button"
+								onClick={resetFilters}
+								className={`text-xs font-medium underline-offset-4 transition-colors hover:underline ${
+									isFiltered
+										? "text-ink-muted hover:text-ink-strong"
+										: "text-ink-faint hover:text-ink"
+								}`}
+							>
+								Clear all
+							</button>
+						</div>
 
-					{/* Sort Select */}
-					<div className="w-36">
-						<Select
-							value={filter.sort}
-							onValueChange={(val: any) => setFilter({ sort: val })}
-						>
-							<SelectTrigger className="bg-slate-100/80 dark:bg-slate-950/50 border-slate-200/80 dark:border-white/[0.06] text-slate-700 dark:text-slate-300 h-8.5 rounded-lg text-xs font-medium">
-								<div className="flex items-center gap-1 truncate">
-									<SlidersHorizontal className="size-3 text-slate-400 shrink-0" />
-									<SelectValue placeholder="Sort" />
+						<div className="scrollbar-none max-h-[70vh] overflow-y-auto">
+							<Section title="Strategy">
+								<div className="grid grid-cols-2 gap-1">
+									{SUB_CATEGORIES.map((s) => (
+										<OptionRow
+											key={s}
+											selected={filter.subCategory === s}
+											onClick={() => {
+												setFilter({ subCategory: s });
+												sendAction("filter_products", {
+													sub_category: s === "All" ? null : s,
+												});
+											}}
+										>
+											{s}
+										</OptionRow>
+									))}
 								</div>
-							</SelectTrigger>
-							<SelectContent className="bg-white dark:bg-slate-950 border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs">
-								<SelectItem value="cagr_desc">3Y CAGR (High)</SelectItem>
-								<SelectItem value="rating_desc">Rating (High)</SelectItem>
-								<SelectItem value="ter_asc">TER (Lowest)</SelectItem>
-								<SelectItem value="aum_desc">AUM (Largest)</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
+							</Section>
 
-					{/* View Mode Toggle: Carousel | Grid | Matrix */}
-					<div className="flex items-center bg-slate-100/80 dark:bg-slate-950/60 p-0.5 rounded-lg border border-slate-200/60 dark:border-white/[0.04]">
-						<button
-							type="button"
-							onClick={() => set({ explorerView: "carousel" })}
-							className={`p-1.5 rounded-md transition-all ${
-								explorerView === "carousel"
-									? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
-									: "text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
-							}`}
-							title="Curated Carousel Rails"
-						>
-							<GalleryHorizontal className="size-3.5" />
-						</button>
-						<button
-							type="button"
-							onClick={() => set({ explorerView: "grid" })}
-							className={`p-1.5 rounded-md transition-all ${
-								explorerView === "grid"
-									? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
-									: "text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
-							}`}
-							title="Grid Cards"
-						>
-							<LayoutGrid className="size-3.5" />
-						</button>
-						<button
-							type="button"
-							onClick={() => set({ explorerView: "matrix" })}
-							className={`p-1.5 rounded-md transition-all ${
-								explorerView === "matrix"
-									? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
-									: "text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
-							}`}
-							title="Matrix Table"
-						>
-							<TableProperties className="size-3.5" />
-						</button>
-					</div>
+							<Section title="Risk grade">
+								<div className="grid grid-cols-2 gap-1">
+									{RISK_LEVELS.map((r) => (
+										<OptionRow
+											key={r}
+											selected={filter.risk === r}
+											onClick={() => {
+												setFilter({ risk: r });
+												sendAction("filter_products", {
+													risk_level: r === "All" ? null : r,
+												});
+											}}
+										>
+											{r}
+										</OptionRow>
+									))}
+								</div>
+							</Section>
 
-					{isFiltered && (
-						<Button
-							variant="ghost"
-							size="iconSm"
-							onClick={resetFilters}
-							className="size-8.5 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg"
-							title="Reset filters"
-						>
-							<RotateCcw className="size-3.5" />
-						</Button>
-					)}
-				</div>
+							<Section title="Order by">
+								<div className="grid grid-cols-2 gap-1">
+									{SORTS.map((s) => (
+										<OptionRow
+											key={s.key}
+											selected={filter.sort === s.key}
+											onClick={() => setFilter({ sort: s.key })}
+										>
+											{s.label}
+										</OptionRow>
+									))}
+								</div>
+							</Section>
+
+							<Section title="Layout">
+								<div className="grid grid-cols-3 gap-1">
+									{VIEWS.map(({ key, label, Icon }) => (
+										<button
+											key={key}
+											type="button"
+											onClick={() => set({ explorerView: key })}
+											className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-xs transition-colors ${
+												explorerView === key
+													? "border-rule-strong bg-paper-sunken font-semibold text-ink-strong"
+													: "border-transparent text-ink-muted hover:bg-paper-sunken hover:text-ink"
+											}`}
+										>
+											<Icon className="size-4" />
+											{label}
+										</button>
+									))}
+								</div>
+							</Section>
+						</div>
+					</PopoverContent>
+				</Popover>
 			</div>
 		</div>
 	);
 }
-
-

@@ -14,6 +14,12 @@ import ProposalDialog from "@/components/ProposalDialog";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 
+/* The page measure. Narrower than the operator layout it replaces: a private
+   mandate is read, not monitored, so the shell holds a fixed measure and
+   spends the rest of the viewport on margin. Shared by the main area and the
+   footer so the page has one left edge and one right edge, top to bottom. */
+const MEASURE = "mx-auto w-full max-w-[1440px] px-gutter lg:px-12 xl:px-16";
+
 export default function App() {
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const { activeTab, expandedAdvisor } = useStore();
@@ -30,38 +36,53 @@ export default function App() {
 	}, [chatLen]);
 
 	return (
-		<div className="min-h-dvh flex flex-col bg-background text-foreground transition-colors duration-200 selection:bg-amber-400 selection:text-slate-950">
-			<TopBar />
+		<div className="h-dvh overflow-hidden flex flex-col bg-paper text-ink transition-colors duration-200">
+			{/* 1 - Identity. Whose desk this is, and whose money is on it. */}
+			<div className="reveal reveal-1 shrink-0">
+				<TopBar />
+			</div>
 
-			<main className="flex-1 mx-auto w-full max-w-[1750px] px-4 sm:px-6 py-4">
-				<div className="flex gap-5 h-[calc(100dvh-6rem)]">
-					{/* Left Column: Studio Interactive Canvas */}
-					<div className="flex-1 min-w-0 flex flex-col gap-3 overflow-hidden">
-						{activeTab === "explorer" && (
-							<>
-								<FilterBar />
-								<div className="flex-1 overflow-y-auto pr-1">
+			<main className={`flex-1 min-h-0 py-rhythm lg:py-8 ${MEASURE}`}>
+				<div className="flex h-full min-h-0 gap-8 xl:gap-10">
+					{/* The document under review */}
+					<div className="flex flex-1 min-w-0 min-h-0 flex-col gap-rhythm">
+						{/* 2 - The parameters the review is drawn against. The
+						    wrapper is always mounted so the reveal plays once on
+						    load and never on a tab switch; it collapses out of the
+						    rhythm entirely on tabs that carry no rail. */}
+						<div className="reveal reveal-2 shrink-0 empty:hidden">
+							{activeTab === "explorer" && <FilterBar />}
+						</div>
+
+						{/* 3 - The finding, and what is being recommended against it.
+						    Same rule: the revealed wrapper is stable, the scrolling
+						    panes inside it swap per tab and are not animated. */}
+						<div className="reveal reveal-3 flex flex-1 min-h-0 flex-col">
+							{activeTab === "explorer" && (
+								<div className="flex-1 min-h-0 overflow-y-auto pr-1">
 									<CatalogGrid />
 								</div>
-							</>
-						)}
+							)}
 
-						{activeTab === "diagnostics" && (
-							<div className="flex-1 overflow-y-auto pr-1">
-								<DiagnosticsView />
-							</div>
-						)}
+							{activeTab === "diagnostics" && (
+								<div className="flex-1 min-h-0 overflow-y-auto pr-1">
+									<DiagnosticsView />
+								</div>
+							)}
 
-						{activeTab === "simulation" && (
-							<div className="flex-1 overflow-y-auto pr-1">
-								<SimulationView />
-							</div>
-						)}
+							{activeTab === "simulation" && (
+								<div className="flex-1 min-h-0 overflow-y-auto pr-1">
+									<SimulationView />
+								</div>
+							)}
+						</div>
 					</div>
 
-					{/* Right Column: Ananya Advisor Dock */}
+					{/* 4 - The advisor. The width change is a layout response to the
+					    dock expanding, not decoration, so it stays - just slower to
+					    read as considered rather than springy. */}
 					<div
-						className={`hidden lg:block shrink-0 h-full transition-all duration-300 ${
+						className={`reveal reveal-4 hidden lg:block shrink-0 h-full transition-[width] duration-200 ease-out ${
 							expandedAdvisor ? "w-[560px]" : "w-[430px]"
 						}`}
 					>
@@ -70,21 +91,33 @@ export default function App() {
 				</div>
 			</main>
 
-			{/* Mobile Floating Trigger */}
+			{/* 5 - The regulated frame. One page-level device, and this is it. */}
+			<footer className="reveal reveal-5 shrink-0 border-t border-rule">
+				<div
+					className={`flex flex-wrap items-center justify-between gap-x-8 gap-y-1 py-4 ${MEASURE}`}
+				>
+					<p className="label">
+						Cymbal Premier &middot; SEBI-registered investment adviser
+					</p>
+					<p className="label">
+						Advisory record &middot; not an offer to buy or sell
+					</p>
+				</div>
+			</footer>
+
+			{/* Mobile advisor trigger. Deliberately neutral ink: the one accent on
+			    screen belongs to the dock's primary action, and this affordance
+			    never appears on the display an executive is shown. */}
 			<Button
 				onClick={() => setSheetOpen((v) => !v)}
 				size="icon"
-				className="lg:hidden fixed bottom-5 right-5 z-[80] size-14 rounded-full shadow-2xl bg-amber-400 text-slate-950 hover:bg-amber-300 active:scale-95 border-2 border-amber-300/60"
+				className="lg:hidden fixed bottom-6 right-6 z-[80] size-12 rounded-lg border border-rule-strong bg-ink-strong text-paper shadow-sheet hover:bg-ink active:scale-95"
 				aria-label="Open advisor chat"
 			>
-				{sheetOpen ? (
-					<X className="size-6" />
-				) : (
-					<MessageCircle className="size-6" />
-				)}
+				{sheetOpen ? <X className="size-5" /> : <MessageCircle className="size-5" />}
 			</Button>
 
-			{/* Mobile Bottom Sheet for Advisor Dock */}
+			{/* Mobile bottom sheet for the advisor dock */}
 			<div
 				className={`lg:hidden fixed inset-x-0 bottom-0 z-[75] transition-transform duration-300 ${
 					sheetOpen ? "translate-y-0" : "translate-y-[110%]"
@@ -95,12 +128,11 @@ export default function App() {
 				</div>
 			</div>
 
-			{/* ShadCN Dialogs, Sheets & Toast System */}
+			{/* Dialogs, sheets and toasts */}
 			<AdvisoryBasketSheet />
 			<MandateDialog />
 			<ProposalDialog />
-			<Toaster richColors position="bottom-right" />
+			<Toaster position="bottom-right" />
 		</div>
 	);
 }
-

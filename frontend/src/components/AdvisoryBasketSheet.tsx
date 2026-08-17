@@ -1,10 +1,4 @@
-import {
-	Trash2,
-	FileText,
-	ShieldCheck,
-	ArrowRight,
-	Briefcase,
-} from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useStore } from "@/store";
 import { sendAction } from "@/ws";
 import {
@@ -16,7 +10,15 @@ import {
 	SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { inr } from "@/lib";
+
+/* ---------------------------------------------------------------------------
+   The staged basket is a schedule of proposed investments, so it is set as
+   one: a Caslon heading, 12px column heads, ruled rows, monospaced scheme
+   references, right-aligned tabular figures, and a hero total at the foot.
+   The single accent here is the mandate action — the one thing the banker
+   is being asked to do next.
+   ------------------------------------------------------------------------ */
 
 export default function AdvisoryBasketSheet() {
 	const {
@@ -32,9 +34,9 @@ export default function AdvisoryBasketSheet() {
 	const handleGenerateProposal = () => {
 		sendAction("generate_advisory_proposal", {
 			strategic_rationale:
-				"Strategic rebalancing to resolve Large Cap concentration while allocating unallocated monthly cashflow surplus into goal-oriented SIPs.",
+				"Rebalancing to resolve large cap concentration and deploying the unallocated monthly surplus into goal-linked SIPs.",
 		});
-		pushToast("Generating Wealth Advisory Proposal PDF...", "info");
+		pushToast("Generating the advisory proposal", "info");
 	};
 
 	const handleProceedMandate = () => {
@@ -46,145 +48,119 @@ export default function AdvisoryBasketSheet() {
 		<Sheet open={basketOpen} onOpenChange={(open) => set({ basketOpen: open })}>
 			<SheetContent
 				side="right"
-				className="sm:max-w-md bg-[#0A111E] border-l border-white/10 text-slate-200 p-0 flex flex-col shadow-2xl"
+				className="flex flex-col border-l border-rule bg-paper-sheet p-0 text-ink shadow-raise sm:max-w-md"
 			>
-				{/* Header */}
-				<SheetHeader className="p-5 bg-slate-950/80 border-b border-white/10">
-					<div className="flex items-center gap-3">
-						<div className="size-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold shadow-xs">
-							<Briefcase className="size-5" />
-						</div>
-						<div>
-							<SheetTitle className="text-white text-base">
-								Advisory Basket
-							</SheetTitle>
-							<SheetDescription className="text-slate-400 text-xs">
-								{basket.length} Selected Investment Instruments
-							</SheetDescription>
-						</div>
-					</div>
+				<SheetHeader className="doc-rule space-y-0 border-b-0 bg-transparent px-gutter pb-5 pt-6 text-left">
+					<p className="label">Staged for authorisation</p>
+					<SheetTitle className="doc-title mt-2 text-xl font-normal">
+						Advisory basket
+					</SheetTitle>
+					<SheetDescription className="mt-2 text-xs text-ink-muted">
+						{basket.length === 0
+							? "Nothing staged yet"
+							: `${basket.length} ${
+									basket.length === 1 ? "instrument" : "instruments"
+								} proposed against the client's goals`}
+					</SheetDescription>
 				</SheetHeader>
 
-				{/* Items List */}
-				<div className="flex-1 p-4 overflow-y-auto space-y-3">
+				{/* The schedule */}
+				<div className="flex-1 overflow-y-auto px-gutter pb-6">
 					{basket.length === 0 ? (
-						<div className="text-center py-20 text-slate-400">
-							<ShieldCheck className="size-12 mx-auto text-amber-400/40 mb-3" />
-							<p className="font-bold text-white text-sm">
-								Your Advisory Basket is empty
-							</p>
-							<p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
-								Select mutual funds from the Product Explorer or request Ananya to allocate target baskets.
+						<div className="border-t border-rule py-16">
+							<p className="text-sm text-ink-strong">No instruments staged</p>
+							<p className="mt-2 max-w-xs text-xs leading-relaxed text-ink-muted">
+								Add funds from the explorer, or ask Ananya to stage a basket
+								against a goal. Staged instruments become the debit schedule on
+								the e-NACH mandate.
 							</p>
 						</div>
 					) : (
-						basket.map((item) => (
-							<div
-								key={item.product_id}
-								className="bg-slate-950/70 rounded-xl border border-white/10 p-3.5 flex flex-col justify-between shadow-card-luxury space-y-2.5"
-							>
-								<div className="flex items-start justify-between gap-2">
-									<div>
-										<span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-slate-900 text-amber-300 border border-white/10">
-											{item.sub_category}
-										</span>
-										<h4 className="text-xs font-bold text-white mt-1.5 leading-snug">
-											{item.name}
-										</h4>
-										<p className="text-[10px] text-slate-400 mt-0.5">
-											Goal:{" "}
-											<span className="font-bold text-slate-200">
-												{item.linked_goal || "Wealth Creation"}
-											</span>
-										</p>
-									</div>
-									<Button
-										variant="ghost"
-										size="iconSm"
-										onClick={() => {
-											removeFromBasket(item.product_id);
-											sendAction("remove_from_basket", {
-												product_id: item.product_id,
-											});
-										}}
-										className="text-slate-500 hover:text-rose-400 hover:bg-rose-950/30 size-7 rounded-lg"
-										title="Remove instrument"
-									>
-										<Trash2 className="size-3.5" />
-									</Button>
-								</div>
-
-								<div className="flex items-center justify-between pt-2 border-t border-white/5 text-xs">
-									<div>
-										<span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold block">
-											Monthly SIP
-										</span>
-										<span className="font-mono font-black text-emerald-400">
-											{item.monthly_sip_inr
-												? `₹${item.monthly_sip_inr.toLocaleString()} / mo`
-												: "-"}
-										</span>
-									</div>
-									<div>
-										<span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold block">
-											Lump Sum
-										</span>
-										<span className="font-mono font-bold text-slate-200">
-											{item.lumpsum_inr
-												? `₹${item.lumpsum_inr.toLocaleString()}`
-												: "-"}
-										</span>
-									</div>
-									<div>
-										<span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold block">
-											3Y CAGR
-										</span>
-										<span className="font-mono font-bold text-emerald-400">
-											+{item.cagr_3y}%
-										</span>
-									</div>
-								</div>
+						<>
+							<div className="flex items-baseline justify-between border-b border-rule-strong pb-2">
+								<p className="label-strong">Instrument</p>
+								<p className="label-strong">Commitment</p>
 							</div>
-						))
+							<ul className="divide-y divide-rule">
+								{basket.map((item) => (
+									<li key={item.product_id} className="py-4">
+										<div className="flex items-start justify-between gap-4">
+											<div className="min-w-0">
+												<p className="label">{item.sub_category}</p>
+												<p className="mt-1.5 text-sm leading-snug text-ink-strong">
+													{item.name}
+												</p>
+												<p className="ref mt-1.5">{item.product_id}</p>
+											</div>
+											<div className="flex shrink-0 items-start gap-2">
+												<div className="text-right">
+													<p className="figure-sm tabular-nums">
+														{inr(item.monthly_sip_inr || item.lumpsum_inr)}
+													</p>
+													<p className="label mt-1">
+														{item.monthly_sip_inr ? "per month" : "one-time"}
+													</p>
+												</div>
+												<Button
+													variant="ghost"
+													size="iconSm"
+													onClick={() => {
+														removeFromBasket(item.product_id);
+														sendAction("remove_from_basket", {
+															product_id: item.product_id,
+														});
+													}}
+													className="size-7 rounded-lg text-ink-faint hover:text-ink-strong"
+													title="Remove from basket"
+												>
+													<Trash2 className="size-3.5" />
+												</Button>
+											</div>
+										</div>
+										<div className="mt-2.5 flex items-baseline gap-2">
+											<span className="label">Goal</span>
+											<span className="text-xs text-ink-muted">
+												{item.linked_goal || "Wealth creation"}
+											</span>
+										</div>
+									</li>
+								))}
+							</ul>
+						</>
 					)}
 				</div>
 
-				{/* Footer Summary & Action Buttons */}
 				{basket.length > 0 && (
-					<SheetFooter className="p-5 border-t border-white/10 bg-slate-950/90 space-y-3">
-						<div className="space-y-1.5 text-xs w-full">
-							<div className="flex justify-between text-slate-400">
-								<span>Total One-Time Lump Sum:</span>
-								<span className="font-mono font-bold text-white">
-									₹{totalLumpsum.toLocaleString()}
-								</span>
+					<SheetFooter className="flex-col items-stretch space-y-0 border-t border-rule-strong bg-paper-sheet px-gutter py-5">
+						<div className="flex items-end justify-between">
+							<div>
+								<p className="label">Total monthly commitment</p>
+								<p className="figure-lg mt-2 tabular-nums">{inr(totalSip)}</p>
 							</div>
-							<div className="flex justify-between text-white font-bold text-sm">
-								<span>Total Monthly SIP:</span>
-								<span className="font-mono font-black text-emerald-400 text-base">
-									₹{totalSip.toLocaleString()} / mo
-								</span>
-							</div>
+							<span className="figure-unit pb-2">per month</span>
 						</div>
 
-						<Separator className="bg-white/10" />
+						{totalLumpsum > 0 && (
+							<div className="mt-4 flex items-baseline justify-between border-t border-rule pt-4">
+								<p className="label">One-time deployment</p>
+								<p className="figure-sm tabular-nums">{inr(totalLumpsum)}</p>
+							</div>
+						)}
 
-						<div className="space-y-2.5 w-full pt-1">
+						<div className="mt-5 space-y-2.5">
 							<Button
 								variant="outline"
 								onClick={handleGenerateProposal}
-								className="w-full h-10 gap-2 font-bold text-xs bg-slate-900 border-white/10 text-slate-200 hover:text-white rounded-xl"
+								className="h-11 w-full rounded-lg text-sm font-semibold"
 							>
-								<FileText className="size-4 text-amber-400" />
-								<span>Generate Advisory Proposal (PDF)</span>
+								Generate advisory proposal
 							</Button>
 
 							<Button
 								onClick={handleProceedMandate}
-								className="w-full h-11 gap-2 font-bold text-xs bg-amber-400 text-slate-950 hover:bg-amber-300 rounded-xl shadow-xs"
+								className="h-11 w-full rounded-lg bg-stamp text-sm font-semibold text-stamp-foreground hover:bg-stamp-strong"
 							>
-								<span>Proceed to Mandate Sign-Off (e-NACH)</span>
-								<ArrowRight className="size-4" />
+								Authorise e-NACH mandate
 							</Button>
 						</div>
 					</SheetFooter>
@@ -193,4 +169,3 @@ export default function AdvisoryBasketSheet() {
 		</Sheet>
 	);
 }
-
