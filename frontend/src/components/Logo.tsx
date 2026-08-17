@@ -1,4 +1,3 @@
-import { asset } from "../lib";
 import { ShieldCheck } from "lucide-react";
 
 export function PremierMark({
@@ -25,14 +24,14 @@ export default function Logo({ compact = false }: { compact?: boolean }) {
 			{!compact && (
 				<div className="leading-none">
 					<div className="flex items-center gap-1.5">
-						<span className="text-[17px] font-black tracking-tight text-slate-900">
+						<span className="text-[17px] font-black tracking-tight text-foreground">
 							CYMBAL
 						</span>
-						<span className="text-[17px] font-extrabold tracking-tight text-amber-700">
+						<span className="text-[17px] font-extrabold tracking-tight text-amber-700 dark:text-amber-400">
 							PREMIER
 						</span>
 					</div>
-					<p className="text-[10px] uppercase font-bold tracking-[0.20em] text-slate-500 mt-1">
+					<p className="text-[10px] uppercase font-bold tracking-[0.20em] text-muted-foreground mt-1">
 						Private Wealth Studio
 					</p>
 				</div>

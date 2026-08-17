@@ -1,16 +1,16 @@
 import { useState } from "react";
+import { TrendingUp, FileText } from "lucide-react";
+import { useStore } from "@/store";
+import { sendAction } from "@/ws";
 import {
-	X,
-	TrendingUp,
-	Sparkles,
-	ShieldCheck,
-	Target,
-	Layers,
-	ArrowUpRight,
-	FileText,
-} from "lucide-react";
-import { useStore } from "../store";
-import { sendAction } from "../ws";
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 
 const SCENARIOS = [
 	{
@@ -40,14 +40,12 @@ const SCENARIOS = [
 	},
 ];
 
-export default function VtoModal() {
+export default function SimulationDialog() {
 	const { simulation, simulationOpen, set, pushToast } = useStore();
 
 	const [activeScenario, setActiveScenario] = useState("baseline");
 	const [eqPct, setEqPct] = useState(65);
 	const [sipAmt, setSipAmt] = useState(100000);
-
-	if (!simulationOpen) return null;
 
 	const currentSim = simulation || {
 		scenario: "baseline",
@@ -95,50 +93,47 @@ export default function VtoModal() {
 		});
 	};
 
-	const handleRecalculate = () => {
+	const handleRecalculate = (equity: number, sip: number) => {
 		sendAction("simulate_portfolio", {
 			market_scenario: activeScenario,
-			equity_pct: eqPct,
-			debt_pct: Math.max(0, 95 - eqPct - 10),
+			equity_pct: equity,
+			debt_pct: Math.max(0, 95 - equity - 10),
 			gold_pct: 10,
 			liquid_pct: 5,
-			monthly_sip_inr: sipAmt,
+			monthly_sip_inr: sip,
 		});
 		pushToast("Simulation recalculated with updated parameters", "info");
 	};
 
 	return (
-		<div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6">
-			<div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+		<Dialog
+			open={simulationOpen}
+			onOpenChange={(open) => set({ simulationOpen: open })}
+		>
+			<DialogContent className="max-w-4xl p-0 overflow-hidden max-h-[90vh] flex flex-col">
 				{/* Modal Header */}
-				<div className="p-5 border-b border-slate-100 bg-gradient-to-r from-slate-900 to-[#0B2545] text-white flex items-center justify-between">
+				<DialogHeader className="p-5 bg-gradient-to-r from-slate-900 to-[#0B2545] text-white">
 					<div className="flex items-center gap-3">
-						<div className="h-10 w-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold">
-							<TrendingUp size={20} />
+						<div className="size-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold">
+							<TrendingUp className="size-5" />
 						</div>
 						<div>
-							<h2 className="text-base font-bold">
+							<DialogTitle className="text-white text-base">
 								Strategic Portfolio Simulation & Goal Projections
-							</h2>
-							<p className="text-xs text-slate-300">
+							</DialogTitle>
+							<DialogDescription className="text-slate-300">
 								Monte Carlo multi-decade compounding forecast for Rahul Sharma
-							</p>
+							</DialogDescription>
 						</div>
 					</div>
-					<button
-						onClick={() => set({ simulationOpen: false })}
-						className="h-8 w-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
-					>
-						<X size={16} />
-					</button>
-				</div>
+				</DialogHeader>
 
 				{/* Modal Body */}
-				<div className="p-6 overflow-y-auto space-y-6 flex-1">
+				<div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
 					{/* Key Metric Highlights */}
 					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-						<div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-							<p className="text-xs text-slate-500 font-semibold">
+						<div className="p-4 rounded-2xl bg-card border border-border shadow-xs">
+							<p className="text-xs text-muted-foreground font-semibold">
 								2042 Retirement Corpus
 							</p>
 							<p className="text-2xl font-black text-emerald-600 mt-1">
@@ -149,23 +144,23 @@ export default function VtoModal() {
 							</p>
 						</div>
 
-						<div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-							<p className="text-xs text-slate-500 font-semibold">
+						<div className="p-4 rounded-2xl bg-card border border-border shadow-xs">
+							<p className="text-xs text-muted-foreground font-semibold">
 								Blended Expected CAGR
 							</p>
 							<p className="text-2xl font-black text-blue-600 mt-1">
 								{currentSim.blended_expected_cagr_pct}% p.a.
 							</p>
-							<p className="text-[11px] text-slate-500 mt-1 font-medium">
+							<p className="text-[11px] text-muted-foreground mt-1 font-medium">
 								Weighted across 4 asset classes
 							</p>
 						</div>
 
-						<div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-							<p className="text-xs text-slate-500 font-semibold">
+						<div className="p-4 rounded-2xl bg-card border border-border shadow-xs">
+							<p className="text-xs text-muted-foreground font-semibold">
 								2032 Higher Education
 							</p>
-							<p className="text-2xl font-black text-slate-800 mt-1">₹54.2 L</p>
+							<p className="text-2xl font-black text-foreground mt-1">₹54.2 L</p>
 							<p className="text-[11px] text-emerald-700 font-medium mt-1">
 								Target ₹50.0 L (Fully Funded)
 							</p>
@@ -174,7 +169,7 @@ export default function VtoModal() {
 
 					{/* Scenario Selector */}
 					<div className="space-y-2">
-						<label className="text-xs font-bold text-slate-700 block">
+						<label className="text-xs font-bold text-foreground block">
 							Macroeconomic Market Scenario:
 						</label>
 						<div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-2">
@@ -183,11 +178,12 @@ export default function VtoModal() {
 								return (
 									<button
 										key={sc.id}
+										type="button"
 										onClick={() => handleScenarioChange(sc.id)}
-										className={`p-2.5 rounded-xl border text-left transition ${
+										className={`p-2.5 rounded-xl border text-left transition-colors ${
 											active
-												? "bg-[#0B2545] text-white border-[#0B2545] shadow-sm"
-												: "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+												? "bg-primary text-primary-foreground border-primary shadow-xs"
+												: "bg-muted/40 text-foreground border-border hover:bg-muted"
 										}`}
 									>
 										<p className="text-[11px] font-bold leading-tight">
@@ -199,50 +195,48 @@ export default function VtoModal() {
 						</div>
 					</div>
 
-					{/* Interactive Allocation & SIP Controls */}
-					<div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-4">
-						<h4 className="text-xs font-bold text-slate-800">
+					{/* Interactive Allocation & SIP Controls with ShadCN Slider */}
+					<div className="bg-muted/30 p-4 rounded-2xl border border-border space-y-4">
+						<h4 className="text-xs font-bold text-foreground">
 							Target Allocation & Surplus Deployment
 						</h4>
-						<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-							<div>
-								<div className="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+							<div className="space-y-2">
+								<div className="flex justify-between text-xs font-semibold text-muted-foreground">
 									<span>Equity Allocation:</span>
-									<span className="font-bold text-indigo-700">{eqPct}%</span>
+									<span className="font-bold text-indigo-700 dark:text-indigo-300">{eqPct}%</span>
 								</div>
-								<input
-									type="range"
+								<Slider
 									min={40}
 									max={80}
 									step={5}
-									value={eqPct}
-									onChange={(e) => setEqPct(Number(e.target.value))}
-									onMouseUp={handleRecalculate}
-									className="w-full accent-indigo-600"
+									value={[eqPct]}
+									onValueChange={(val) => setEqPct(val[0])}
+									onValueCommit={(val) => handleRecalculate(val[0], sipAmt)}
+									className="py-1"
 								/>
-								<p className="text-[10px] text-slate-400 mt-1">
+								<p className="text-[10px] text-muted-foreground mt-1">
 									Debt: {Math.max(0, 95 - eqPct - 10)}% | Gold: 10% | Cash: 5%
 								</p>
 							</div>
 
-							<div>
-								<div className="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+							<div className="space-y-2">
+								<div className="flex justify-between text-xs font-semibold text-muted-foreground">
 									<span>Total Monthly SIP:</span>
-									<span className="font-bold text-emerald-700">
+									<span className="font-bold text-emerald-700 dark:text-emerald-400">
 										₹{sipAmt.toLocaleString()} / mo
 									</span>
 								</div>
-								<input
-									type="range"
+								<Slider
 									min={50000}
 									max={150000}
 									step={10000}
-									value={sipAmt}
-									onChange={(e) => setSipAmt(Number(e.target.value))}
-									onMouseUp={handleRecalculate}
-									className="w-full accent-emerald-600"
+									value={[sipAmt]}
+									onValueChange={(val) => setSipAmt(val[0])}
+									onValueCommit={(val) => handleRecalculate(eqPct, val[0])}
+									className="py-1"
 								/>
-								<p className="text-[10px] text-slate-400 mt-1">
+								<p className="text-[10px] text-muted-foreground mt-1">
 									Deploying ₹90k unallocated surplus + existing ₹60k base
 								</p>
 							</div>
@@ -250,17 +244,16 @@ export default function VtoModal() {
 					</div>
 
 					{/* Visual Milestone Trajectory (SVG Chart) */}
-					<div className="border border-slate-200 rounded-2xl p-4 bg-white space-y-2">
+					<div className="border border-border rounded-2xl p-4 bg-card space-y-2">
 						<div className="flex items-center justify-between">
-							<h4 className="text-xs font-bold text-slate-800">
+							<h4 className="text-xs font-bold text-foreground">
 								15-Year Compounding Growth Cone
 							</h4>
-							<span className="text-[10px] font-semibold text-slate-500">
+							<span className="text-[10px] font-semibold text-muted-foreground">
 								Values in ₹ Lakhs & Crores
 							</span>
 						</div>
 
-						{/* Custom lightweight SVG Trajectory Graph */}
 						<div className="h-44 w-full relative pt-4">
 							<svg
 								viewBox="0 0 600 140"
@@ -272,7 +265,8 @@ export default function VtoModal() {
 									y1="120"
 									x2="600"
 									y2="120"
-									stroke="#E2E8F0"
+									stroke="currentColor"
+									className="text-border"
 									strokeWidth="1"
 								/>
 								<line
@@ -280,7 +274,8 @@ export default function VtoModal() {
 									y1="80"
 									x2="600"
 									y2="80"
-									stroke="#E2E8F0"
+									stroke="currentColor"
+									className="text-border"
 									strokeWidth="1"
 									strokeDasharray="3 3"
 								/>
@@ -289,7 +284,8 @@ export default function VtoModal() {
 									y1="40"
 									x2="600"
 									y2="40"
-									stroke="#E2E8F0"
+									stroke="currentColor"
+									className="text-border"
 									strokeWidth="1"
 									strokeDasharray="3 3"
 								/>
@@ -325,7 +321,7 @@ export default function VtoModal() {
 								<path
 									d="M 20,112 Q 150,105 280,72 T 580,22"
 									fill="none"
-									stroke="#134074"
+									stroke="#0B2545"
 									strokeWidth="3.5"
 								/>
 
@@ -357,29 +353,27 @@ export default function VtoModal() {
 				</div>
 
 				{/* Modal Footer */}
-				<div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
-					<p className="text-[11px] text-slate-500 font-medium">
-						Projections are modeled estimates based on asset class historical
-						returns.
+				<div className="p-4 border-t border-border bg-muted/20 flex items-center justify-between">
+					<p className="text-[11px] text-muted-foreground font-medium">
+						Projections are modeled estimates based on asset class historical returns.
 					</p>
-					<div className="flex items-center gap-2">
-						<button
-							onClick={() => {
-								sendAction("generate_advisory_proposal", {
-									strategic_rationale:
-										"Optimized allocation with 65% Equity, 20% Debt, 10% Gold, 5% Liquid achieving ₹5.82 Cr corpus by 2042.",
-								});
-								set({ simulationOpen: false });
-								pushToast("Generating Advisory Proposal PDF...", "info");
-							}}
-							className="px-4 py-2 rounded-xl bg-[#0B2545] hover:bg-[#134074] text-white text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
-						>
-							<FileText size={14} className="text-amber-300" />
-							<span>Generate Proposal PDF</span>
-						</button>
-					</div>
+					<Button
+						variant="wealth"
+						onClick={() => {
+							sendAction("generate_advisory_proposal", {
+								strategic_rationale:
+									"Optimized allocation with 65% Equity, 20% Debt, 10% Gold, 5% Liquid achieving ₹5.82 Cr corpus by 2042.",
+							});
+							set({ simulationOpen: false });
+							pushToast("Generating Advisory Proposal PDF...", "info");
+						}}
+						className="gap-1.5 font-bold text-xs"
+					>
+						<FileText className="size-4 text-amber-300" />
+						<span>Generate Proposal PDF</span>
+					</Button>
 				</div>
-			</div>
-		</div>
+			</DialogContent>
+		</Dialog>
 	);
 }

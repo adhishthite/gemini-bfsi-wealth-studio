@@ -1,21 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import {
 	Mic,
-	MicOff,
 	Send,
 	Volume2,
 	VolumeX,
 	Sparkles,
-	Square,
 	Video,
 	PhoneOff,
-	TrendingUp,
 	ShieldCheck,
-	FileText,
 } from "lucide-react";
-import { useStore } from "../store";
-import { sendUserText } from "../ws";
-import { LiveAvatar } from "../lib/liveClient";
+import { useStore } from "@/store";
+import { sendUserText } from "@/ws";
+import { LiveAvatar } from "@/lib/liveClient";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 const WEALTH_STARTERS = [
 	"Review my ₹75L portfolio & goal progress",
@@ -25,7 +27,7 @@ const WEALTH_STARTERS = [
 	"Generate official Advisory Proposal PDF",
 ];
 
-export default function StylistPanel() {
+export default function AdvisorDock() {
 	const {
 		chat,
 		thinking,
@@ -33,7 +35,6 @@ export default function StylistPanel() {
 		listening,
 		voiceOn,
 		connected,
-		selectedAvatar,
 		live,
 		set,
 	} = useStore();
@@ -136,7 +137,7 @@ export default function StylistPanel() {
 						: "Advisory Online";
 
 	return (
-		<div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full overflow-hidden">
+		<div className="bg-card rounded-2xl border border-border shadow-xs flex flex-col h-full overflow-hidden">
 			{/* ===== LIVE VIDEO STAGE (Gemini 3.1 Live Avatar) ===== */}
 			<div
 				className={
@@ -153,16 +154,18 @@ export default function StylistPanel() {
 				{/* Live Status Overlay */}
 				<div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
 					<div className="flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs font-semibold">
-						<span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+						<span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
 						<span>Gemini Live Avatar</span>
 					</div>
-					<button
+					<Button
+						size="sm"
+						variant="destructive"
 						onClick={stopLive}
-						className="flex items-center gap-1 bg-rose-600/90 text-white px-2.5 py-1 rounded-full text-xs font-bold hover:bg-rose-700 transition"
+						className="h-7 px-2.5 rounded-full text-xs font-bold gap-1"
 					>
-						<PhoneOff size={13} />
+						<PhoneOff className="size-3.5" />
 						<span>End Live</span>
-					</button>
+					</Button>
 				</div>
 
 				{/* Live Subtitle Transcript */}
@@ -178,65 +181,70 @@ export default function StylistPanel() {
 
 				{/* Push-to-Talk Floating Bar */}
 				<div className="absolute bottom-3 left-0 right-0 flex justify-center z-10">
-					<button
+					<Button
 						onMouseDown={() => talk(true)}
 						onMouseUp={() => talk(false)}
 						onTouchStart={() => talk(true)}
 						onTouchEnd={() => talk(false)}
-						className={`flex items-center gap-2 px-5 py-2 rounded-full font-bold text-xs shadow-lg transition ${
-							live.talking
-								? "bg-rose-500 text-white scale-105"
-								: "bg-white text-slate-900 hover:bg-slate-100"
+						variant={live.talking ? "destructive" : "default"}
+						className={`rounded-full px-5 py-2 font-bold text-xs shadow-lg transition-transform ${
+							live.talking ? "scale-105" : "bg-white text-slate-950 hover:bg-slate-100"
 						}`}
 					>
-						<Mic size={15} className={live.talking ? "animate-pulse" : ""} />
+						<Mic className={`size-3.5 ${live.talking ? "animate-pulse" : ""}`} />
 						<span>
 							{live.talking ? "Release to Send" : "Hold to Talk (or Spacebar)"}
 						</span>
-					</button>
+					</Button>
 				</div>
 			</div>
 
 			{/* ===== STANDARD ADVISOR HEADER ===== */}
 			{!live.active && (
-				<div className="p-3.5 border-b border-slate-100 bg-gradient-to-r from-slate-900 to-[#0B2545] text-white flex items-center justify-between">
+				<div className="p-3.5 border-b border-border bg-gradient-to-r from-slate-900 to-[#0B2545] text-white flex items-center justify-between">
 					<div className="flex items-center gap-2.5">
 						<div className="relative">
-							<div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-200 text-slate-950 flex items-center justify-center font-black text-sm shadow-md">
-								A
-							</div>
-							<span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-400 border-2 border-slate-900" />
+							<Avatar className="size-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-200 text-slate-950 shadow-md">
+								<AvatarFallback className="rounded-xl bg-transparent text-slate-950 font-black text-sm">
+									A
+								</AvatarFallback>
+							</Avatar>
+							<span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-400 border-2 border-slate-900" />
 						</div>
 						<div>
 							<div className="flex items-center gap-1.5">
-								<h3 className="font-bold text-sm leading-none">Ananya</h3>
-								<span className="text-[10px] text-amber-300 bg-amber-400/20 px-1.5 py-0.5 rounded font-semibold">
+								<h3 className="font-bold text-sm leading-none text-white">Ananya</h3>
+								<Badge variant="gold" className="text-[10px] py-0 px-1.5">
 									Senior RM
-								</span>
+								</Badge>
 							</div>
 							<p className="text-[10px] text-slate-300 mt-1 flex items-center gap-1">
-								<ShieldCheck size={11} className="text-emerald-400" />
+								<ShieldCheck className="size-3 text-emerald-400" />
 								<span>{status}</span>
 							</p>
 						</div>
 					</div>
 
 					<div className="flex items-center gap-1.5">
-						<button
+						<Button
+							variant="ghost"
+							size="iconSm"
 							onClick={() => set({ voiceOn: !voiceOn })}
-							className="h-8 w-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
+							className="text-white hover:bg-white/10 hover:text-white"
 							title={voiceOn ? "Mute Advisor Voice" : "Unmute Advisor Voice"}
 						>
-							{voiceOn ? <Volume2 size={15} /> : <VolumeX size={15} />}
-						</button>
-						<button
+							{voiceOn ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
+						</Button>
+						<Button
+							variant="gold"
+							size="sm"
 							onClick={startLive}
-							className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-400 text-slate-950 font-bold text-xs hover:bg-amber-300 transition shadow-sm"
+							className="h-8 gap-1.5 rounded-lg text-xs"
 							title="Start Photoreal Live Video Avatar"
 						>
-							<Video size={13} />
+							<Video className="size-3.5" />
 							<span>Go Live</span>
-						</button>
+						</Button>
 					</div>
 				</div>
 			)}
@@ -245,7 +253,7 @@ export default function StylistPanel() {
 			{!live.active && (
 				<div
 					ref={scrollRef}
-					className="flex-1 p-3.5 overflow-y-auto space-y-3 min-h-0 bg-slate-50/50"
+					className="flex-1 p-3.5 overflow-y-auto space-y-3 min-h-0 bg-muted/20"
 				>
 					{chat.map((m) => (
 						<div
@@ -257,21 +265,21 @@ export default function StylistPanel() {
 							<div
 								className={`max-w-[88%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${
 									m.role === "user"
-										? "bg-[#0B2545] text-white rounded-br-none shadow-sm"
-										: "bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-xs"
+										? "bg-primary text-primary-foreground rounded-br-none shadow-xs"
+										: "bg-card text-card-foreground border border-border rounded-bl-none shadow-xs"
 								}`}
 							>
 								{m.text}
 							</div>
-							<span className="text-[9px] text-slate-400 mt-1 px-1">
+							<span className="text-[9px] text-muted-foreground mt-1 px-1">
 								{m.role === "user" ? "Rahul" : "Ananya (Advisory)"}
 							</span>
 						</div>
 					))}
 
 					{thinking && (
-						<div className="flex items-center gap-1.5 text-xs text-slate-500 bg-white border border-slate-200 rounded-2xl px-3.5 py-2 w-fit">
-							<Sparkles size={13} className="text-amber-500 animate-spin" />
+						<div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-card border border-border rounded-2xl px-3.5 py-2 w-fit">
+							<Sparkles className="size-3.5 text-amber-500 animate-spin" />
 							<span>Ananya is calculating allocations…</span>
 						</div>
 					)}
@@ -280,22 +288,24 @@ export default function StylistPanel() {
 
 			{/* ===== QUICK PROMPT CHIPS ===== */}
 			{!live.active && (
-				<div className="p-2 border-t border-slate-100 bg-white overflow-x-auto scrollbar-none flex items-center gap-1.5">
+				<div className="p-2 border-t border-border bg-card overflow-x-auto scrollbar-none flex items-center gap-1.5">
 					{WEALTH_STARTERS.map((s, i) => (
-						<button
+						<Button
 							key={i}
+							variant="outline"
+							size="sm"
 							onClick={() => sendUserText(s)}
-							className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium whitespace-nowrap transition"
+							className="h-7 text-[11px] font-medium whitespace-nowrap bg-muted/40 hover:bg-muted"
 						>
 							{s}
-						</button>
+						</Button>
 					))}
 				</div>
 			)}
 
 			{/* ===== TEXT & MIC INPUT DOCK ===== */}
 			{!live.active && (
-				<div className="p-3 border-t border-slate-200 bg-white">
+				<div className="p-3 border-t border-border bg-card">
 					<form
 						onSubmit={(e) => {
 							e.preventDefault();
@@ -303,20 +313,22 @@ export default function StylistPanel() {
 						}}
 						className="flex items-center gap-2"
 					>
-						<input
+						<Input
 							type="text"
 							value={text}
 							onChange={(e) => setText(e.target.value)}
 							placeholder="Ask Ananya (e.g. 'How can I reach ₹5 Cr by 2042?')..."
-							className="flex-1 px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0B2545]/20 focus:border-[#0B2545]"
+							className="bg-muted/40 text-xs"
 						/>
-						<button
+						<Button
 							type="submit"
+							size="iconSm"
+							variant="wealth"
 							disabled={!text.trim()}
-							className="h-8 w-8 rounded-xl bg-[#0B2545] text-white flex items-center justify-center disabled:opacity-40 hover:bg-[#134074] transition shadow-xs"
+							className="size-9 rounded-xl shrink-0"
 						>
-							<Send size={14} />
-						</button>
+							<Send className="size-4" />
+						</Button>
 					</form>
 				</div>
 			)}

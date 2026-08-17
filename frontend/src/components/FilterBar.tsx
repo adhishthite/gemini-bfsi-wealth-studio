@@ -1,13 +1,16 @@
+import { Search, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { useStore } from "@/store";
+import { sendAction } from "@/ws";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
-	Search,
-	RotateCcw,
-	SlidersHorizontal,
-	Award,
-	Percent,
-	Layers,
-} from "lucide-react";
-import { useStore } from "../store";
-import { sendAction } from "../ws";
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 const SUB_CATEGORIES = [
 	"All",
@@ -34,7 +37,7 @@ const RISK_LEVELS = [
 ];
 
 export default function FilterBar() {
-	const { filter, setFilter, set, visibleFundIds, funds } = useStore();
+	const { filter, setFilter, set, visibleFundIds } = useStore();
 
 	const resetFilters = () => {
 		setFilter({
@@ -56,15 +59,12 @@ export default function FilterBar() {
 		visibleFundIds !== null;
 
 	return (
-		<div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3.5">
+		<div className="bg-card rounded-2xl border border-border p-4 shadow-xs space-y-3.5">
 			{/* Top Row: Search and Sort */}
 			<div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
 				<div className="relative flex-1">
-					<Search
-						size={16}
-						className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-					/>
-					<input
+					<Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+					<Input
 						type="text"
 						value={filter.query}
 						onChange={(e) => {
@@ -73,92 +73,105 @@ export default function FilterBar() {
 							sendAction("filter_products", { query: q || null });
 						}}
 						placeholder="Search funds, managers, top holdings (e.g. 'Flexi Cap', 'US Tech AI', 'SDL 2030')..."
-						className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0B2545]/20 focus:border-[#0B2545]"
+						className="pl-10 pr-4 bg-muted/40"
 					/>
 				</div>
 
 				<div className="flex items-center gap-2">
-					<div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-600">
-						<SlidersHorizontal size={14} className="text-slate-400" />
-						<span className="font-semibold text-slate-500">Sort:</span>
-						<select
+					<div className="w-48">
+						<Select
 							value={filter.sort}
-							onChange={(e) => setFilter({ sort: e.target.value as any })}
-							className="bg-transparent font-bold text-slate-900 focus:outline-none cursor-pointer"
+							onValueChange={(val: any) => setFilter({ sort: val })}
 						>
-							<option value="cagr_desc">Highest 3Y CAGR</option>
-							<option value="rating_desc">Top Star Rating</option>
-							<option value="ter_asc">Lowest Expense (TER)</option>
-							<option value="aum_desc">Largest AUM</option>
-						</select>
+							<SelectTrigger className="bg-muted/40 font-medium">
+								<div className="flex items-center gap-1.5 truncate">
+									<SlidersHorizontal className="size-3.5 text-muted-foreground shrink-0" />
+									<SelectValue placeholder="Sort funds" />
+								</div>
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="cagr_desc">Highest 3Y CAGR</SelectItem>
+								<SelectItem value="rating_desc">Top Star Rating</SelectItem>
+								<SelectItem value="ter_asc">Lowest Expense (TER)</SelectItem>
+								<SelectItem value="aum_desc">Largest AUM</SelectItem>
+							</SelectContent>
+						</Select>
 					</div>
 
 					{isFiltered && (
-						<button
+						<Button
+							variant="outline"
+							size="sm"
 							onClick={resetFilters}
-							className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold transition"
+							className="gap-1 bg-muted/40 text-muted-foreground hover:text-foreground"
 						>
-							<RotateCcw size={13} />
+							<RotateCcw className="size-3.5" />
 							<span>Reset</span>
-						</button>
+						</Button>
 					)}
 				</div>
 			</div>
 
-			{/* Subcategory Pills */}
-			<div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-[11px]">
-				<span className="font-bold text-slate-400 px-1 whitespace-nowrap">
+			{/* Subcategory ToggleGroup */}
+			<div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs">
+				<span className="text-[11px] font-bold text-muted-foreground px-1 shrink-0">
 					Subcategory:
 				</span>
-				{SUB_CATEGORIES.map((sub) => {
-					const active = filter.subCategory === sub;
-					return (
-						<button
+				<ToggleGroup
+					type="single"
+					value={filter.subCategory}
+					onValueChange={(val) => {
+						if (!val) return;
+						setFilter({ subCategory: val });
+						sendAction("filter_products", {
+							sub_category: val === "All" ? null : val,
+						});
+					}}
+					className="flex items-center gap-1.5 flex-nowrap"
+				>
+					{SUB_CATEGORIES.map((sub) => (
+						<ToggleGroupItem
 							key={sub}
-							onClick={() => {
-								setFilter({ subCategory: sub });
-								sendAction("filter_products", {
-									sub_category: sub === "All" ? null : sub,
-								});
-							}}
-							className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition ${
-								active
-									? "bg-slate-900 text-white font-bold shadow-xs"
-									: "bg-slate-100 text-slate-600 hover:bg-slate-200"
-							}`}
+							value={sub}
+							size="sm"
+							variant="subtle"
+							className="whitespace-nowrap"
 						>
 							{sub}
-						</button>
-					);
-				})}
+						</ToggleGroupItem>
+					))}
+				</ToggleGroup>
 			</div>
 
-			{/* Risk Filter Pills */}
-			<div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[11px]">
-				<span className="font-bold text-slate-400 px-1 whitespace-nowrap">
+			{/* Risk Filter ToggleGroup */}
+			<div className="flex items-center gap-2 overflow-x-auto pb-0.5 text-xs">
+				<span className="text-[11px] font-bold text-muted-foreground px-1 shrink-0">
 					Riskometer:
 				</span>
-				{RISK_LEVELS.map((r) => {
-					const active = filter.risk === r;
-					return (
-						<button
+				<ToggleGroup
+					type="single"
+					value={filter.risk}
+					onValueChange={(val) => {
+						if (!val) return;
+						setFilter({ risk: val });
+						sendAction("filter_products", {
+							risk_level: val === "All" ? null : val,
+						});
+					}}
+					className="flex items-center gap-1.5 flex-nowrap"
+				>
+					{RISK_LEVELS.map((r) => (
+						<ToggleGroupItem
 							key={r}
-							onClick={() => {
-								setFilter({ risk: r });
-								sendAction("filter_products", {
-									risk_level: r === "All" ? null : r,
-								});
-							}}
-							className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition ${
-								active
-									? "bg-amber-600 text-white font-bold"
-									: "bg-slate-100 text-slate-600 hover:bg-slate-200"
-							}`}
+							value={r}
+							size="sm"
+							variant="risk"
+							className="whitespace-nowrap"
 						>
 							{r}
-						</button>
-					);
-				})}
+						</ToggleGroupItem>
+					))}
+				</ToggleGroup>
 			</div>
 		</div>
 	);

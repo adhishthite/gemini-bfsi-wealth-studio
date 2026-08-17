@@ -1,7 +1,8 @@
 import { useMemo } from "react";
-import { useStore } from "../store";
+import { useStore } from "@/store";
 import ProductCard from "./ProductCard";
 import { Layers, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function CatalogGrid() {
 	const { funds, visibleFundIds, filter } = useStore();
@@ -72,27 +73,27 @@ export default function CatalogGrid() {
 			{/* Grid Header */}
 			<div className="flex items-center justify-between px-1">
 				<div className="flex items-center gap-2">
-					<Layers size={18} className="text-slate-500" />
-					<h2 className="text-sm font-bold text-slate-800">
+					<Layers className="size-4 text-muted-foreground" />
+					<h2 className="text-sm font-bold text-foreground">
 						Product Explorer ({displayedFunds.length} Instruments)
 					</h2>
 				</div>
 				{visibleFundIds && (
-					<span className="flex items-center gap-1 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
-						<Sparkles size={12} />
+					<Badge variant="gold" className="gap-1 font-bold">
+						<Sparkles className="size-3" />
 						<span>Curated by Ananya</span>
-					</span>
+					</Badge>
 				)}
 			</div>
 
 			{/* Grid Content */}
 			{displayedFunds.length === 0 ? (
-				<div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-500">
-					<Layers size={36} className="mx-auto text-slate-300 mb-3" />
-					<p className="font-bold text-slate-700">
+				<div className="bg-card rounded-2xl border border-border p-12 text-center text-muted-foreground">
+					<Layers className="size-9 mx-auto text-muted-foreground/40 mb-3" />
+					<p className="font-bold text-foreground">
 						No matching investment products found
 					</p>
-					<p className="text-xs text-slate-400 mt-1">
+					<p className="text-xs text-muted-foreground mt-1">
 						Try adjusting your search query, riskometer setting, or category
 						filter.
 					</p>

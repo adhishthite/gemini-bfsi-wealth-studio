@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { toast } from "sonner";
 import type {
 	FundProduct,
 	BasketItem,
@@ -59,7 +60,6 @@ type Store = {
 
 	// Chat & Toasts
 	chat: ChatMsg[];
-	toasts: { id: number; text: string; type?: "info" | "success" | "warning" }[];
 	voiceOn: boolean;
 	listening: boolean;
 	speaking: boolean;
@@ -68,8 +68,7 @@ type Store = {
 	set: (p: Partial<Store>) => void;
 	setFilter: (p: Partial<Store["filter"]>) => void;
 	pushChat: (m: Omit<ChatMsg, "id">) => void;
-	pushToast: (text: string, type?: "info" | "success" | "warning") => void;
-	dismissToast: (id: number) => void;
+	pushToast: (text: string, type?: "info" | "success" | "warning" | "error") => void;
 	addToBasket: (item: BasketItem) => void;
 	removeFromBasket: (productId: string) => void;
 };
@@ -131,7 +130,6 @@ export const useStore = create<Store>((set, get) => ({
 			text: "Namaste Rahul! I'm Ananya, your Senior Private Wealth Advisor at Cymbal Premier. How can I assist you with your ₹75L portfolio and goal milestones today?",
 		},
 	],
-	toasts: [],
 	voiceOn: true,
 	listening: false,
 	speaking: false,
@@ -139,10 +137,22 @@ export const useStore = create<Store>((set, get) => ({
 	set: (p) => set(p),
 	setFilter: (p) => set((s) => ({ filter: { ...s.filter, ...p } })),
 	pushChat: (m) => set((s) => ({ chat: [...s.chat, { ...m, id: nid() }] })),
-	pushToast: (text, type = "info") =>
-		set((s) => ({ toasts: [...s.toasts, { id: nid(), text, type }] })),
-	dismissToast: (id) =>
-		set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
+	pushToast: (text, type = "info") => {
+		switch (type) {
+			case "success":
+				toast.success(text);
+				break;
+			case "warning":
+				toast.warning(text);
+				break;
+			case "error":
+				toast.error(text);
+				break;
+			default:
+				toast.info(text);
+				break;
+		}
+	},
 
 	addToBasket: (item) =>
 		set((s) => {

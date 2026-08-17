@@ -2,53 +2,96 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light;
+@layer base {
+  :root {
+    --background: oklch(0.985 0.005 245);
+    --foreground: oklch(0.18 0.05 245);
+
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.18 0.05 245);
+
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.18 0.05 245);
+
+    --primary: oklch(0.24 0.07 245);
+    --primary-foreground: oklch(0.99 0.005 245);
+
+    --secondary: oklch(0.95 0.01 245);
+    --secondary-foreground: oklch(0.24 0.07 245);
+
+    --muted: oklch(0.96 0.008 245);
+    --muted-foreground: oklch(0.52 0.03 245);
+
+    --accent: oklch(0.72 0.16 75);
+    --accent-foreground: oklch(0.18 0.05 75);
+
+    --destructive: oklch(0.58 0.22 25);
+    --destructive-foreground: oklch(0.99 0 0);
+
+    --border: oklch(0.90 0.01 245);
+    --input: oklch(0.90 0.01 245);
+    --ring: oklch(0.28 0.08 245);
+
+    --radius: 0.75rem;
+
+    --wealth-navy: oklch(0.24 0.07 245);
+    --wealth-gold: oklch(0.72 0.16 75);
+    --wealth-emerald: oklch(0.62 0.17 155);
+    --wealth-surface: oklch(0.975 0.006 245);
+  }
+
+  .dark {
+    --background: oklch(0.14 0.03 245);
+    --foreground: oklch(0.98 0.005 245);
+
+    --card: oklch(0.18 0.04 245);
+    --card-foreground: oklch(0.98 0.005 245);
+
+    --popover: oklch(0.18 0.04 245);
+    --popover-foreground: oklch(0.98 0.005 245);
+
+    --primary: oklch(0.98 0.005 245);
+    --primary-foreground: oklch(0.18 0.05 245);
+
+    --secondary: oklch(0.25 0.04 245);
+    --secondary-foreground: oklch(0.98 0.005 245);
+
+    --muted: oklch(0.22 0.03 245);
+    --muted-foreground: oklch(0.70 0.02 245);
+
+    --accent: oklch(0.72 0.16 75);
+    --accent-foreground: oklch(0.18 0.05 75);
+
+    --destructive: oklch(0.45 0.18 25);
+    --destructive-foreground: oklch(0.98 0 0);
+
+    --border: oklch(0.26 0.03 245);
+    --input: oklch(0.26 0.03 245);
+    --ring: oklch(0.72 0.16 75);
+
+    --wealth-navy: oklch(0.24 0.07 245);
+    --wealth-gold: oklch(0.72 0.16 75);
+    --wealth-emerald: oklch(0.62 0.17 155);
+    --wealth-surface: oklch(0.18 0.04 245);
+  }
 }
 
-html, body, #root { height: 100%; }
-body {
-  margin: 0;
-  font-family: "DM Sans", system-ui, sans-serif;
-  color: #1B1320;
-  background:
-    radial-gradient(1200px 600px at 85% -10%, rgba(236,72,153,0.10), transparent 60%),
-    radial-gradient(900px 500px at 5% 0%, rgba(124,58,237,0.10), transparent 55%),
-    #FAF7FB;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
-
-@layer components {
-  .glass {
-    @apply bg-white/70 backdrop-blur-xl border border-white/60;
+@layer base {
+  * {
+    @apply border-border;
   }
-  .brand-text {
-    background: linear-gradient(115deg, #7C3AED, #EC4899);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold
-      text-white bg-brand-gradient shadow-glass transition-all duration-200
-      hover:shadow-lift hover:brightness-105 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
-  }
-  .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium
-      text-brand-ink/80 border border-brand-ink/10 bg-white/70 transition-all duration-200
-      hover:bg-white hover:border-brand-ink/20 active:scale-[0.98];
-  }
-  .chip {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold;
+  body {
+    @apply bg-background text-foreground;
+    font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 }
 
-/* tidy scrollbars */
-.scroll-thin::-webkit-scrollbar { width: 8px; height: 8px; }
-.scroll-thin::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.25); border-radius: 9999px; }
-.scroll-thin::-webkit-scrollbar-track { background: transparent; }
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
