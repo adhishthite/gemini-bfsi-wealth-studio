@@ -1,89 +1,165 @@
-import { useMemo } from "react";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import {
+	Search,
+	RotateCcw,
+	SlidersHorizontal,
+	Award,
+	Percent,
+	Layers,
+} from "lucide-react";
 import { useStore } from "../store";
+import { sendAction } from "../ws";
 
-const SORTS = [
-  { v: "featured", l: "Featured" },
-  { v: "price-asc", l: "Price: Low to High" },
-  { v: "price-desc", l: "Price: High to Low" },
-  { v: "newest", l: "Newest" },
+const SUB_CATEGORIES = [
+	"All",
+	"Large Cap",
+	"Flexi Cap",
+	"Mid Cap",
+	"Small Cap",
+	"Sectoral / Tech",
+	"Corporate Bond",
+	"10Y Gilt",
+	"Gold ETF",
+	"Balanced Advantage (BAF)",
+	"Multi-Asset Allocation",
+	"Target Date Retirement",
+];
+
+const RISK_LEVELS = [
+	"All",
+	"Low",
+	"Moderate",
+	"Moderately High",
+	"High",
+	"Very High",
 ];
 
 export default function FilterBar() {
-  const { catalog, filter, setFilter, visibleIds, selectedAvatar, set } = useStore();
+	const { filter, setFilter, set, visibleFundIds, funds } = useStore();
 
-  const pool = useMemo(
-    () => catalog.filter((p) => filter.gender === "all" || p.gender === filter.gender),
-    [catalog, filter.gender]
-  );
-  const categories = useMemo(
-    () => ["all", ...Array.from(new Set(pool.map((p) => p.category))).sort()],
-    [pool]
-  );
-  const occasions = useMemo(
-    () => ["all", ...Array.from(new Set(pool.flatMap((p) => p.occasions))).sort()],
-    [pool]
-  );
+	const resetFilters = () => {
+		setFilter({
+			category: "All",
+			subCategory: "All",
+			risk: "All",
+			sort: "cagr_desc",
+			query: "",
+		});
+		set({ visibleFundIds: null });
+		sendAction("filter_products", {});
+	};
 
-  const aiActive = !!visibleIds;
+	const isFiltered =
+		filter.category !== "All" ||
+		filter.subCategory !== "All" ||
+		filter.risk !== "All" ||
+		filter.query !== "" ||
+		visibleFundIds !== null;
 
-  return (
-    <div className="sticky top-0 z-20 -mx-1 px-1 pt-1 pb-3 bg-[#FAF7FB]/80 backdrop-blur-md">
-      {/* search + sort row */}
-      <div className="flex items-center gap-2 mb-2.5">
-        <div className="flex-1 flex items-center gap-2 bg-white rounded-full border border-stone-200 px-3.5 h-10 focus-within:border-brand-purple/50 transition">
-          <Search size={16} className="text-stone-400" />
-          <input
-            value={filter.query}
-            onChange={(e) => setFilter({ query: e.target.value })}
-            placeholder="Search kurtas, sherwanis, sneakers…"
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-stone-400"
-          />
-          {filter.query && (
-            <button onClick={() => setFilter({ query: "" })} aria-label="Clear search" className="text-stone-400 hover:text-brand-ink">
-              <X size={15} />
-            </button>
-          )}
-        </div>
-        <div className="flex items-center gap-1.5 bg-white rounded-full border border-stone-200 px-3 h-10">
-          <SlidersHorizontal size={15} className="text-stone-400" />
-          <select
-            value={filter.sort}
-            onChange={(e) => setFilter({ sort: e.target.value })}
-            className="bg-transparent text-sm outline-none cursor-pointer pr-1 text-brand-ink">
-            {SORTS.map((s) => <option key={s.v} value={s.v}>{s.l}</option>)}
-          </select>
-        </div>
-      </div>
+	return (
+		<div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3.5">
+			{/* Top Row: Search and Sort */}
+			<div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+				<div className="relative flex-1">
+					<Search
+						size={16}
+						className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+					/>
+					<input
+						type="text"
+						value={filter.query}
+						onChange={(e) => {
+							const q = e.target.value;
+							setFilter({ query: q });
+							sendAction("filter_products", { query: q || null });
+						}}
+						placeholder="Search funds, managers, top holdings (e.g. 'Flexi Cap', 'US Tech AI', 'SDL 2030')..."
+						className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0B2545]/20 focus:border-[#0B2545]"
+					/>
+				</div>
 
-      {/* category chips */}
-      <div className="flex items-center gap-2 overflow-x-auto scroll-thin pb-1 -mb-1">
-        {categories.map((c) => (
-          <button key={c} onClick={() => setFilter({ category: c })}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-[13px] font-medium border transition whitespace-nowrap
-              ${filter.category === c && !aiActive
-                ? "bg-brand-ink text-white border-transparent"
-                : "bg-white text-stone-600 border-stone-200 hover:border-brand-purple/40 hover:text-brand-ink"}`}>
-            {c === "all" ? "All" : c}
-          </button>
-        ))}
-        {occasions.length > 1 && (
-          <select
-            value={filter.occasion}
-            onChange={(e) => setFilter({ occasion: e.target.value })}
-            className={`shrink-0 ml-1 px-3 py-1.5 rounded-full text-[13px] font-medium border cursor-pointer capitalize
-              ${filter.occasion !== "all" && !aiActive ? "bg-violet-50 text-brand-purple border-violet-200" : "bg-white text-stone-600 border-stone-200"}`}>
-            <option value="all">Any occasion</option>
-            {occasions.filter((o) => o !== "all").map((o) => <option key={o} value={o}>{o}</option>)}
-          </select>
-        )}
-        {aiActive && (
-          <button onClick={() => set({ visibleIds: null, criteria: null })}
-            className="shrink-0 ml-1 px-3 py-1.5 rounded-full text-[13px] font-semibold bg-brand-gradient text-white">
-            Clear {selectedAvatar}'s edit ✕
-          </button>
-        )}
-      </div>
-    </div>
-  );
+				<div className="flex items-center gap-2">
+					<div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-600">
+						<SlidersHorizontal size={14} className="text-slate-400" />
+						<span className="font-semibold text-slate-500">Sort:</span>
+						<select
+							value={filter.sort}
+							onChange={(e) => setFilter({ sort: e.target.value as any })}
+							className="bg-transparent font-bold text-slate-900 focus:outline-none cursor-pointer"
+						>
+							<option value="cagr_desc">Highest 3Y CAGR</option>
+							<option value="rating_desc">Top Star Rating</option>
+							<option value="ter_asc">Lowest Expense (TER)</option>
+							<option value="aum_desc">Largest AUM</option>
+						</select>
+					</div>
+
+					{isFiltered && (
+						<button
+							onClick={resetFilters}
+							className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold transition"
+						>
+							<RotateCcw size={13} />
+							<span>Reset</span>
+						</button>
+					)}
+				</div>
+			</div>
+
+			{/* Subcategory Pills */}
+			<div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-[11px]">
+				<span className="font-bold text-slate-400 px-1 whitespace-nowrap">
+					Subcategory:
+				</span>
+				{SUB_CATEGORIES.map((sub) => {
+					const active = filter.subCategory === sub;
+					return (
+						<button
+							key={sub}
+							onClick={() => {
+								setFilter({ subCategory: sub });
+								sendAction("filter_products", {
+									sub_category: sub === "All" ? null : sub,
+								});
+							}}
+							className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition ${
+								active
+									? "bg-slate-900 text-white font-bold shadow-xs"
+									: "bg-slate-100 text-slate-600 hover:bg-slate-200"
+							}`}
+						>
+							{sub}
+						</button>
+					);
+				})}
+			</div>
+
+			{/* Risk Filter Pills */}
+			<div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[11px]">
+				<span className="font-bold text-slate-400 px-1 whitespace-nowrap">
+					Riskometer:
+				</span>
+				{RISK_LEVELS.map((r) => {
+					const active = filter.risk === r;
+					return (
+						<button
+							key={r}
+							onClick={() => {
+								setFilter({ risk: r });
+								sendAction("filter_products", {
+									risk_level: r === "All" ? null : r,
+								});
+							}}
+							className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition ${
+								active
+									? "bg-amber-600 text-white font-bold"
+									: "bg-slate-100 text-slate-600 hover:bg-slate-200"
+							}`}
+						>
+							{r}
+						</button>
+					);
+				})}
+			</div>
+		</div>
+	);
 }

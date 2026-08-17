@@ -1,4 +1,4 @@
-"""Fallback conversational brain — standard Gemini (Vertex) chat with function-calling.
+"""Conversational brain — standard Gemini (Vertex) chat with function-calling.
 
 Used when AVATAR_TRANSPORT=fallback (the Live API is not entitled in this environment).
 Runs a tool-calling loop: model -> function_calls -> execute (mutates session, emits
@@ -10,15 +10,15 @@ from google import genai
 from google.genai import types
 
 from . import config, tools
-from .session import CommerceSession, HANDLERS
+from .session import WealthSession, HANDLERS
 
 
 class GeminiBrain:
-    def __init__(self, session: CommerceSession):
+    def __init__(self, session: WealthSession):
         self.session = session
         self.client = genai.Client(vertexai=True, project=config.BRAIN_PROJECT,
                                    location=config.BRAIN_LOCATION)
-        self.name = config.AVATAR_NAME
+        self.name = config.AVATAR_NAME or "Ananya"
         self._build_cfg()
         self.history: list[types.Content] = []
 
@@ -26,29 +26,27 @@ class GeminiBrain:
         self.cfg = types.GenerateContentConfig(
             tools=[tools.TOOL],
             temperature=0.6,
-            system_instruction=tools.system_instruction(self.session.profile, self.name, self.session.user_gender),
+            system_instruction=tools.system_instruction(self.session.profile, self.name),
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
         )
 
     def set_persona(self, avatar: str):
-        """Switch the stylist persona (name) only — gender is NOT tied to the avatar."""
         if avatar:
             self.name = avatar
+            self._build_cfg()
 
     async def to_english(self, text: str) -> str:
-        """Normalise a shopper utterance (any language — often Hindi/Hinglish) into one short ENGLISH
-        command, so the (English) intent handler can act on it. Gemini handles all languages natively."""
+        """Normalise a client utterance (any language — often Hindi/Hinglish) into one short ENGLISH
+        command for the wealth intent handler."""
         if not text or not text.strip():
             return text
         prompt = (
-            "Convert the shopper's words (any language, often Hindi or Hinglish) into ONE short ENGLISH "
-            "command for a fashion shopping app. Preserve the intent (show/browse, add to cart, remove, "
-            "complete the look / add matching pieces, try-on, checkout, apply a promo code, place order, give "
-            "CVV), plus occasion, product type, colour, gender and any numbers/codes. If they ask to complete/"
-            "finish the outfit or add matching items, start the command with 'Complete the look'. Write all "
-            "numbers and codes as DIGITS (e.g. 'one two three' -> '123', "
-            "'double five' -> '55'). If it's just small talk, return it as-is in English. "
-            "Output ONLY the command, nothing else.\n\nShopper: " + text
+            "Convert the client's spoken words (any language, often Hindi, Marathi, or Hinglish) into ONE short ENGLISH "
+            "financial intent statement for a wealth advisory app. Preserve the intent (portfolio review, filter/browse funds, "
+            "simulate returns, add/remove to basket, generate proposal, authorize mandate, provide OTP), plus asset category, "
+            "fund names, percentages, and financial figures (Lakhs, Crores, SIP amounts). Write all numbers as digits "
+            "(e.g. 'one lakh' -> '100000', 'fifteen thousand' -> '15000', 'double seven zero one' -> '7701'). "
+            "Output ONLY the command, nothing else.\n\nClient: " + text
         )
         try:
             r = await asyncio.to_thread(
@@ -58,68 +56,60 @@ class GeminiBrain:
         except Exception:  # noqa
             return text
 
-    async def execute_intent(self, user_text: str, send):
-        """LIVE mode: run the (possibly Hindi/Hinglish) transcript through the multilingual tool model
-        to EXECUTE actions (filter / cart / checkout / VTO) and emit ui_commands — but DO NOT send any
-        spoken text (the Live Avatar handles the conversation). Gemini handles all languages natively."""
-        self._build_cfg()
-        self.history.append(types.Content(role="user", parts=[types.Part(text=user_text)]))
-        for _ in range(4):
-            resp = await asyncio.to_thread(
+    async def chat(self, user_text: str) -> dict:
+        """Send a user utterance, execute all returned function calls, and return the final spoken text."""
+        # Add user message to history
+        self.history.append(types.Content(role="user", parts=[types.Part.from_text(text=user_text)]))
+
+        spoken_parts = []
+        ui_commands = []
+
+        # Tool execution loop
+        for _ in range(5):  # Safety limit of 5 turns
+            response = await asyncio.to_thread(
                 self.client.models.generate_content,
-                model=config.BRAIN_MODEL, contents=self.history, config=self.cfg)
-            cand = resp.candidates[0]
-            parts = cand.content.parts or []
-            self.history.append(cand.content)
-            calls = [p.function_call for p in parts if p.function_call]
-            if not calls:
-                break
-            fn_responses = []
-            for fc in calls:
-                method = HANDLERS.get(fc.name)
-                try:
-                    result = getattr(self.session, method)(**dict(fc.args or {})) if method \
-                        else {"error": f"unknown tool {fc.name}"}
-                except Exception as e:  # noqa
-                    result = {"error": str(e)[:200]}
-                for cmd in self.session.drain():
-                    await send(cmd)
-                fn_responses.append(types.Part.from_function_response(name=fc.name, response=result))
-            self.history.append(types.Content(role="user", parts=fn_responses))
+                model=config.BRAIN_MODEL,
+                contents=self.history,
+                config=self.cfg
+            )
 
-    async def run_turn(self, user_text: str, send, avatar: str | None = None):
-        """Run one user turn; `send` is an async fn(dict) to push events to the client."""
-        if avatar:
-            self.set_persona(avatar)
-        self._build_cfg()  # reflect current name + the shopper's current gender each turn
-        self.history.append(types.Content(role="user", parts=[types.Part(text=user_text)]))
-        for _ in range(6):  # cap tool hops
-            resp = await asyncio.to_thread(
-                self.client.models.generate_content,
-                model=config.BRAIN_MODEL, contents=self.history, config=self.cfg)
-            cand = resp.candidates[0]
-            parts = cand.content.parts or []
-            self.history.append(cand.content)
+            # Check if there are function calls
+            candidate = response.candidates[0]
+            function_calls = [part.function_call for part in candidate.content.parts if part.function_call]
 
-            calls = [p.function_call for p in parts if p.function_call]
-            text = "".join(p.text for p in parts if p.text)
-            if text.strip():
-                await send({"type": "assistant_text", "text": text.strip()})
+            # Collect any text spoken in this step
+            text_parts = [part.text for part in candidate.content.parts if part.text]
+            if text_parts:
+                spoken_parts.extend(text_parts)
 
-            if not calls:
+            # Add model response to history
+            self.history.append(candidate.content)
+
+            if not function_calls:
                 break
 
-            # execute each tool call, flush ui_commands, feed results back
-            fn_responses = []
-            for fc in calls:
-                method = HANDLERS.get(fc.name)
-                try:
-                    result = getattr(self.session, method)(**dict(fc.args or {})) if method \
-                        else {"error": f"unknown tool {fc.name}"}
-                except Exception as e:  # noqa
-                    result = {"error": str(e)[:200]}
-                for cmd in self.session.drain():
-                    await send(cmd)
-                fn_responses.append(types.Part.from_function_response(name=fc.name, response=result))
-            self.history.append(types.Content(role="user", parts=fn_responses))
-        await send({"type": "turn_complete"})
+            # Execute function calls
+            function_response_parts = []
+            for fc in function_calls:
+                fn_name = fc.name
+                fn_args = dict(fc.args) if fc.args else {}
+                handler = HANDLERS.get(fn_name)
+                if handler:
+                    result = handler(self.session, **fn_args)
+                else:
+                    result = {"error": f"Unknown tool {fn_name}"}
+
+                function_response_parts.append(
+                    types.Part.from_function_response(name=fn_name, response={"result": result})
+                )
+
+            # Collect UI commands queued during tool execution
+            ui_commands.extend(self.session.drain_outbox())
+
+            # Append function responses to history for next model pass
+            self.history.append(types.Content(role="tool", parts=function_response_parts))
+
+        return {
+            "text": " ".join(spoken_parts).strip(),
+            "ui_commands": ui_commands
+        }

@@ -1,147 +1,182 @@
 import { create } from "zustand";
-import type { Cart, ChatMsg, Product, SizingData, CheckoutStep } from "./types";
-
-type VtoState = {
-  status: "idle" | "processing" | "done" | "error";
-  names?: string[];
-  context?: string;
-  image?: string;
-  caption?: string;
-  error?: string;
-};
-
-type CheckoutState = { open: boolean; step: CheckoutStep; data: any } | null;
+import type {
+	FundProduct,
+	BasketItem,
+	DiagnosticsData,
+	SimulationData,
+	ProposalData,
+	Profile,
+	ChatMsg,
+} from "./types";
 
 type Store = {
-  // connection
-  connected: boolean;
-  thinking: boolean;
-  sid: string;
-  selectedAvatar: string;
-  live: { available: boolean; active: boolean; status: string; muted: boolean; talking: boolean; caption: string };
-  // data
-  catalog: Product[];
-  profile: any;
-  visibleIds: string[] | null; // null => all (AI filter)
-  highlightIds: string[];
-  criteria: any;
-  filter: { gender: "all" | "women" | "men"; category: string; occasion: string; sort: string; query: string };
-  // cart
-  cart: Cart;
-  cartOpen: boolean;
-  // orders (My Orders)
-  orders: any[];
-  ordersOpen: boolean;
-  // modals
-  sizing: SizingData | null;
-  vto: VtoState;
-  checkout: CheckoutState;
-  // chat + toasts
-  chat: ChatMsg[];
-  toasts: { id: number; text: string }[];
-  // voice
-  voiceOn: boolean;
-  listening: boolean;
-  speaking: boolean;
+	// Connection & Advisor
+	connected: boolean;
+	thinking: boolean;
+	sid: string;
+	selectedAvatar: string;
+	live: {
+		available: boolean;
+		active: boolean;
+		status: string;
+		muted: boolean;
+		talking: boolean;
+		caption: string;
+	};
 
-  set: (p: Partial<Store>) => void;
-  setFilter: (p: Partial<Store["filter"]>) => void;
-  pushChat: (m: Omit<ChatMsg, "id">) => void;
-  pushToast: (text: string) => void;
-  dismissToast: (id: number) => void;
-  applyCommand: (command: string, args: any) => void;
+	// Fund catalog & Active Views
+	funds: FundProduct[];
+	profile: Profile | null;
+	portfolio: Profile | null;
+	visibleFundIds: string[] | null; // null => show all
+	highlightIds: string[];
+	filter: {
+		category: string;
+		subCategory: string;
+		risk: string;
+		sort: "cagr_desc" | "rating_desc" | "ter_asc" | "aum_desc";
+		query: string;
+	};
+
+	// Advisory Basket
+	basket: BasketItem[];
+	totalLumpsum: number;
+	totalSip: number;
+	basketOpen: boolean;
+
+	// Diagnostics & Simulation
+	diagnostics: DiagnosticsData | null;
+	diagnosticsOpen: boolean;
+	simulation: SimulationData | null;
+	simulationOpen: boolean;
+
+	// Proposal & Mandate
+	proposal: ProposalData | null;
+	proposalOpen: boolean;
+	mandateModalOpen: boolean;
+	mandateStatus: "idle" | "awaiting_otp" | "authorized" | "error";
+	lastTransactionId: string | null;
+
+	// Chat & Toasts
+	chat: ChatMsg[];
+	toasts: { id: number; text: string; type?: "info" | "success" | "warning" }[];
+	voiceOn: boolean;
+	listening: boolean;
+	speaking: boolean;
+
+	// Actions
+	set: (p: Partial<Store>) => void;
+	setFilter: (p: Partial<Store["filter"]>) => void;
+	pushChat: (m: Omit<ChatMsg, "id">) => void;
+	pushToast: (text: string, type?: "info" | "success" | "warning") => void;
+	dismissToast: (id: number) => void;
+	addToBasket: (item: BasketItem) => void;
+	removeFromBasket: (productId: string) => void;
 };
 
 let _id = 1;
 const nid = () => _id++;
-// expose for quick debugging in the browser console (harmless for a demo): __store.getState()/.setState()
-if (typeof window !== "undefined") setTimeout(() => ((window as any).__store = useStore), 0);
+
+if (typeof window !== "undefined") {
+	setTimeout(() => ((window as any).__store = useStore), 0);
+}
 
 export const useStore = create<Store>((set, get) => ({
-  connected: false,
-  thinking: false,
-  sid: "",
-  selectedAvatar: "Kira",
-  live: { available: false, active: false, status: "idle", muted: false, talking: false, caption: "" },
-  catalog: [],
-  profile: null,
-  visibleIds: null,
-  highlightIds: [],
-  criteria: null,
-  filter: { gender: "men", category: "all", occasion: "all", sort: "featured", query: "" },
-  cart: { items: [], subtotal: 0, discount: 0, total: 0, promo: null },
-  cartOpen: false,
-  orders: [],
-  ordersOpen: false,
-  sizing: null,
-  vto: { status: "idle" },
-  checkout: null,
-  chat: [],
-  toasts: [],
-  voiceOn: true,
-  listening: false,
-  speaking: false,
+	connected: false,
+	thinking: false,
+	sid: "",
+	selectedAvatar: "Ananya",
+	live: {
+		available: false,
+		active: false,
+		status: "idle",
+		muted: false,
+		talking: false,
+		caption: "",
+	},
 
-  set: (p) => set(p),
-  // manual filter overrides any AI filter
-  setFilter: (p) => set((s) => ({ filter: { ...s.filter, ...p }, visibleIds: null, criteria: null })),
-  pushChat: (m) => set((s) => ({ chat: [...s.chat, { ...m, id: nid() }] })),
-  pushToast: (text) => {
-    const id = nid();
-    set((s) => ({ toasts: [...s.toasts, { id, text }] }));
-    setTimeout(() => get().dismissToast(id), 3800);
-  },
-  dismissToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
+	funds: [],
+	profile: null,
+	portfolio: null,
+	visibleFundIds: null,
+	highlightIds: [],
+	filter: {
+		category: "All",
+		subCategory: "All",
+		risk: "All",
+		sort: "cagr_desc",
+		query: "",
+	},
 
-  applyCommand: (command, args) => {
-    switch (command) {
-      case "filter": {
-        // sync the gender tab to whatever the AI inferred, so UI + AI stay consistent
-        const cg = args.criteria?.gender;
-        set((s) => ({
-          visibleIds: args.sku_ids ?? null, criteria: args.criteria ?? null, highlightIds: [],
-          filter: cg ? { ...s.filter, gender: cg } : s.filter,
-        }));
-        break;
-      }
-      case "highlight":
-        set({ highlightIds: args.sku_ids ?? [] });
-        setTimeout(() => {
-          const cur = get().highlightIds;
-          if (cur === args.sku_ids) set({ highlightIds: [] });
-        }, 4000);
-        break;
-      case "sizing":
-        set({ sizing: args as SizingData });
-        break;
-      case "cart_update":
-        // open the drawer when items were added; close it when the bag is emptied (e.g. after an order)
-        set({ cart: args, cartOpen: !!(args.items && args.items.length) });
-        break;
-      case "orders_update":
-        set({ orders: args.orders ?? [] });
-        break;
-      case "orders_open":
-        set({ orders: args.orders ?? get().orders, ordersOpen: true });
-        break;
-      case "cart_open":
-        set({ cartOpen: true });
-        break;
-      case "vto_start":
-        set({ vto: { status: "processing", names: args.names, context: args.context } });
-        break;
-      case "vto_result":
-        set((s) => ({ vto: { ...s.vto, status: "done", image: args.image_url, caption: args.caption } }));
-        break;
-      case "vto_error":
-        set((s) => ({ vto: { ...s.vto, status: "error", error: args.message } }));
-        break;
-      case "checkout":
-        set({ checkout: { open: true, step: args.step, data: args.data }, cartOpen: false });
-        break;
-      case "toast":
-        get().pushToast(args.text);
-        break;
-    }
-  },
+	basket: [],
+	totalLumpsum: 0,
+	totalSip: 0,
+	basketOpen: false,
+
+	diagnostics: null,
+	diagnosticsOpen: false,
+	simulation: null,
+	simulationOpen: false,
+
+	proposal: null,
+	proposalOpen: false,
+	mandateModalOpen: false,
+	mandateStatus: "idle",
+	lastTransactionId: null,
+
+	chat: [
+		{
+			id: 0,
+			role: "assistant",
+			text: "Namaste Rahul! I'm Ananya, your Senior Private Wealth Advisor at Cymbal Premier. How can I assist you with your ₹75L portfolio and goal milestones today?",
+		},
+	],
+	toasts: [],
+	voiceOn: true,
+	listening: false,
+	speaking: false,
+
+	set: (p) => set(p),
+	setFilter: (p) => set((s) => ({ filter: { ...s.filter, ...p } })),
+	pushChat: (m) => set((s) => ({ chat: [...s.chat, { ...m, id: nid() }] })),
+	pushToast: (text, type = "info") =>
+		set((s) => ({ toasts: [...s.toasts, { id: nid(), text, type }] })),
+	dismissToast: (id) =>
+		set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
+
+	addToBasket: (item) =>
+		set((s) => {
+			const existingIdx = s.basket.findIndex(
+				(b) => b.product_id === item.product_id,
+			);
+			let nextBasket = [...s.basket];
+			if (existingIdx >= 0) {
+				nextBasket[existingIdx] = { ...nextBasket[existingIdx], ...item };
+			} else {
+				nextBasket.push(item);
+			}
+			const totalLumpsum = nextBasket.reduce(
+				(acc, b) => acc + (b.lumpsum_inr || 0),
+				0,
+			);
+			const totalSip = nextBasket.reduce(
+				(acc, b) => acc + (b.monthly_sip_inr || 0),
+				0,
+			);
+			return { basket: nextBasket, totalLumpsum, totalSip };
+		}),
+
+	removeFromBasket: (productId) =>
+		set((s) => {
+			const nextBasket = s.basket.filter((b) => b.product_id !== productId);
+			const totalLumpsum = nextBasket.reduce(
+				(acc, b) => acc + (b.lumpsum_inr || 0),
+				0,
+			);
+			const totalSip = nextBasket.reduce(
+				(acc, b) => acc + (b.monthly_sip_inr || 0),
+				0,
+			);
+			return { basket: nextBasket, totalLumpsum, totalSip };
+		}),
 }));

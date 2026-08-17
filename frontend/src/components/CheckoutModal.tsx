@@ -1,229 +1,227 @@
 import { useState } from "react";
-import { Check, MapPin, Tag, CreditCard, PartyPopper, Lock } from "lucide-react";
-import Modal from "./Modal";
+import {
+	CheckCircle2,
+	ShieldCheck,
+	Lock,
+	ArrowRight,
+	Building,
+	Check,
+	X,
+	FileText,
+} from "lucide-react";
 import { useStore } from "../store";
-import { asset, rupee } from "../lib";
-import { sendUserText, sendAction } from "../ws";
-import type { CheckoutStep } from "../types";
-
-const STEPS: { key: CheckoutStep; label: string }[] = [
-  { key: "review", label: "Review" },
-  { key: "promo", label: "Offer" },
-  { key: "address", label: "Address" },
-  { key: "payment", label: "Payment" },
-  { key: "success", label: "Done" },
-];
+import { sendAction } from "../ws";
 
 export default function CheckoutModal() {
-  const { checkout, set } = useStore();
-  const [promo, setPromo] = useState("");
-  const [cvv, setCvv] = useState("");
-  if (!checkout?.open) return null;
-  const { step, data } = checkout;
-  const close = () => set({ checkout: null });
-  const idx = STEPS.findIndex((s) => s.key === step);
+	const {
+		mandateModalOpen,
+		mandateStatus,
+		basket,
+		totalSip,
+		totalLumpsum,
+		portfolio,
+		lastTransactionId,
+		set,
+		pushToast,
+	} = useStore();
 
-  return (
-    <Modal open onClose={close} maxW="max-w-md" dismissable={step !== "success"}
-      title={step === "success" ? undefined : "Checkout"}>
-      <div className="px-6 pb-6">
-        {step !== "success" && (
-          <div className="flex items-center justify-between mb-5">
-            {STEPS.slice(0, 4).map((s, i) => (
-              <div key={s.key} className="flex items-center flex-1 last:flex-none">
-                <div className={`flex items-center gap-1.5 ${i <= idx ? "text-brand-purple" : "text-stone-300"}`}>
-                  <span className={`grid place-items-center h-6 w-6 rounded-full text-[11px] font-bold border-2
-                    ${i < idx ? "bg-brand-gradient text-white border-transparent"
-                      : i === idx ? "border-brand-purple text-brand-purple" : "border-stone-200"}`}>
-                    {i < idx ? <Check size={12} /> : i + 1}
-                  </span>
-                  <span className="text-[11px] font-semibold hidden sm:block">{s.label}</span>
-                </div>
-                {i < 3 && <div className={`flex-1 h-[2px] mx-1.5 ${i < idx ? "bg-brand-purple/40" : "bg-stone-200"}`} />}
-              </div>
-            ))}
-          </div>
-        )}
+	const [otp, setOtp] = useState("7701");
+	const [agreed, setAgreed] = useState(true);
 
-        {step === "review" && (
-          <div className="animate-fade-up">
-            <div className="space-y-2 max-h-40 overflow-y-auto scroll-thin">
-              {data.items?.map((it: any) => (
-                <div key={it.sku_id + it.size} className="flex items-center gap-3">
-                  <img src={asset(it.image)} className="h-12 w-10 rounded-lg object-cover bg-stone-100" alt="" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-brand-ink truncate">{it.name}</p>
-                    <p className="text-xs text-stone-500">Size {it.size} · Qty {it.qty}</p>
-                  </div>
-                  <span className="text-sm font-semibold tabular-nums">{rupee(it.price * it.qty)}</span>
-                </div>
-              ))}
-            </div>
-            <Totals data={data} />
+	if (!mandateModalOpen) return null;
 
-            {/* saved details — already on file */}
-            {data.address && (
-              <div className="mt-3 grid gap-2">
-                <div className="flex items-start gap-2 rounded-xl border border-stone-200 p-2.5">
-                  <MapPin size={15} className="text-brand-purple mt-0.5 shrink-0" />
-                  <p className="text-xs text-stone-600 leading-snug">
-                    <span className="font-semibold text-brand-ink">{data.name}</span> · {data.address.line1}, {data.address.city} {data.address.pincode}
-                  </p>
-                </div>
-                {data.payment && (
-                  <div className="flex items-center gap-2 rounded-xl border border-stone-200 p-2.5">
-                    <CreditCard size={15} className="text-brand-purple shrink-0" />
-                    <p className="text-xs text-stone-600">{data.payment.type} ending {data.payment.last4} · exp {data.payment.expiry}</p>
-                  </div>
-                )}
-              </div>
-            )}
+	const handleAuthorize = () => {
+		if (!agreed) {
+			pushToast("Please accept the SEBI statutory declaration", "warning");
+			return;
+		}
+		sendAction("execute_mandate", { otp });
+	};
 
-            {/* promo: show the APPLIED state once a code is on, otherwise the input */}
-            {data.promo ? (
-              <div className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2.5">
-                <Check size={15} className="text-emerald-600 shrink-0" />
-                <p className="text-sm font-medium text-emerald-700 flex-1">
-                  {data.promo} applied{data.discount > 0 ? ` · saved ${rupee(data.discount)}` : ""}
-                </p>
-              </div>
-            ) : (
-              <div className="mt-3">
-                <div className="flex gap-2">
-                  <div className="flex-1 flex items-center gap-2 rounded-xl border border-stone-200 px-3">
-                    <Tag size={14} className="text-stone-400" />
-                    <input value={promo} onChange={(e) => setPromo(e.target.value.toUpperCase())}
-                      placeholder="Promo code (optional)"
-                      className="flex-1 bg-transparent py-2.5 text-sm uppercase tracking-wide outline-none placeholder:normal-case placeholder:tracking-normal placeholder:text-stone-400" />
-                  </div>
-                  <button onClick={() => promo && sendUserText(`Apply promo code ${promo}`)}
-                    className="px-4 rounded-xl border border-stone-200 text-sm font-semibold text-brand-ink hover:border-brand-purple/40">
-                    Apply
-                  </button>
-                </div>
-                {data.promo_error && (
-                  <p className="mt-1 text-xs text-red-500">{data.promo_error} isn't valid. Try FESTIVE10 or DIRECT15.</p>
-                )}
-              </div>
-            )}
+	const handleClose = () => {
+		set({ mandateModalOpen: false });
+	};
 
-            <button onClick={() => sendAction("request_payment")} className="btn-primary w-full mt-3">
-              <Lock size={15} /> Place order · {rupee(data.total)}
-            </button>
-          </div>
-        )}
+	const isSuccess = mandateStatus === "authorized";
 
-        {step === "promo" && (
-          <div className="animate-fade-up">
-            {data.valid ? (
-              <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-4 text-center">
-                <Check className="mx-auto text-emerald-600" size={22} />
-                <p className="mt-1 font-semibold text-emerald-700">{data.code} applied</p>
-                <p className="text-sm text-emerald-600">You saved {rupee(data.discount)}</p>
-              </div>
-            ) : (
-              <>
-                <p className="text-sm text-stone-600 mb-2">Have a Cymbal Direct offer code?</p>
-                <div className="flex gap-2">
-                  <input value={promo} onChange={(e) => setPromo(e.target.value.toUpperCase())}
-                    placeholder="FESTIVE10"
-                    className="flex-1 rounded-xl border border-stone-200 px-3 py-2.5 text-sm uppercase tracking-wide outline-none focus:border-brand-purple/50" />
-                  <button onClick={() => promo && sendUserText(`Apply promo code ${promo}`)} className="btn-primary">Apply</button>
-                </div>
-                {data.code && <p className="mt-2 text-xs text-red-500">{data.code} isn't valid. Try FESTIVE10 or DIRECT15.</p>}
-              </>
-            )}
-            {data.valid && <Totals data={data} />}
-            <button onClick={() => sendUserText("Confirm my delivery address")} className="btn-primary w-full mt-4">
-              <MapPin size={15} /> Confirm address
-            </button>
-          </div>
-        )}
+	return (
+		<div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6">
+			<div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden">
+				{/* Header */}
+				<div className="p-5 border-b border-slate-100 bg-[#0B2545] text-white flex items-center justify-between">
+					<div className="flex items-center gap-3">
+						<div className="h-9 w-9 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold">
+							<ShieldCheck size={20} />
+						</div>
+						<div>
+							<h3 className="text-sm font-bold">
+								{isSuccess
+									? "Mandate Successfully Executed"
+									: "e-NACH Mandate Authorization"}
+							</h3>
+							<p className="text-[11px] text-slate-300">
+								{isSuccess
+									? "Transaction Authorized & Live"
+									: "Bank Auto-Debit & Risk Consent"}
+							</p>
+						</div>
+					</div>
+					<button
+						onClick={handleClose}
+						className="h-8 w-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
+					>
+						<X size={16} />
+					</button>
+				</div>
 
-        {step === "address" && (
-          <div className="animate-fade-up">
-            <div className="rounded-2xl bg-white border border-stone-200 p-4 shadow-soft">
-              <div className="flex items-start gap-3">
-                <MapPin size={18} className="text-brand-purple mt-0.5" />
-                <div className="text-sm">
-                  <p className="font-semibold text-brand-ink">{data.name}</p>
-                  <p className="text-stone-600 leading-snug mt-0.5">
-                    {data.address.line1}, {data.address.line2}<br />
-                    {data.address.city}, {data.address.state} {data.address.pincode}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <button onClick={() => sendUserText("Yes that address is correct, proceed to payment")} className="btn-primary w-full mt-4">
-              <CreditCard size={15} /> Deliver here & pay
-            </button>
-          </div>
-        )}
+				{/* Content */}
+				<div className="p-6 space-y-5">
+					{!isSuccess ? (
+						<>
+							{/* Bank Account Details */}
+							<div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-2">
+										<Building size={16} className="text-[#0B2545]" />
+										<span className="font-bold text-slate-800">
+											{portfolio?.bank_account?.bank || "Cymbal Premier Bank"}
+										</span>
+									</div>
+									<span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+										Verified Tier 1
+									</span>
+								</div>
+								<div className="flex justify-between text-slate-500 text-[11px]">
+									<span>Account Number:</span>
+									<span className="font-mono font-bold text-slate-700">
+										•••• •••• ••••{" "}
+										{portfolio?.bank_account?.account_number_last4 || "8821"}
+									</span>
+								</div>
+								<div className="flex justify-between text-slate-500 text-[11px]">
+									<span>Monthly Auto-Debit Mandate:</span>
+									<span className="font-extrabold text-emerald-700">
+										₹{totalSip.toLocaleString()} / month
+									</span>
+								</div>
+							</div>
 
-        {step === "payment" && (
-          <div className="animate-fade-up">
-            <div className="rounded-2xl bg-brand-ink text-white p-4 shadow-lift relative overflow-hidden">
-              <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-brand-gradient opacity-40 blur-xl" />
-              <div className="relative flex items-center justify-between">
-                <span className="text-xs uppercase tracking-widest text-white/60">{data.type}</span>
-                <CreditCard size={20} className="text-white/70" />
-              </div>
-              <p className="relative mt-5 text-lg tracking-[0.2em] tabular-nums">•••• •••• •••• {data.last4}</p>
-              <p className="relative mt-1 text-xs text-white/60">Expires {data.expiry}</p>
-            </div>
-            {data.promo && (
-              <div className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2">
-                <Check size={14} className="text-emerald-600 shrink-0" />
-                <p className="text-xs font-medium text-emerald-700">{data.promo} applied{data.discount > 0 ? ` · saved ${rupee(data.discount)}` : ""}</p>
-              </div>
-            )}
-            <p className="mt-4 text-sm text-stone-600">Enter your 3-digit CVV to authorize.</p>
-            <div className="mt-2 flex gap-2 items-center">
-              <input value={cvv} inputMode="numeric" maxLength={3} type="password" autoFocus
-                onChange={(e) => setCvv(e.target.value.replace(/\D/g, ""))}
-                placeholder="•••"
-                className="w-24 text-center tracking-[0.4em] rounded-xl border border-stone-200 px-3 py-2.5 outline-none focus:border-brand-purple/50" />
-              <button onClick={() => cvv.length === 3 && sendAction("place_order", { cvv })}
-                disabled={cvv.length !== 3} className="btn-primary flex-1">
-                <Lock size={15} /> Pay {rupee(data.total ?? undefined)}
-              </button>
-            </div>
-            <p className="mt-2 text-[11px] text-stone-500 flex items-center gap-1">
-              <Lock size={11} /> Enter it yourself — never share your CVV with anyone, including the stylist.
-            </p>
-            <p className="mt-1 text-[11px] text-stone-400">Tokenized & encrypted · CVV is never stored or sent to the assistant.</p>
-          </div>
-        )}
+							{/* Mandate Items */}
+							<div className="space-y-1.5">
+								<p className="text-xs font-bold text-slate-700">
+									Executing Allocations ({basket.length} Funds):
+								</p>
+								<div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+									{basket.map((b) => (
+										<div
+											key={b.product_id}
+											className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs"
+										>
+											<span className="font-medium text-slate-800 truncate max-w-[240px]">
+												{b.name}
+											</span>
+											<span className="font-bold text-emerald-700 whitespace-nowrap">
+												{b.monthly_sip_inr
+													? `₹${(b.monthly_sip_inr / 1000).toFixed(0)}k/mo`
+													: `₹${(b.lumpsum_inr / 1000).toFixed(0)}k`}
+											</span>
+										</div>
+									))}
+								</div>
+							</div>
 
-        {step === "success" && (
-          <div className="py-6 text-center animate-fade-up">
-            <div className="relative mx-auto h-20 w-20">
-              <span className="absolute inset-0 rounded-full bg-emerald-400/30 animate-pulse-ring" />
-              <div className="relative grid place-items-center h-20 w-20 rounded-full bg-brand-gradient text-white shadow-glass">
-                <PartyPopper size={32} />
-              </div>
-            </div>
-            <h3 className="mt-5 text-xl font-bold text-brand-ink">Order placed!</h3>
-            <p className="mt-1 text-sm text-stone-500">
-              Order <span className="font-semibold text-brand-ink">{data.order_id}</span> · {rupee(data.total)}
-            </p>
-            <p className="mt-1 text-sm text-stone-500">Arriving in {data.eta} to {data.address?.city}.</p>
-            <button onClick={close} className="btn-primary mt-5">Continue shopping</button>
-          </div>
-        )}
-      </div>
-    </Modal>
-  );
-}
+							{/* SEBI Statutory Checkbox */}
+							<div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50/70 border border-amber-200/80">
+								<input
+									type="checkbox"
+									id="sebi-consent"
+									checked={agreed}
+									onChange={(e) => setAgreed(e.target.checked)}
+									className="mt-0.5 accent-[#0B2545]"
+								/>
+								<label
+									htmlFor="sebi-consent"
+									className="text-[11px] text-amber-900 leading-tight cursor-pointer"
+								>
+									I authorize Cymbal Premier to set up an e-NACH mandate and
+									debit my bank account. I acknowledge that mutual fund
+									investments are subject to market risks.
+								</label>
+							</div>
 
-function Totals({ data }: { data: any }) {
-  return (
-    <div className="mt-3 pt-3 border-t border-stone-200 space-y-1 text-sm">
-      <div className="flex justify-between text-stone-600"><span>Subtotal</span><span className="tabular-nums">{rupee(data.subtotal)}</span></div>
-      {data.discount > 0 && (
-        <div className="flex justify-between text-emerald-600"><span>Discount</span><span className="tabular-nums">– {rupee(data.discount)}</span></div>
-      )}
-      <div className="flex justify-between font-bold text-brand-ink pt-1"><span>Total</span><span className="tabular-nums">{rupee(data.total)}</span></div>
-    </div>
-  );
+							{/* OTP Input */}
+							<div className="space-y-1.5">
+								<div className="flex justify-between items-center">
+									<label className="text-xs font-bold text-slate-700">
+										Enter 4-Digit Authorization OTP:
+									</label>
+									<span className="text-[10px] text-slate-400 font-mono">
+										Demo OTP: 7701
+									</span>
+								</div>
+								<input
+									type="text"
+									maxLength={4}
+									value={otp}
+									onChange={(e) => setOtp(e.target.value)}
+									placeholder="7701"
+									className="w-full text-center tracking-[0.5em] font-mono text-xl py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0B2545]/20 focus:border-[#0B2545] font-black text-slate-900"
+								/>
+							</div>
+
+							<button
+								onClick={handleAuthorize}
+								className="w-full py-3 px-4 rounded-xl bg-[#0B2545] hover:bg-[#134074] text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-md"
+							>
+								<Lock size={14} />
+								<span>Confirm & Authorize e-NACH Mandate</span>
+							</button>
+						</>
+					) : (
+						<div className="text-center py-4 space-y-4">
+							<div className="h-16 w-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+								<CheckCircle2 size={36} />
+							</div>
+							<div>
+								<h4 className="text-base font-bold text-slate-900">
+									Mandate Active & Executed
+								</h4>
+								<p className="text-xs text-slate-500 mt-1">
+									Transaction ID:{" "}
+									<span className="font-mono font-bold text-slate-800">
+										{lastTransactionId}
+									</span>
+								</p>
+								<p className="text-xs text-emerald-700 font-semibold mt-0.5">
+									e-NACH auto-debit registered for ₹{totalSip.toLocaleString()}{" "}
+									/ month.
+								</p>
+							</div>
+
+							<div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-left text-slate-600">
+								<p className="font-bold text-slate-800 mb-1">
+									Execution Status:
+								</p>
+								<p>
+									• ₹35k / mo → Cymbal Flexi Cap Opportunities Fund (SIP Active)
+								</p>
+								<p>
+									• ₹25k / mo → Cymbal Multi-Asset Strategy Fund (SIP Active)
+								</p>
+								<p>• ₹20k / mo → Cymbal CRISIL SDL 2030 Fund (SIP Active)</p>
+								<p>• ₹20k / mo → Cymbal US & Global Tech Feeder (SIP Active)</p>
+							</div>
+
+							<button
+								onClick={handleClose}
+								className="w-full py-2.5 px-4 rounded-xl bg-[#0B2545] hover:bg-[#134074] text-white font-bold text-xs transition"
+							>
+								Close & Return to Studio
+							</button>
+						</div>
+					)}
+				</div>
+			</div>
+		</div>
+	);
 }

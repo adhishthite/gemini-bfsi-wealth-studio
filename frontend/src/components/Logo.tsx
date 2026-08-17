@@ -1,30 +1,42 @@
-// Cymbal Direct lockup — official assets from the brand deck:
-//  • the gradient "D" subsidiary monogram (cymbal-direct-mark.png)
-//  • the master "Cymbal" wordmark (cymbal-wordmark.png, ITC Avant Garde)
-//  • "Direct" set in the brand gradient.
 import { asset } from "../lib";
+import { ShieldCheck } from "lucide-react";
 
-export function DirectMark({ size = 34, className = "" }: { size?: number; className?: string }) {
-  return (
-    <img src={asset("assets/brand/cymbal-direct-mark.png")} alt="Cymbal Direct"
-      style={{ height: size }} className={`w-auto select-none ${className}`} draggable={false} />
-  );
+export function PremierMark({
+	size = 32,
+	className = "",
+}: {
+	size?: number;
+	className?: string;
+}) {
+	return (
+		<div
+			style={{ width: size, height: size }}
+			className={`rounded-xl bg-gradient-to-tr from-[#0B2545] via-[#134074] to-[#B8860B] flex items-center justify-center text-white shadow-md select-none ${className}`}
+		>
+			<ShieldCheck size={size * 0.6} className="text-amber-300" />
+		</div>
+	);
 }
 
 export default function Logo({ compact = false }: { compact?: boolean }) {
-  return (
-    <div className="flex items-center gap-2.5 select-none">
-      <DirectMark size={32} />
-      {!compact && (
-        <div className="leading-none">
-          <div className="flex items-end gap-[5px]">
-            <img src={asset("assets/brand/cymbal-wordmark.png")} alt="Cymbal"
-              className="h-[15px] w-auto" draggable={false} />
-            <span className="text-[16px] font-extrabold tracking-tight brand-text leading-none">Direct</span>
-          </div>
-          <p className="text-[10px] uppercase tracking-[0.22em] text-stone-400 mt-1.5">Style Studio</p>
-        </div>
-      )}
-    </div>
-  );
+	return (
+		<div className="flex items-center gap-3 select-none">
+			<PremierMark size={36} />
+			{!compact && (
+				<div className="leading-none">
+					<div className="flex items-center gap-1.5">
+						<span className="text-[17px] font-black tracking-tight text-slate-900">
+							CYMBAL
+						</span>
+						<span className="text-[17px] font-extrabold tracking-tight text-amber-700">
+							PREMIER
+						</span>
+					</div>
+					<p className="text-[10px] uppercase font-bold tracking-[0.20em] text-slate-500 mt-1">
+						Private Wealth Studio
+					</p>
+				</div>
+			)}
+		</div>
+	);
 }

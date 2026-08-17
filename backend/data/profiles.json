@@ -1,105 +1,138 @@
 {
-  "women": {
-    "user_id": "U-IND-2207",
-    "name": "Aisha Sharma",
-    "email": "aisha.sharma@example.in",
-    "phone": "+91 98xxxx4471",
-    "city": "Mumbai",
-    "default_address": {
-      "line1": "A-1204, Lodha Bellissimo",
-      "line2": "Apollo Mills Compound, Lower Parel",
-      "city": "Mumbai",
-      "state": "Maharashtra",
-      "pincode": "400013",
-      "country": "India"
+  "investor": {
+    "user_id": "U-IND-7701",
+    "name": "Rahul Sharma",
+    "email": "rahul.sharma@example.in",
+    "phone": "+91 98xxxx7701",
+    "city": "Bengaluru",
+    "age": 38,
+    "occupation": "Engineering Director",
+    "risk_profile": "Moderately Aggressive",
+    "total_aum_inr": 7500000,
+    "current_allocation": {
+      "equity": 0.70,
+      "debt": 0.15,
+      "gold": 0.10,
+      "cash_liquid": 0.05
     },
-    "payment": {
-      "type": "Visa Credit",
-      "last4": "1234",
-      "expiry": "08/29",
-      "tokenized": true
+    "allocation_breakdown": {
+      "equity_inr": 5250000,
+      "debt_inr": 1125000,
+      "gold_inr": 750000,
+      "cash_liquid_inr": 375000
     },
-    "body_metrics": {
-      "height_cm": 165,
-      "weight_kg": 60,
-      "bust_cm": 90,
-      "waist_cm": 73,
-      "hips_cm": 98,
-      "arm_span_cm": 162,
-      "sitting_height_cm": 86,
-      "shoe_uk": 5,
-      "fit_preference": "true-to-size, slightly relaxed"
-    },
-    "recommended_sizes": {
-      "tops": "M",
-      "dresses": "M",
-      "bottoms": "30",
-      "saree": "Free",
-      "footwear": "UK5"
-    },
-    "purchase_history": [
-      {"id": "CD-KUR-209", "name": "Indigo Ikat Cotton Shirt-Dress", "size": "M", "status": "kept", "rating": 5},
-      {"id": "CD-SAR-233", "name": "Magenta Banarasi Silk Saree", "size": "Free", "status": "kept", "rating": 5},
-      {"id": "CD-FTW-631", "name": "White Minimal Leather Sneakers", "size": "UK5", "status": "kept", "rating": 4},
-      {"id": "CD-SHR-118", "name": "Sage-Green Velvet Sharara Set", "size": "L", "status": "returned", "reason": "L ran large in the waist; prefer M"},
-      {"id": "CD-DRS-329", "name": "Ivory Schiffli Cotton Maxi Dress", "size": "S", "status": "returned", "reason": "S too snug at bust; M fits better"}
+    "current_holdings": [
+      {
+        "id": "CPW-EQ-001",
+        "name": "Cymbal Bluechip Large Cap Equity Fund",
+        "category": "Equity",
+        "invested_inr": 3500000,
+        "current_value_inr": 4200000,
+        "unrealized_gain_inr": 700000,
+        "xirr": 17.8
+      },
+      {
+        "id": "CPW-EQ-003",
+        "name": "Cymbal Flexi Cap Opportunities Fund",
+        "category": "Equity",
+        "invested_inr": 900000,
+        "current_value_inr": 1050000,
+        "unrealized_gain_inr": 150000,
+        "xirr": 20.4
+      },
+      {
+        "id": "CPW-DB-004",
+        "name": "Cymbal AAA Corporate Bond Fund",
+        "category": "Debt",
+        "invested_inr": 1000000,
+        "current_value_inr": 1125000,
+        "unrealized_gain_inr": 125000,
+        "xirr": 7.9
+      },
+      {
+        "id": "CPW-CM-001",
+        "name": "Cymbal Sovereign Gold ETF & FoF",
+        "category": "Commodities",
+        "invested_inr": 600000,
+        "current_value_inr": 750000,
+        "unrealized_gain_inr": 150000,
+        "xirr": 14.1
+      },
+      {
+        "id": "CPW-DB-001",
+        "name": "Cymbal Liquid Overnight Cash Fund",
+        "category": "Debt",
+        "invested_inr": 375000,
+        "current_value_inr": 375000,
+        "unrealized_gain_inr": 0,
+        "xirr": 6.8
+      }
     ],
-    "style_notes": [
-      "Loves jewel tones and breathable natural fabrics",
-      "Avoids very heavy/structured velvet for daytime outdoor events",
-      "Prefers size M for tops and dresses based on successful past orders"
+    "goals": [
+      {
+        "id": "GOAL-01",
+        "name": "Children's Higher Education",
+        "target_year": 2032,
+        "target_amount_inr": 5000000,
+        "current_funded_inr": 2200000,
+        "on_track": true
+      },
+      {
+        "id": "GOAL-02",
+        "name": "Early Financial Independence (Retire @ 54)",
+        "target_year": 2042,
+        "target_amount_inr": 50000000,
+        "current_funded_inr": 5300000,
+        "on_track": "needs_sip_boost"
+      }
     ],
-    "base_photo": "assets/model/aisha_base.png"
+    "monthly_surplus_inr": 150000,
+    "active_sip_inr": 60000,
+    "kyc_status": "Verified (Tier 1 Premier)",
+    "bank_account": {
+      "bank": "Cymbal Premier Bank",
+      "account_number_last4": "8821",
+      "ifsc": "CYMB0001001",
+      "type": "Premier Wealth Savings"
+    },
+    "portfolio_health_notes": [
+      "Heavy concentration risk in Large Cap Equity (80% of equity book in a single fund).",
+      "Under-allocated in Mid/Small Cap growth (0%) and Global Tech diversification (0%).",
+      "Monthly SIP capacity of ₹1.5L has ₹90k unallocated idle cash surplus in savings account."
+    ]
   },
-  "men": {
-    "user_id": "U-IND-3318",
-    "name": "Arjun Mehra",
-    "email": "arjun.mehra@example.in",
-    "phone": "+91 98xxxx2208",
-    "city": "Mumbai",
-    "default_address": {
-      "line1": "1801, Oberoi Springs",
-      "line2": "Off New Link Road, Andheri West",
-      "city": "Mumbai",
-      "state": "Maharashtra",
-      "pincode": "400053",
-      "country": "India"
+  "conservative": {
+    "user_id": "U-IND-4402",
+    "name": "Anand Kulkarni",
+    "email": "anand.kulkarni@example.in",
+    "phone": "+91 98xxxx4402",
+    "city": "Pune",
+    "age": 59,
+    "occupation": "Retiring VP Manufacturing",
+    "risk_profile": "Conservative Income",
+    "total_aum_inr": 25000000,
+    "current_allocation": {
+      "equity": 0.25,
+      "debt": 0.60,
+      "gold": 0.10,
+      "cash_liquid": 0.05
     },
-    "payment": {
-      "type": "Mastercard",
-      "last4": "5678",
-      "expiry": "11/28",
-      "tokenized": true
-    },
-    "body_metrics": {
-      "height_cm": 178,
-      "weight_kg": 76,
-      "chest_cm": 100,
-      "waist_cm": 84,
-      "hips_cm": 99,
-      "arm_span_cm": 180,
-      "sitting_height_cm": 92,
-      "shoe_uk": 9,
-      "fit_preference": "true-to-size, tailored"
-    },
-    "recommended_sizes": {
-      "tops": "M",
-      "dresses": "M",
-      "bottoms": "32",
-      "saree": "Free",
-      "footwear": "UK9"
-    },
-    "purchase_history": [
-      {"id": "CD-SHT-144", "name": "White Linen Casual Shirt", "size": "M", "status": "kept", "rating": 5},
-      {"id": "CD-CHN-155", "name": "Beige Slim Chinos", "size": "32", "status": "kept", "rating": 4},
-      {"id": "CD-FTW-672", "name": "White Minimal Sneakers", "size": "UK9", "status": "kept", "rating": 5},
-      {"id": "CD-BLZ-164", "name": "Navy Single-Breasted Blazer", "size": "40", "status": "returned", "reason": "sleeves a touch long; size 38 fits better"}
+    "goals": [
+      {
+        "id": "GOAL-01",
+        "name": "Monthly Retirement SWP (₹1.5L/month post-tax)",
+        "target_year": 2026,
+        "target_amount_inr": 25000000,
+        "current_funded_inr": 25000000,
+        "on_track": true
+      }
     ],
-    "style_notes": [
-      "Prefers tailored fits in linen and cotton for Mumbai humidity",
-      "Leans navy, olive and earth tones; minimal prints",
-      "Size L tops and 34 bottoms based on successful past orders"
-    ],
-    "base_photo": "assets/model/arjun_base.png"
+    "kyc_status": "Verified (Tier 1 Premier)",
+    "bank_account": {
+      "bank": "Cymbal Premier Bank",
+      "account_number_last4": "3340",
+      "ifsc": "CYMB0001002",
+      "type": "Premier Senior Privilege"
+    }
   }
 }

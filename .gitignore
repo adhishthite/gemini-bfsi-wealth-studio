@@ -160,3 +160,11 @@ pnpm-debug.log*
 # --- OS ---
 .DS_Store
 Thumbs.db
+
+# Agent scratch / issue tracker
+.scratch/
+
+# Generated Proposal PDFs
+assets/proposals/
+frontend/public/assets/proposals/
+
