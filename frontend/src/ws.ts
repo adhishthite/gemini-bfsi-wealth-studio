@@ -27,9 +27,19 @@ export function handleUiCommand(command: string, args: any) {
 	const s = useStore.getState();
 	switch (command) {
 		case "filter_catalog":
-			s.set({ visibleFundIds: args.fund_ids || null, activeTab: "explorer" });
+			s.set({
+				visibleFundIds: args.fund_ids && args.fund_ids.length > 0 ? args.fund_ids : null,
+				activeTab: "explorer",
+			});
+			if (args.category) {
+				s.setFilter({ category: args.category });
+			} else if (!args.fund_ids || args.fund_ids.length === 0) {
+				s.setFilter({ category: "All", subCategory: "All" });
+			}
 			s.pushToast(
-				`Product Explorer filtered (${args.results_count || 0} funds matched)`,
+				args.fund_ids && args.fund_ids.length > 0
+					? `Product Explorer filtered (${args.results_count || 0} funds matched)`
+					: "Product Explorer reset to all categories",
 				"info",
 			);
 			break;

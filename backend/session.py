@@ -67,10 +67,44 @@ class WealthSession:
                           tags: list[str] = None, query: str = None, **_) -> dict:
         results = []
         cat_lower = (category or "").lower()
+        if cat_lower == "all":
+            cat_lower = ""
         sub_lower = (sub_category or "").lower()
+        if sub_lower == "all":
+            sub_lower = ""
         risk_lower = (risk_level or "").lower()
+        if risk_lower == "all":
+            risk_lower = ""
         q_lower = (query or "").lower()
         tag_list = [t.lower() for t in (tags or [])]
+
+        has_filter = bool(
+            cat_lower or sub_lower or risk_lower or q_lower or tag_list or
+            min_cagr_3y is not None or max_ter is not None or rating is not None
+        )
+
+        if not has_filter:
+            self.queue("filter_catalog",
+                       category=None,
+                       sub_category=None,
+                       query=None,
+                       results_count=len(self.funds),
+                       fund_ids=None)
+            return {
+                "total_matches": len(self.funds),
+                "displayed": [
+                    {
+                        "id": f["id"],
+                        "name": f["name"],
+                        "category": f["category"],
+                        "sub_category": f["sub_category"],
+                        "cagr_3y": f["cagr_3y"],
+                        "ter": f["ter"],
+                        "rating": f["rating"],
+                    }
+                    for f in self.funds
+                ],
+            }
 
         for fund in self.funds:
             score = 0
@@ -123,8 +157,8 @@ class WealthSession:
         top_matches = [f for _, f in results][:12]
 
         self.queue("filter_catalog",
-                   category=category,
-                   sub_category=sub_category,
+                   category=category if category != "All" else None,
+                   sub_category=sub_category if sub_category != "All" else None,
                    query=query,
                    results_count=len(top_matches),
                    fund_ids=[f["id"] for f in top_matches])

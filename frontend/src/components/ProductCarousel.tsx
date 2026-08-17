@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/carousel";
 import { Sparkles, ChevronRight, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { sendAction } from "@/ws";
 
 export default function ProductCarousel({ funds }: { funds: FundProduct[] }) {
 	const { visibleFundIds, filter, setFilter } = useStore();
@@ -164,7 +165,11 @@ export default function ProductCarousel({ funds }: { funds: FundProduct[] }) {
 						<Button
 							variant="ghost"
 							size="sm"
-							onClick={() => setFilter({ category: "Equity" })}
+							onClick={() => {
+								setFilter({ category: "Equity", subCategory: "All" });
+								useStore.getState().set({ visibleFundIds: null });
+								sendAction("filter_products", { category: "Equity" });
+							}}
 							className="h-7 px-2.5 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200 hover:bg-amber-400/15 rounded-lg transition-colors gap-1"
 						>
 							<span>View all Equity</span>
@@ -212,7 +217,11 @@ export default function ProductCarousel({ funds }: { funds: FundProduct[] }) {
 						<Button
 							variant="ghost"
 							size="sm"
-							onClick={() => setFilter({ category: "Debt" })}
+							onClick={() => {
+								setFilter({ category: "Debt", subCategory: "All" });
+								useStore.getState().set({ visibleFundIds: null });
+								sendAction("filter_products", { category: "Debt" });
+							}}
 							className="h-7 px-2.5 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200 hover:bg-amber-400/15 rounded-lg transition-colors gap-1"
 						>
 							<span>View all Debt</span>
@@ -260,7 +269,11 @@ export default function ProductCarousel({ funds }: { funds: FundProduct[] }) {
 						<Button
 							variant="ghost"
 							size="sm"
-							onClick={() => setFilter({ category: "Hybrid" })}
+							onClick={() => {
+								setFilter({ category: "Hybrid", subCategory: "All" });
+								useStore.getState().set({ visibleFundIds: null });
+								sendAction("filter_products", { category: "Hybrid" });
+							}}
 							className="h-7 px-2.5 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200 hover:bg-amber-400/15 rounded-lg transition-colors gap-1"
 						>
 							<span>View all Multi-Asset</span>

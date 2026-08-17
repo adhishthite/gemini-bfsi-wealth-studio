@@ -93,6 +93,7 @@ export default function FilterBar() {
 								type="button"
 								onClick={() => {
 									setFilter({ category: c.key, subCategory: "All" });
+									set({ visibleFundIds: null });
 									sendAction("filter_products", {
 										category: c.key === "All" ? null : c.key,
 									});
