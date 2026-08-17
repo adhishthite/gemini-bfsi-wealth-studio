@@ -111,7 +111,7 @@ export default function App() {
 			<Button
 				onClick={() => setSheetOpen((v) => !v)}
 				size="icon"
-				className="lg:hidden fixed bottom-6 right-6 z-[80] size-12 rounded-lg border border-rule-strong bg-ink-strong text-paper shadow-sheet hover:bg-ink active:scale-95"
+				className="lg:hidden fixed bottom-6 right-6 z-80 size-12 rounded-lg border border-rule-strong bg-ink-strong text-paper shadow-sheet hover:bg-ink active:scale-95"
 				aria-label="Open advisor chat"
 			>
 				{sheetOpen ? <X className="size-5" /> : <MessageCircle className="size-5" />}
@@ -119,7 +119,7 @@ export default function App() {
 
 			{/* Mobile bottom sheet for the advisor dock */}
 			<div
-				className={`lg:hidden fixed inset-x-0 bottom-0 z-[75] transition-transform duration-300 ${
+				className={`lg:hidden fixed inset-x-0 bottom-0 z-75 transition-transform duration-300 ${
 					sheetOpen ? "translate-y-0" : "translate-y-[110%]"
 				}`}
 			>

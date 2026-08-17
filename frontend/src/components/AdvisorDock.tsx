@@ -204,7 +204,7 @@ export default function AdvisorDock() {
 				</div>
 
 				{/* Spoken transcript, sized to read from across the room */}
-				<div className="absolute inset-x-0 bottom-[4.75rem] z-10 border-t border-white/20 bg-black/75 px-4 py-3">
+				<div className="absolute inset-x-0 bottom-19 z-10 border-t border-white/20 bg-black/75 px-4 py-3">
 					<p
 						ref={captionRef}
 						className="scrollbar-none max-h-24 overflow-y-auto text-base leading-relaxed text-white"
@@ -275,7 +275,7 @@ export default function AdvisorDock() {
 							aria-label={
 								expandedAdvisor ? "Collapse the advisor" : "Expand the advisor"
 							}
-							className="inline-flex size-8 items-center justify-center rounded-lg text-ink-faint transition-colors hover:bg-paper-sunken hover:text-ink-strong focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rule-strong"
+							className="inline-flex size-8 items-center justify-center rounded-lg text-ink-faint transition-colors hover:bg-paper-sunken hover:text-ink-strong focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-rule-strong"
 						>
 							{expandedAdvisor ? (
 								<Minimize2 className="size-4" />
@@ -288,7 +288,7 @@ export default function AdvisorDock() {
 							onClick={() => set({ voiceOn: !voiceOn })}
 							title={voiceOn ? "Mute Ananya" : "Unmute Ananya"}
 							aria-label={voiceOn ? "Mute Ananya" : "Unmute Ananya"}
-							className="inline-flex size-8 items-center justify-center rounded-lg text-ink-faint transition-colors hover:bg-paper-sunken hover:text-ink-strong focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rule-strong"
+							className="inline-flex size-8 items-center justify-center rounded-lg text-ink-faint transition-colors hover:bg-paper-sunken hover:text-ink-strong focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-rule-strong"
 						>
 							{voiceOn ? (
 								<Volume2 className="size-4" />

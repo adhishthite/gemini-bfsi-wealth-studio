@@ -1,6 +1,387 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@plugin 'tailwindcss-animate';
+
+@custom-variant dark (&:is(.dark *));
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+  @media (width >= --theme(--breakpoint-sm)) {
+    max-width: none;
+  }
+  @media (width >= 1400px) {
+    max-width: 1400px;
+  }
+}
+
+@theme {
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Libre Caslon Text', ui-serif, Georgia, serif;
+  --font-serif: 'Libre Caslon Text', ui-serif, Georgia, serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+
+  --text-label: 0.75rem;
+  --text-label--line-height: 1rem;
+  --text-label--letter-spacing: 0.09em;
+  --text-xs: 0.875rem;
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.45;
+  --text-base: 1rem;
+  --text-base--line-height: 1.55;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.35;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 1.25;
+  --text-2xl--letter-spacing: -0.01em;
+  --text-3xl: 2.25rem;
+  --text-3xl--line-height: 1.15;
+  --text-3xl--letter-spacing: -0.015em;
+  --text-4xl: 3rem;
+  --text-4xl--line-height: 1.05;
+  --text-4xl--letter-spacing: -0.02em;
+  --text-5xl: 4rem;
+  --text-5xl--line-height: 1;
+  --text-5xl--letter-spacing: -0.025em;
+
+  --shadow-none: none;
+  --shadow-sheet: 0 1px 2px -1px rgba(30, 26, 54, 0.07);
+  --shadow-raise:
+    0 10px 34px -18px rgba(30, 26, 54, 0.35), 0 1px 0 0 var(--rule);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-hover: var(--destructive-hover);
+
+  --color-scrim: var(--scrim);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-paper: var(--paper);
+  --color-paper-sheet: var(--paper-sheet);
+  --color-paper-sunken: var(--paper-sunken);
+  --color-paper-edge: var(--paper-edge);
+
+  --color-ink: var(--ink);
+  --color-ink-strong: var(--ink-strong);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+
+  --color-stamp: var(--stamp);
+  --color-stamp-strong: var(--stamp-strong);
+  --color-stamp-rule: var(--stamp-rule);
+  --color-stamp-wash: var(--stamp-wash);
+  --color-stamp-foreground: var(--stamp-foreground);
+
+  --color-wealth-navy: var(--ink-strong);
+  --color-wealth-gold: var(--stamp);
+  --color-wealth-emerald: var(--ink-muted);
+  --color-wealth-surface: var(--paper-sheet);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 1px);
+  --radius-sm: calc(var(--radius) - 2px);
+
+  --spacing-gutter: var(--gutter);
+  --spacing-rhythm: var(--rhythm);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-rise: rise 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility paper {
+  /* ---- Sheets ----------------------------------------------------------
+     `.paper` is the replacement for the old blurred translucent panels. A
+     sheet of stock with a real rule around it. No backdrop-filter, no
+     shadow, no hover lift.                                                  */
+  background-color: var(--paper-sheet);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+
+@utility paper-sunken {
+  background-color: var(--paper-sunken);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+
+@utility paper-interactive {
+  /* A sheet the user can act on. The feedback is the rule darkening — the
+     sheet does not move and does not glow. */
+  background-color: var(--paper-sheet);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+  &:hover {
+    border-color: var(--rule-strong);
+    background-color: var(--paper-sheet);
+  }
+}
+
+@utility paper-marked {
+  /* The ONE selected/recommended thing on a screen. This is where the accent
+     is spent. */
+  background-color: var(--paper-sheet);
+  border: 1px solid var(--stamp-rule);
+  border-left: 3px solid var(--stamp);
+  border-radius: var(--radius);
+}
+
+@utility mark-attention {
+  /* ---- Rule-lines: the state system ------------------------------------
+     Position and weight instead of hue. A gap/attention item gets a solid
+     left rule; an on-track item gets a faint one. No red, no green.        */
+  border-left: 3px solid var(--ink-strong);
+  padding-left: 0.875rem;
+}
+
+@utility mark-quiet {
+  border-left: 3px solid var(--rule);
+  padding-left: 0.875rem;
+}
+
+@utility mark-stamp {
+  border-left: 3px solid var(--stamp);
+  padding-left: 0.875rem;
+}
+
+@utility doc-title {
+  /* ---- Type roles ------------------------------------------------------- */
+
+  /* Document voice. Caslon. Section titles, dialog titles, the proposal and
+     mandate headings. Never for UI chrome. */
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  @apply text-ink-strong;
+}
+
+@utility label {
+  /* 12px is the absolute floor and it only exists here: a tracked, uppercase
+     field label on a form or a column head. */
+  font-size: 0.75rem;
+  line-height: 1rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 500;
+  @apply text-ink-faint;
+}
+
+@utility label-strong {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 600;
+  @apply text-ink-muted;
+}
+
+@utility figure-sm {
+  /* ---- Numerals are the hero -------------------------------------------
+     Indian digit grouping, lining tabular figures, tight tracking. Size is
+     what makes them the hero; nothing else needs to. */
+  font-size: 1.125rem;
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  @apply text-ink-strong;
+}
+
+@utility figure {
+  font-size: 1.75rem;
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  @apply text-ink-strong;
+}
+
+@utility figure-lg {
+  font-size: 2.75rem;
+  line-height: 1.02;
+  font-weight: 500;
+  letter-spacing: -0.028em;
+  @apply text-ink-strong;
+}
+
+@utility figure-xl {
+  font-size: 4rem;
+  line-height: 0.98;
+  font-weight: 500;
+  letter-spacing: -0.032em;
+  @apply text-ink-strong;
+}
+
+@utility figure-unit {
+  /* The unit that trails a hero figure: "Cr", "%", "p.a." */
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  @apply text-ink-muted;
+}
+
+@utility ref {
+  /* Reference codes: ISIN, folio, UMRN, mandate ref, transaction id. */
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums lining-nums;
+  @apply text-ink-muted;
+}
+
+@utility stamp-mark {
+  /* ---- Credibility beats -----------------------------------------------
+     The SEBI / compliance / mandate moments. An attested stamp: outlined,
+     letterspaced, in the accent ink. Use once per document. */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--stamp-rule);
+  border-radius: var(--radius);
+  color: var(--stamp);
+  background-color: transparent;
+}
+
+@utility stamp-note {
+  /* The quiet version, for a compliance line that is a fact rather than a
+     seal. */
+  font-size: 0.75rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--stamp);
+}
+
+@utility doc-rule {
+  /* A document header rule: the double line at the top of a certificate. */
+  border-top: 2px solid var(--ink-strong);
+  box-shadow: 0 3px 0 -2px var(--rule-strong);
+}
+
+@utility scrollbar-none {
+  /* ---- Scroll ----------------------------------------------------------- */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@utility reveal {
+  /* ---- One orchestrated page-load reveal. That is the whole motion budget.
+     Nothing else in this app animates on mount. */
+  animation: rise 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+
+@utility reveal-1 {
+  animation-delay: 0ms;
+}
+
+@utility reveal-2 {
+  animation-delay: 70ms;
+}
+
+@utility reveal-3 {
+  animation-delay: 140ms;
+}
+
+@utility reveal-4 {
+  animation-delay: 210ms;
+}
+
+@utility reveal-5 {
+  animation-delay: 280ms;
+}
+
+@utility reveal-6 {
+  animation-delay: 350ms;
+}
 
 /* ==========================================================================
    Cymbal Premier — "The private mandate, not the dashboard"
@@ -137,7 +518,7 @@
     @apply bg-background text-foreground;
     /* No radial gradients. The ground is paper. */
     background-image: none;
-    font-family: theme("fontFamily.sans");
+    font-family: var(--font-sans);
     font-size: 0.9375rem;   /* 15px — comfortably above the 14px floor */
     line-height: 1.55;
     font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
@@ -173,203 +554,6 @@
   ::selection {
     background: var(--stamp-wash);
     color: var(--ink-strong);
-  }
-}
-
-@layer components {
-  /* ---- Sheets ----------------------------------------------------------
-     `.paper` is the replacement for the old blurred translucent panels. A
-     sheet of stock with a real rule around it. No backdrop-filter, no
-     shadow, no hover lift.                                                  */
-  .paper {
-    background-color: var(--paper-sheet);
-    border: 1px solid var(--rule);
-    border-radius: var(--radius);
-  }
-
-  .paper-sunken {
-    background-color: var(--paper-sunken);
-    border: 1px solid var(--rule);
-    border-radius: var(--radius);
-  }
-
-  /* A sheet the user can act on. The feedback is the rule darkening — the
-     sheet does not move and does not glow. */
-  .paper-interactive {
-    background-color: var(--paper-sheet);
-    border: 1px solid var(--rule);
-    border-radius: var(--radius);
-    transition: border-color 150ms ease, background-color 150ms ease;
-  }
-  .paper-interactive:hover {
-    border-color: var(--rule-strong);
-    background-color: var(--paper-sheet);
-  }
-
-  /* The ONE selected/recommended thing on a screen. This is where the accent
-     is spent. */
-  .paper-marked {
-    background-color: var(--paper-sheet);
-    border: 1px solid var(--stamp-rule);
-    border-left: 3px solid var(--stamp);
-    border-radius: var(--radius);
-  }
-
-  /* ---- Rule-lines: the state system ------------------------------------
-     Position and weight instead of hue. A gap/attention item gets a solid
-     left rule; an on-track item gets a faint one. No red, no green.        */
-  .mark-attention {
-    border-left: 3px solid var(--ink-strong);
-    padding-left: 0.875rem;
-  }
-  .mark-quiet {
-    border-left: 3px solid var(--rule);
-    padding-left: 0.875rem;
-  }
-  .mark-stamp {
-    border-left: 3px solid var(--stamp);
-    padding-left: 0.875rem;
-  }
-
-  /* ---- Type roles ------------------------------------------------------- */
-
-  /* Document voice. Caslon. Section titles, dialog titles, the proposal and
-     mandate headings. Never for UI chrome. */
-  .doc-title {
-    font-family: theme("fontFamily.display");
-    font-weight: 400;
-    letter-spacing: -0.005em;
-    @apply text-ink-strong;
-  }
-
-  /* 12px is the absolute floor and it only exists here: a tracked, uppercase
-     field label on a form or a column head. */
-  .label {
-    font-size: 0.75rem;
-    line-height: 1rem;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    font-weight: 500;
-    @apply text-ink-faint;
-  }
-  .label-strong {
-    font-size: 0.75rem;
-    line-height: 1rem;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    font-weight: 600;
-    @apply text-ink-muted;
-  }
-
-  /* ---- Numerals are the hero -------------------------------------------
-     Indian digit grouping, lining tabular figures, tight tracking. Size is
-     what makes them the hero; nothing else needs to. */
-  .figure-sm {
-    font-size: 1.125rem;
-    line-height: 1.2;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    @apply text-ink-strong;
-  }
-  .figure {
-    font-size: 1.75rem;
-    line-height: 1.1;
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    @apply text-ink-strong;
-  }
-  .figure-lg {
-    font-size: 2.75rem;
-    line-height: 1.02;
-    font-weight: 500;
-    letter-spacing: -0.028em;
-    @apply text-ink-strong;
-  }
-  .figure-xl {
-    font-size: 4rem;
-    line-height: 0.98;
-    font-weight: 500;
-    letter-spacing: -0.032em;
-    @apply text-ink-strong;
-  }
-  /* The unit that trails a hero figure: "Cr", "%", "p.a." */
-  .figure-unit {
-    font-size: 0.875rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    @apply text-ink-muted;
-  }
-
-  /* Reference codes: ISIN, folio, UMRN, mandate ref, transaction id. */
-  .ref {
-    font-family: theme("fontFamily.mono");
-    font-size: 0.8125rem;
-    letter-spacing: 0.02em;
-    font-variant-numeric: tabular-nums lining-nums;
-    @apply text-ink-muted;
-  }
-
-  /* ---- Credibility beats -----------------------------------------------
-     The SEBI / compliance / mandate moments. An attested stamp: outlined,
-     letterspaced, in the accent ink. Use once per document. */
-  .stamp-mark {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.75rem;
-    line-height: 1;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    font-weight: 600;
-    padding: 0.45rem 0.7rem;
-    border: 1px solid var(--stamp-rule);
-    border-radius: var(--radius);
-    color: var(--stamp);
-    background-color: transparent;
-  }
-  /* The quiet version, for a compliance line that is a fact rather than a
-     seal. */
-  .stamp-note {
-    font-size: 0.75rem;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    font-weight: 600;
-    color: var(--stamp);
-  }
-
-  /* A document header rule: the double line at the top of a certificate. */
-  .doc-rule {
-    border-top: 2px solid var(--ink-strong);
-    box-shadow: 0 3px 0 -2px var(--rule-strong);
-  }
-
-  /* ---- Scroll ----------------------------------------------------------- */
-  .scrollbar-none::-webkit-scrollbar {
-    display: none;
-  }
-  .scrollbar-none {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-}
-
-@layer utilities {
-  /* ---- One orchestrated page-load reveal. That is the whole motion budget.
-     Nothing else in this app animates on mount. */
-  .reveal {
-    animation: rise 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) both;
-  }
-  .reveal-1 { animation-delay: 0ms; }
-  .reveal-2 { animation-delay: 70ms; }
-  .reveal-3 { animation-delay: 140ms; }
-  .reveal-4 { animation-delay: 210ms; }
-  .reveal-5 { animation-delay: 280ms; }
-  .reveal-6 { animation-delay: 350ms; }
-
-  @media (prefers-reduced-motion: reduce) {
-    .reveal {
-      animation: none !important;
-    }
   }
 }
 
