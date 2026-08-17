@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-@plugin 'tailwindcss-animate';
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -454,12 +454,16 @@
     --input: var(--rule-strong);
     --ring: var(--stamp-rule);
 
-    /* ---- Tokens that must carry their own alpha -------------------------
-       Tailwind v3 CANNOT apply an opacity modifier to a bare `var()` colour.
-       Writing a slash-opacity suffix on any token in this palette emits NO
-       RULE AT ALL, silently — the element simply loses that property. So
-       anything needing translucency, or a hover tone, is a real token here,
-       never a modifier. */
+    /* ---- Tokens that carry their own alpha ------------------------------
+       These were originally real tokens because Tailwind v3 silently emitted
+       no rule at all for a slash-opacity suffix on a bare `var()` colour —
+       which left both modal scrims invisible.
+
+       Under v4 that constraint is gone: `@theme` colours resolve opacity
+       through `color-mix()`, so `bg-ink-strong/40` now works. They are kept
+       as named tokens anyway, deliberately — a scrim and a hover tone are
+       semantic decisions that belong in one place, not opacity values
+       sprinkled across call sites. Prefer these over a modifier. */
     --scrim: oklch(0.205 0.018 280 / 0.42);
     --primary-hover: var(--ink);
     --destructive-hover: oklch(0.395 0.135 25);
