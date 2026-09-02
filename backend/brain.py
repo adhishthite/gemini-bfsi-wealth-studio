@@ -28,7 +28,9 @@ class GeminiBrain:
     def __init__(self, session: WealthSession):
         self.session = session
         self.client = genai.Client(
-            vertexai=True, project=config.BRAIN_PROJECT, location=config.BRAIN_LOCATION
+            vertexai=True,
+            project=config.BRAIN_PROJECT or config.GCP_PROJECT or None,
+            location=config.BRAIN_LOCATION or "global",
         )
         self.name = config.AVATAR_NAME or "Ananya"
         self._build_cfg()

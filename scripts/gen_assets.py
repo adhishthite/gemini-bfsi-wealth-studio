@@ -21,19 +21,12 @@ ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "frontend" / "public" / "assets"
 CATALOG = json.loads((ROOT / "backend" / "data" / "catalog.json").read_text())
 
-try:
-    from dotenv import load_dotenv
+from backend import config
 
-    load_dotenv(ROOT / ".env")
-except Exception:
-    pass
-
-PROJECT = (
-    os.environ.get("IMAGE_PROJECT") or os.environ.get("GCP_PROJECT") or ""
-).strip()
-LOCATION = (os.environ.get("IMAGE_LOCATION") or "global").strip()
-MODEL = (os.environ.get("IMAGE_MODEL") or "gemini-3-pro-image").strip()
-client = genai.Client(enterprise=True, project=PROJECT, location=LOCATION)
+PROJECT = config.IMAGE_PROJECT or config.GCP_PROJECT or None
+LOCATION = config.IMAGE_LOCATION or "global"
+MODEL = config.IMAGE_MODEL or "gemini-3-pro-image"
+client = genai.Client(vertexai=True, project=PROJECT, location=LOCATION)
 
 
 def _generate(prompt: str, aspect: str, size: str) -> bytes:

@@ -22,7 +22,7 @@ def check_adc():
         credentials.refresh(Request())
         print(f"  ✅ ADC Loaded successfully.")
         print(
-            f"  • Detected Project: {project or os.environ.get('GOOGLE_CLOUD_PROJECT', 'adhish-base-project-1')}"
+            f"  • Detected Project: {project or getattr(credentials, 'quota_project_id', '(ADC Default)')}"
         )
         print(f"  • Token Valid: {credentials.valid}")
         print(
@@ -34,10 +34,11 @@ def check_adc():
         return False, None, None
 
 
-def test_gemini_models(project_id="adhish-base-project-1", location="global"):
+def test_gemini_models(project_id=None, location="global"):
     print("\n[2/3] Testing Gemini Model Endpoints via Vertex AI (google-genai SDK)...")
     from backend import config
 
+    effective_proj = project_id or config.GCP_PROJECT or None
     models_to_test = [
         (
             config.BRAIN_MODEL,
@@ -57,7 +58,7 @@ def test_gemini_models(project_id="adhish-base-project-1", location="global"):
         target_loc = loc or location
         print(f"\n  Testing Model: '{model_name}' in region '{target_loc}'...")
         try:
-            client = Client(vertexai=True, project=project_id, location=target_loc)
+            client = Client(vertexai=True, project=effective_proj, location=target_loc)
             resp = client.models.generate_content(
                 model=model_name,
                 contents=prompt,
@@ -73,7 +74,7 @@ def test_gemini_models(project_id="adhish-base-project-1", location="global"):
     return results
 
 
-def test_function_calling(project_id="adhish-base-project-1", location="global"):
+def test_function_calling(project_id=None, location="global"):
     print("\n[3/3] Testing Gemini Function Calling & Tool Handling...")
     from backend import config
     from backend.tools import TOOL, system_instruction
@@ -83,7 +84,8 @@ def test_function_calling(project_id="adhish-base-project-1", location="global")
     sys_inst = system_instruction(session.portfolio, name="Ananya")
 
     target_loc = config.BRAIN_LOCATION or location
-    client = Client(vertexai=True, project=project_id, location=target_loc)
+    effective_proj = project_id or config.GCP_PROJECT or None
+    client = Client(vertexai=True, project=effective_proj, location=target_loc)
     try:
         from google.genai import types
 
@@ -119,15 +121,9 @@ def test_function_calling(project_id="adhish-base-project-1", location="global")
 if __name__ == "__main__":
     from backend import config
 
-    project = (
-        config.GCP_PROJECT
-        or os.environ.get("GOOGLE_CLOUD_PROJECT")
-        or "adhish-base-project-1"
-    )
-    region = config.GCP_LOCATION or os.environ.get("GOOGLE_CLOUD_REGION") or "global"
-
     adc_ok, creds, detected_proj = check_adc()
-    target_project = detected_proj or project
+    target_project = detected_proj or config.GCP_PROJECT or None
+    region = config.GCP_LOCATION or "global"
 
     if adc_ok:
         model_results = test_gemini_models(target_project, region)

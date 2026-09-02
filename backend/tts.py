@@ -56,8 +56,10 @@ def _sync_synthesize(text: str, voice_name: str, project_id: str) -> str | None:
         headers = {
             "Authorization": f"Bearer {creds.token}",
             "Content-Type": "application/json",
-            "X-Goog-User-Project": project_id or "adhish-base-project-1",
         }
+        effective_proj = project_id or config.GCP_PROJECT
+        if effective_proj:
+            headers["X-Goog-User-Project"] = effective_proj
         lang = (
             "en-IN"
             if "en-IN" in voice_name
@@ -91,5 +93,5 @@ async def synthesize_speech(text: str, avatar: str = "") -> str | None:
     else:
         voice = config.FALLBACK_TTS_VOICE or "en-IN-Journey-F"
 
-    project_id = config.GCP_PROJECT or "adhish-base-project-1"
+    project_id = config.GCP_PROJECT
     return await asyncio.to_thread(_sync_synthesize, clean, voice, project_id)

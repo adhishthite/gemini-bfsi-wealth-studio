@@ -20,7 +20,9 @@ def _make_client() -> genai.Client:
     # it was created on; reused from the VTO worker thread it raises
     # "Context has already been used to create a Connection, it cannot be mutated again".
     return genai.Client(
-        enterprise=True, project=config.IMAGE_PROJECT, location=config.IMAGE_LOCATION
+        vertexai=True,
+        project=config.IMAGE_PROJECT or config.GCP_PROJECT or None,
+        location=config.IMAGE_LOCATION or "global",
     )
 
 

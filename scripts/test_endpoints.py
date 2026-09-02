@@ -13,8 +13,9 @@ sys.path.insert(0, str(ROOT))
 import google.auth
 from google.auth.transport.requests import Request
 from google.genai import Client
+from backend import config
 
-PROJECT_ID = os.environ.get("GCP_PROJECT", "adhish-base-project-1")
+PROJECT_ID = config.GCP_PROJECT
 
 REGIONS_TO_TEST = [
     ("global", "Global / Multi-region"),
