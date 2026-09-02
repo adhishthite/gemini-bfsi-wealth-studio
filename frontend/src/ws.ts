@@ -117,12 +117,25 @@ function handle(msg: any) {
 		}
 
 		case "profile_switched": {
-			const clientName = msg.profile?.name || "Client";
+			const clientName = msg.profile?.name || "Rahul Sharma";
 			const aum = msg.profile?.total_aum_inr ?? 7500000;
 			const aumStr =
 				aum >= 10000000
 					? `₹${(aum / 10000000).toFixed(2)} Cr`
-					: `₹${(aum / 100000).toFixed(1)}L`;
+					: `₹${Math.round(aum / 100000)}L`;
+
+			let salutation = clientName.split(" ")[0];
+			if (clientName.includes("Dr.")) {
+				salutation =
+					"Dr. " +
+					(clientName.split(" ")[2] || clientName.split(" ")[1] || "Singhania");
+			} else if (clientName.includes("Anand")) {
+				salutation = "Anand-ji";
+			}
+
+			const avatarName = s.selectedAvatar || "Ananya";
+			const welcomeText = `Namaste ${salutation}! I'm ${avatarName}, your Senior Private Wealth Advisor at Cymbal Premier. How can I assist you with your ${aumStr} portfolio and goal milestones today?`;
+
 			s.set({
 				profile: msg.profile,
 				portfolio: msg.portfolio || msg.profile,
@@ -133,10 +146,14 @@ function handle(msg: any) {
 				diagnostics: null,
 				simulation: null,
 				mandateStatus: "idle",
-			});
-			s.pushChat({
-				role: "assistant",
-				text: `Switched to ${clientName}'s advisory file (${msg.profile?.risk_profile || "Wealth Client"} · ${aumStr} AUM). How may I assist with ${clientName.split(" ")[0]}'s portfolio strategy?`,
+				chat: [
+					{
+						id: Date.now(),
+						role: "assistant",
+						text: welcomeText,
+						timestamp: Date.now(),
+					},
+				],
 			});
 			break;
 		}
