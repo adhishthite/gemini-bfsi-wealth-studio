@@ -71,6 +71,17 @@ URL=$(gcloud run services describe "$SERVICE" \
   --region "$REGION" \
   --format="value(status.url)")
 
+# Ensure invoker access for authenticated account domain
+ACTIVE_ACCOUNT=$(gcloud config get-value account 2>/dev/null || echo "")
+ACCOUNT_DOMAIN="${ACTIVE_ACCOUNT#*@}"
+if [ -n "$ACCOUNT_DOMAIN" ]; then
+  gcloud run services add-iam-policy-binding "$SERVICE" \
+    --project "$PROJECT" \
+    --region "$REGION" \
+    --member="domain:${ACCOUNT_DOMAIN}" \
+    --role="roles/run.invoker" --quiet >/dev/null 2>&1 || true
+fi
+
 echo ""
 echo "================================================================================"
 echo "🎉 DEPLOYMENT SUCCESSFUL!"
@@ -81,5 +92,10 @@ echo "  • WebSocket Route  : wss://${URL#https://}/ws"
 echo "================================================================================"
 echo ""
 echo "Smoke test response from live endpoint:"
-curl -s "${URL}/api/config" || true
+AUTH_TOKEN=$(gcloud auth print-identity-token 2>/dev/null || echo "")
+if [ -n "$AUTH_TOKEN" ]; then
+  curl -s -H "Authorization: Bearer ${AUTH_TOKEN}" "${URL}/api/config" || true
+else
+  curl -s "${URL}/api/config" || true
+fi
 echo ""
