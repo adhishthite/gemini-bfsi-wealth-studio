@@ -7,4 +7,5 @@ python-dotenv>=1.0.0
 pyopenssl>=24.0.0           # required for mTLS / context-aware access (corp machines)
 google-auth>=2.30.0         # ADC bearer token for the Live Avatar Vertex WS proxy
 certifi>=2024.0.0
-requests>=2.31.0
+reportlab>=4.0.0            # PDF Wealth Advisory Proposal Generator
+ruff>=0.9.0                 # Python formatting and linting

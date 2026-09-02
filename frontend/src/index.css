@@ -1,54 +1,640 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
-:root {
-  color-scheme: light;
-}
+@import "tw-animate-css";
 
-html, body, #root { height: 100%; }
-body {
-  margin: 0;
-  font-family: "DM Sans", system-ui, sans-serif;
-  color: #1B1320;
-  background:
-    radial-gradient(1200px 600px at 85% -10%, rgba(236,72,153,0.10), transparent 60%),
-    radial-gradient(900px 500px at 5% 0%, rgba(124,58,237,0.10), transparent 55%),
-    #FAF7FB;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
+@custom-variant dark (&:is(.dark *));
 
-@layer components {
-  .glass {
-    @apply bg-white/70 backdrop-blur-xl border border-white/60;
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+  @media (width >= --theme(--breakpoint-sm)) {
+    max-width: none;
   }
-  .brand-text {
-    background: linear-gradient(115deg, #7C3AED, #EC4899);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold
-      text-white bg-brand-gradient shadow-glass transition-all duration-200
-      hover:shadow-lift hover:brightness-105 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
-  }
-  .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium
-      text-brand-ink/80 border border-brand-ink/10 bg-white/70 transition-all duration-200
-      hover:bg-white hover:border-brand-ink/20 active:scale-[0.98];
-  }
-  .chip {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold;
+  @media (width >= 1400px) {
+    max-width: 1400px;
   }
 }
 
-/* tidy scrollbars */
-.scroll-thin::-webkit-scrollbar { width: 8px; height: 8px; }
-.scroll-thin::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.25); border-radius: 9999px; }
-.scroll-thin::-webkit-scrollbar-track { background: transparent; }
+@theme {
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Libre Caslon Text', ui-serif, Georgia, serif;
+  --font-serif: 'Libre Caslon Text', ui-serif, Georgia, serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  --text-label: 0.75rem;
+  --text-label--line-height: 1rem;
+  --text-label--letter-spacing: 0.09em;
+  --text-xs: 0.875rem;
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.45;
+  --text-base: 1rem;
+  --text-base--line-height: 1.55;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.35;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 1.25;
+  --text-2xl--letter-spacing: -0.01em;
+  --text-3xl: 2.25rem;
+  --text-3xl--line-height: 1.15;
+  --text-3xl--letter-spacing: -0.015em;
+  --text-4xl: 3rem;
+  --text-4xl--line-height: 1.05;
+  --text-4xl--letter-spacing: -0.02em;
+  --text-5xl: 4rem;
+  --text-5xl--line-height: 1;
+  --text-5xl--letter-spacing: -0.025em;
+
+  --shadow-none: none;
+  --shadow-sheet: 0 1px 2px -1px rgba(30, 26, 54, 0.07);
+  --shadow-raise:
+    0 10px 34px -18px rgba(30, 26, 54, 0.35), 0 1px 0 0 var(--rule);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-hover: var(--destructive-hover);
+
+  --color-scrim: var(--scrim);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-paper: var(--paper);
+  --color-paper-sheet: var(--paper-sheet);
+  --color-paper-sunken: var(--paper-sunken);
+  --color-paper-edge: var(--paper-edge);
+
+  --color-ink: var(--ink);
+  --color-ink-strong: var(--ink-strong);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+
+  --color-stamp: var(--stamp);
+  --color-stamp-strong: var(--stamp-strong);
+  --color-stamp-rule: var(--stamp-rule);
+  --color-stamp-wash: var(--stamp-wash);
+  --color-stamp-foreground: var(--stamp-foreground);
+
+  --color-foil: var(--foil);
+  --color-foil-strong: var(--foil-strong);
+  --color-foil-rule: var(--foil-rule);
+  --color-foil-wash: var(--foil-wash);
+
+  --color-wealth-navy: var(--ink-strong);
+  --color-wealth-gold: var(--foil);
+  --color-wealth-emerald: var(--ink-muted);
+  --color-wealth-surface: var(--paper-sheet);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 1px);
+  --radius-sm: calc(var(--radius) - 2px);
+
+  --spacing-gutter: var(--gutter);
+  --spacing-rhythm: var(--rhythm);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-rise: rise 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility paper {
+  /* ---- Sheets ----------------------------------------------------------
+     `.paper` is the replacement for the old blurred translucent panels. A
+     sheet of stock with a real rule around it. No backdrop-filter, no
+     shadow, no hover lift.                                                  */
+  background-color: var(--paper-sheet);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+
+@utility paper-sunken {
+  background-color: var(--paper-sunken);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+
+@utility paper-interactive {
+  /* A sheet the user can act on. The feedback is the rule darkening — the
+     sheet does not move and does not glow. */
+  background-color: var(--paper-sheet);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+  &:hover {
+    border-color: var(--rule-strong);
+    background-color: var(--paper-sheet);
+  }
+}
+
+@utility paper-marked {
+  /* The ONE selected/recommended thing on a screen. This is where the accent
+     is spent. */
+  background-color: var(--paper-sheet);
+  border: 1px solid var(--stamp-rule);
+  border-left: 3px solid var(--stamp);
+  border-radius: var(--radius);
+}
+
+@utility mark-attention {
+  /* ---- Rule-lines: the state system ------------------------------------
+     Position and weight instead of hue. A gap/attention item gets a solid
+     left rule; an on-track item gets a faint one. No red, no green.        */
+  border-left: 3px solid var(--ink-strong);
+  padding-left: 0.875rem;
+}
+
+@utility mark-quiet {
+  border-left: 3px solid var(--rule);
+  padding-left: 0.875rem;
+}
+
+@utility mark-stamp {
+  border-left: 3px solid var(--stamp);
+  padding-left: 0.875rem;
+}
+
+@utility doc-title {
+  /* ---- Type roles ------------------------------------------------------- */
+
+  /* Document voice. Caslon. Section titles, dialog titles, the proposal and
+     mandate headings. Never for UI chrome. */
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  @apply text-ink-strong;
+}
+
+@utility label {
+  /* 12px is the absolute floor and it only exists here: a tracked, uppercase
+     field label on a form or a column head. */
+  font-size: 0.75rem;
+  line-height: 1rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 500;
+  @apply text-ink-faint;
+}
+
+@utility label-strong {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 600;
+  @apply text-ink-muted;
+}
+
+@utility figure-sm {
+  /* ---- Numerals are the hero -------------------------------------------
+     Indian digit grouping, lining tabular figures, tight tracking. Size is
+     what makes them the hero; nothing else needs to. */
+  font-size: 1.125rem;
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  @apply text-ink-strong;
+}
+
+@utility figure {
+  font-size: 1.75rem;
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  @apply text-ink-strong;
+}
+
+@utility figure-lg {
+  font-size: 2.75rem;
+  line-height: 1.02;
+  font-weight: 500;
+  letter-spacing: -0.028em;
+  @apply text-ink-strong;
+}
+
+@utility figure-xl {
+  font-size: 4rem;
+  line-height: 0.98;
+  font-weight: 500;
+  letter-spacing: -0.032em;
+  @apply text-ink-strong;
+}
+
+@utility figure-unit {
+  /* The unit that trails a hero figure: "Cr", "%", "p.a." */
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  @apply text-ink-muted;
+}
+
+@utility ref {
+  /* Reference codes: ISIN, folio, UMRN, mandate ref, transaction id. */
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums lining-nums;
+  @apply text-ink-muted;
+}
+
+@utility stamp-mark {
+  /* ---- Credibility beats -----------------------------------------------
+     The SEBI / compliance / mandate moments. An attested seal: outlined,
+     letterspaced, struck in foil. Use once per document.
+
+     This is the clearest case for gold in the app — a seal is precisely the
+     thing that is embossed rather than clicked. `stamp-note` stays in ink,
+     because a compliance line is a stated fact, not an attestation. */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--foil-rule);
+  border-radius: var(--radius);
+  color: var(--foil);
+  background-color: transparent;
+}
+
+@utility stamp-note {
+  /* The quiet version, for a compliance line that is a fact rather than a
+     seal. */
+  font-size: 0.75rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--stamp);
+}
+
+@utility doc-rule {
+  /* A document header rule: the double line at the top of a certificate.
+     The heavy line is ink; the hairline beneath it is foil — which is the
+     way the rule is actually struck on an engraved instrument. */
+  border-top: 2px solid var(--ink-strong);
+  box-shadow: 0 3px 0 -2px var(--foil-rule);
+}
+
+@utility scrollbar-none {
+  /* ---- Scroll ----------------------------------------------------------- */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@utility reveal {
+  /* ---- One orchestrated page-load reveal. That is the whole motion budget.
+     Nothing else in this app animates on mount. */
+  animation: rise 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+
+@utility reveal-1 {
+  animation-delay: 0ms;
+}
+
+@utility reveal-2 {
+  animation-delay: 70ms;
+}
+
+@utility reveal-3 {
+  animation-delay: 140ms;
+}
+
+@utility reveal-4 {
+  animation-delay: 210ms;
+}
+
+@utility reveal-5 {
+  animation-delay: 280ms;
+}
+
+@utility reveal-6 {
+  animation-delay: 350ms;
+}
+
+/* ==========================================================================
+   Cymbal Premier — "The private mandate, not the dashboard"
+
+   Ground truth for every surface in this app. Three ideas only:
+
+   1. PAPER, NOT SCREEN. A warm bond-paper ground with near-white sheets
+      sitting on it. No blur, no gradients, no glow, no lift.
+   2. INK CARRIES STATE. Weight, position and rule-lines say what amber /
+      emerald / rose used to say. There is exactly ONE hue in this system.
+   3. THE STAMP IS THE ACCENT. A banker's attestation ink — the violet-blue
+      of the rubber stamp on an Indian mandate form. It appears roughly once
+      per screen, on the one action or fact that matters. Spending it twice
+      is a bug.
+   ========================================================================== */
+
+@layer base {
+  :root {
+    /* ---- Paper ---------------------------------------------------------- */
+    --paper: oklch(0.978 0.0035 85);        /* page ground: bond stock      */
+    --paper-sheet: oklch(0.995 0.0018 85);  /* panels: sheets on the desk   */
+    --paper-sunken: oklch(0.955 0.005 85);  /* wells, inputs, table stripes */
+    --paper-edge: oklch(0.928 0.006 85);    /* the folded edge / deep well  */
+
+    /* ---- Ink ------------------------------------------------------------ */
+    --ink-strong: oklch(0.205 0.018 280);   /* headings, hero numerals      */
+    --ink: oklch(0.295 0.014 280);          /* body                         */
+    --ink-muted: oklch(0.505 0.012 280);    /* secondary, captions          */
+    --ink-faint: oklch(0.645 0.010 280);    /* labels, placeholders         */
+
+    /* ---- Rules ---------------------------------------------------------- */
+    --rule: oklch(0.905 0.005 280);
+    --rule-strong: oklch(0.815 0.008 280);
+
+    /* ---- The stamp: the ACTING accent ------------------------------------
+       Registrar's ink. This is the colour of things you can do: the primary
+       action, focus, the live state. Interactive only. */
+    --stamp: oklch(0.445 0.148 282);
+    --stamp-strong: oklch(0.375 0.150 282);
+    --stamp-rule: oklch(0.700 0.100 282);
+    --stamp-wash: oklch(0.960 0.020 282);
+    --stamp-foreground: oklch(0.99 0 0);
+
+    /* ---- The foil: the ATTESTING accent ----------------------------------
+       Struck gold, not amber and never yellow. This is the foil on the
+       letterhead: the house seal, the certificate rule, the compliance mark.
+       It is NEVER interactive. Nothing you can click is ever foil.
+
+       Two accents only stay calm if they never do the same job. Ink acts,
+       foil attests. The moment foil lands on a button, that contract breaks
+       and the screen starts competing with itself again.
+
+       On paper the gold is deepened well past decorative — a pale gold on a
+       near-white ground is invisible, which is how gold usually fails. */
+    --foil: oklch(0.598 0.098 79);
+    --foil-strong: oklch(0.508 0.094 77);
+    --foil-rule: oklch(0.782 0.072 82);
+    --foil-wash: oklch(0.962 0.028 85);
+
+    /* ---- shadcn contract (mapped onto the above) ------------------------ */
+    --background: var(--paper);
+    --foreground: var(--ink);
+
+    --card: var(--paper-sheet);
+    --card-foreground: var(--ink);
+
+    --popover: var(--paper-sheet);
+    --popover-foreground: var(--ink);
+
+    --primary: var(--ink-strong);
+    --primary-foreground: oklch(0.99 0 0);
+
+    --secondary: var(--paper-sunken);
+    --secondary-foreground: var(--ink-strong);
+
+    --muted: var(--paper-sunken);
+    --muted-foreground: var(--ink-muted);
+
+    --accent: var(--paper-sunken);
+    --accent-foreground: var(--ink-strong);
+
+    /* Deeply desaturated oxblood. Reserved for genuine error states — never
+       for layout, never for "negative return". */
+    --destructive: oklch(0.455 0.135 25);
+    --destructive-foreground: oklch(0.99 0 0);
+
+    --border: var(--rule);
+    --input: var(--rule-strong);
+    --ring: var(--stamp-rule);
+
+    /* ---- Tokens that carry their own alpha ------------------------------
+       These were originally real tokens because Tailwind v3 silently emitted
+       no rule at all for a slash-opacity suffix on a bare `var()` colour —
+       which left both modal scrims invisible.
+
+       Under v4 that constraint is gone: `@theme` colours resolve opacity
+       through `color-mix()`, so `bg-ink-strong/40` now works. They are kept
+       as named tokens anyway, deliberately — a scrim and a hover tone are
+       semantic decisions that belong in one place, not opacity values
+       sprinkled across call sites. Prefer these over a modifier. */
+    --scrim: oklch(0.205 0.018 280 / 0.42);
+    --primary-hover: var(--ink);
+    --destructive-hover: oklch(0.395 0.135 25);
+
+    /* ---- Geometry & rhythm ---------------------------------------------- */
+    --radius: 0.25rem;   /* a document corner, not a pill and not a razor */
+    --gutter: 1.75rem;   /* horizontal breathing room                     */
+    --rhythm: 1.25rem;   /* vertical step between stacked blocks          */
+  }
+
+  /* Dark mode is DEMOTED, not deleted — the toggle still works. Retuned from
+     the old near-black #060a12 to a warm graphite so it reads as ink on
+     slate rather than a trading terminal. */
+  .dark {
+    /* Lifted off near-black. The previous ground sat at 0.192 with sheets
+       only 0.046 above it, so panels barely separated from the page and the
+       whole surface read as one dark slab. Raising the ground and widening
+       that gap is what makes this legible rather than merely dim. */
+    --paper: oklch(0.243 0.009 282);
+    --paper-sheet: oklch(0.298 0.011 282);
+    --paper-sunken: oklch(0.211 0.009 282);
+    --paper-edge: oklch(0.183 0.008 282);
+
+    --ink-strong: oklch(0.972 0.004 280);
+    --ink: oklch(0.918 0.005 280);
+    --ink-muted: oklch(0.752 0.010 280);
+    --ink-faint: oklch(0.632 0.012 280);
+
+    --rule: oklch(0.382 0.011 282);
+    --rule-strong: oklch(0.478 0.013 282);
+
+    --stamp: oklch(0.762 0.128 284);
+    --stamp-strong: oklch(0.824 0.116 284);
+    --stamp-rule: oklch(0.592 0.112 284);
+    --stamp-wash: oklch(0.318 0.040 284);
+    --stamp-foreground: oklch(0.16 0.02 284);
+
+    /* Foil reads brighter on a dark ground than on paper — this is where
+       gold actually behaves like metal rather than mustard. */
+    --foil: oklch(0.812 0.102 86);
+    --foil-strong: oklch(0.878 0.092 88);
+    --foil-rule: oklch(0.618 0.084 83);
+    --foil-wash: oklch(0.322 0.034 84);
+
+    --primary: oklch(0.965 0.004 280);
+    --primary-foreground: oklch(0.18 0.01 280);
+    --secondary-foreground: var(--ink-strong);
+    --accent-foreground: var(--ink-strong);
+    --destructive: oklch(0.585 0.150 25);
+
+    --scrim: oklch(0.115 0.008 280 / 0.62);
+    --primary-hover: var(--ink);
+    --destructive-hover: oklch(0.645 0.150 25);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    /* No radial gradients. The ground is paper. */
+    background-image: none;
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;   /* 15px — comfortably above the 14px floor */
+    line-height: 1.55;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Every figure in this app is a lining, tabular figure. Portfolio numbers
+     must align down a column and must not wobble as they tick. */
+  table,
+  input,
+  output,
+  time,
+  .figure,
+  .figure-sm,
+  .figure-lg,
+  .figure-xl,
+  .tabular-nums {
+    font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: "tnum" 1, "lnum" 1, "kern" 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply text-ink-strong;
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: var(--stamp-wash);
+    color: var(--ink-strong);
+  }
+}
+
+/* Scrollbars: a paper edge, not a chrome element. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--rule-strong);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-faint);
+  background-clip: content-box;
+}
+
+/* Recharts: strip the default chart chrome so the analysis surfaces inherit
+   the paper system instead of fighting it. */
+.recharts-cartesian-grid line {
+  stroke: var(--rule);
+}
+.recharts-cartesian-axis-line,
+.recharts-cartesian-axis-tick-line {
+  stroke: var(--rule-strong);
+}
+.recharts-text {
+  fill: var(--ink-muted);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.recharts-surface:focus,
+.recharts-wrapper:focus {
+  outline: none;
 }

@@ -1,0 +1,1178 @@
+[
+  {
+    "id": "CPW-EQ-001",
+    "name": "Cymbal Bluechip Large Cap Equity Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Equity",
+    "sub_category": "Large Cap",
+    "nav": 148.65,
+    "cagr_1y": 19.4,
+    "cagr_3y": 18.2,
+    "cagr_5y": 16.5,
+    "risk_level": "Very High",
+    "ter": 0.68,
+    "aum_crores": 42150.0,
+    "fund_manager": "Aditi Verma & Rajesh Nair",
+    "rating": 5,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "HDFC Bank",
+      "Reliance Industries",
+      "ICICI Bank",
+      "Infosys",
+      "TCS"
+    ],
+    "tags": [
+      "Flagship",
+      "Large Cap",
+      "Top Rated"
+    ],
+    "description": "Invests in top 100 established market leaders with consistent earnings growth and robust balance sheets."
+  },
+  {
+    "id": "CPW-EQ-002",
+    "name": "Cymbal Large & Mid Cap Growth Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Equity",
+    "sub_category": "Large & Mid Cap",
+    "nav": 92.4,
+    "cagr_1y": 22.8,
+    "cagr_3y": 19.8,
+    "cagr_5y": 18.1,
+    "risk_level": "Very High",
+    "ter": 0.75,
+    "aum_crores": 18900.0,
+    "fund_manager": "Rajesh Nair",
+    "rating": 5,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "Larsen & Toubro",
+      "Axis Bank",
+      "Tata Motors",
+      "Trent Ltd",
+      "Bharat Electronics"
+    ],
+    "tags": [
+      "Growth",
+      "High Conviction"
+    ],
+    "description": "Blends stability of bluechips with high growth velocity of emerging mid-market champions."
+  },
+  {
+    "id": "CPW-EQ-003",
+    "name": "Cymbal Flexi Cap Opportunities Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Equity",
+    "sub_category": "Flexi Cap",
+    "nav": 210.15,
+    "cagr_1y": 24.1,
+    "cagr_3y": 21.4,
+    "cagr_5y": 19.6,
+    "risk_level": "Very High",
+    "ter": 0.72,
+    "aum_crores": 36500.0,
+    "fund_manager": "Vikram Sen",
+    "rating": 5,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "ICICI Bank",
+      "HCL Tech",
+      "Sun Pharma",
+      "Mahindra & Mahindra",
+      "Bajaj Finance"
+    ],
+    "tags": [
+      "Bestseller",
+      "All-Cap",
+      "Top Rated"
+    ],
+    "description": "Dynamic multi-cap strategy with unconstrained mandate to capture growth across large, mid, and small cap sectors."
+  },
+  {
+    "id": "CPW-EQ-004",
+    "name": "Cymbal Emerging Leaders Mid Cap Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Equity",
+    "sub_category": "Mid Cap",
+    "nav": 118.3,
+    "cagr_1y": 29.5,
+    "cagr_3y": 24.6,
+    "cagr_5y": 22.3,
+    "risk_level": "Very High",
+    "ter": 0.82,
+    "aum_crores": 21400.0,
+    "fund_manager": "Neha Kapur",
+    "rating": 4,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "Persistent Systems",
+      "Polycab India",
+      "Federal Bank",
+      "Cummins India",
+      "Max Healthcare"
+    ],
+    "tags": [
+      "High Alpha",
+      "Mid Cap"
+    ],
+    "description": "Identifies fast-growing mid-tier companies poised to become tomorrow's large caps."
+  },
+  {
+    "id": "CPW-EQ-005",
+    "name": "Cymbal Discovery Small Cap Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Equity",
+    "sub_category": "Small Cap",
+    "nav": 86.75,
+    "cagr_1y": 34.2,
+    "cagr_3y": 28.1,
+    "cagr_5y": 25.8,
+    "risk_level": "Very High",
+    "ter": 0.88,
+    "aum_crores": 14200.0,
+    "fund_manager": "Neha Kapur & Vikram Sen",
+    "rating": 4,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "Kaynes Tech",
+      "KPIT Technologies",
+      "AIA Engineering",
+      "CreditAccess Grameen",
+      "Carborundum"
+    ],
+    "tags": [
+      "High Return",
+      "Small Cap",
+      "Volatile"
+    ],
+    "description": "Aggressive small-cap strategy targeting niche market disruptors and capital goods manufacturers."
+  },
+  {
+    "id": "CPW-EQ-006",
+    "name": "Cymbal High Conviction Focus 25 Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Equity",
+    "sub_category": "Focused",
+    "nav": 64.2,
+    "cagr_1y": 21.0,
+    "cagr_3y": 20.1,
+    "cagr_5y": 17.8,
+    "risk_level": "Very High",
+    "ter": 0.78,
+    "aum_crores": 11500.0,
+    "fund_manager": "Vikram Sen",
+    "rating": 4,
+    "min_sip": 2000,
+    "min_lumpsum": 10000,
+    "top_holdings": [
+      "State Bank of India",
+      "Bharti Airtel",
+      "Titan Company",
+      "Kotak Mahindra Bank",
+      "LTI Mindtree"
+    ],
+    "tags": [
+      "Focused",
+      "High Conviction"
+    ],
+    "description": "Concentrated portfolio limited to maximum 25 high-conviction ideas across sectors."
+  },
+  {
+    "id": "CPW-EQ-007",
+    "name": "Cymbal Value & Special Situations Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Equity",
+    "sub_category": "Value / Contra",
+    "nav": 132.8,
+    "cagr_1y": 18.2,
+    "cagr_3y": 17.4,
+    "cagr_5y": 16.9,
+    "risk_level": "Very High",
+    "ter": 0.74,
+    "aum_crores": 15800.0,
+    "fund_manager": "Aditi Verma",
+    "rating": 4,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "NTPC Ltd",
+      "Coal India",
+      "ITC Ltd",
+      "Power Grid Corp",
+      "GAIL India"
+    ],
+    "tags": [
+      "Value",
+      "Dividend Yield"
+    ],
+    "description": "Contrarian value investing in fundamentally sound businesses available at reasonable margin of safety."
+  },
+  {
+    "id": "CPW-EQ-008",
+    "name": "Cymbal Digital, Cloud & AI Technology Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Equity",
+    "sub_category": "Sectoral / Tech",
+    "nav": 174.5,
+    "cagr_1y": 26.8,
+    "cagr_3y": 22.8,
+    "cagr_5y": 24.1,
+    "risk_level": "Very High",
+    "ter": 0.85,
+    "aum_crores": 12800.0,
+    "fund_manager": "Arvind Swaminathan",
+    "rating": 5,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "Infosys",
+      "Tata Consultancy Services",
+      "HCL Tech",
+      "Coforge",
+      "Persistent Systems"
+    ],
+    "tags": [
+      "Sectoral",
+      "Technology",
+      "AI Theme"
+    ],
+    "description": "Pure-play exposure to global and domestic enterprise software, cloud transformation, and generative AI providers."
+  },
+  {
+    "id": "CPW-EQ-009",
+    "name": "Cymbal Financial Services & FinTech Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Equity",
+    "sub_category": "Sectoral / Banking",
+    "nav": 155.1,
+    "cagr_1y": 20.4,
+    "cagr_3y": 18.9,
+    "cagr_5y": 15.6,
+    "risk_level": "Very High",
+    "ter": 0.8,
+    "aum_crores": 16700.0,
+    "fund_manager": "Rajesh Nair",
+    "rating": 4,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "HDFC Bank",
+      "ICICI Bank",
+      "State Bank of India",
+      "Bajaj Finserv",
+      "Jio Financial Services"
+    ],
+    "tags": [
+      "Banking",
+      "Credit Growth"
+    ],
+    "description": "Rides India's formalization of credit, digital payments, and private banking expansion."
+  },
+  {
+    "id": "CPW-EQ-010",
+    "name": "Cymbal Healthcare & Life Sciences Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Equity",
+    "sub_category": "Sectoral / Healthcare",
+    "nav": 98.4,
+    "cagr_1y": 23.5,
+    "cagr_3y": 16.2,
+    "cagr_5y": 17.5,
+    "risk_level": "Very High",
+    "ter": 0.82,
+    "aum_crores": 8400.0,
+    "fund_manager": "Dr. Sameer Joshi",
+    "rating": 4,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "Sun Pharmaceutical",
+      "Cipla Ltd",
+      "Dr. Reddy's",
+      "Apollo Hospitals",
+      "Divi's Laboratories"
+    ],
+    "tags": [
+      "Healthcare",
+      "Pharma",
+      "Defensive"
+    ],
+    "description": "Defensive growth investing in domestic formulations, hospital chains, and global contract research (CDMO)."
+  },
+  {
+    "id": "CPW-EQ-011",
+    "name": "Cymbal India Manufacturing & Capex Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Equity",
+    "sub_category": "Sectoral / Manufacturing",
+    "nav": 104.9,
+    "cagr_1y": 31.8,
+    "cagr_3y": 26.3,
+    "cagr_5y": 22.0,
+    "risk_level": "Very High",
+    "ter": 0.84,
+    "aum_crores": 15300.0,
+    "fund_manager": "Neha Kapur",
+    "rating": 5,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "Larsen & Toubro",
+      "Siemens India",
+      "ABB India",
+      "Bharat Forge",
+      "Tata Steel"
+    ],
+    "tags": [
+      "Capex",
+      "PLI Theme",
+      "Industrial"
+    ],
+    "description": "Captures the India manufacturing supercycle, government infrastructure spending, and defense localization."
+  },
+  {
+    "id": "CPW-EQ-012",
+    "name": "Cymbal Sustainable & ESG Leaders Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Equity",
+    "sub_category": "ESG Thematic",
+    "nav": 48.2,
+    "cagr_1y": 16.5,
+    "cagr_3y": 15.8,
+    "cagr_5y": 14.9,
+    "risk_level": "Very High",
+    "ter": 0.7,
+    "aum_crores": 4600.0,
+    "fund_manager": "Aditi Verma",
+    "rating": 4,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "Tata Power",
+      "Infosys",
+      "Maruti Suzuki",
+      "Titan Company",
+      "Havells India"
+    ],
+    "tags": [
+      "ESG",
+      "Clean Energy",
+      "Governance"
+    ],
+    "description": "Selects companies demonstrating superior environmental stewardship, social responsibility, and transparent corporate governance."
+  },
+  {
+    "id": "CPW-EQ-013",
+    "name": "Cymbal US & Global Tech MegaCap Feeder Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Equity",
+    "sub_category": "International",
+    "nav": 72.1,
+    "cagr_1y": 28.4,
+    "cagr_3y": 23.5,
+    "cagr_5y": 21.8,
+    "risk_level": "Very High",
+    "ter": 0.55,
+    "aum_crores": 9200.0,
+    "fund_manager": "Arvind Swaminathan",
+    "rating": 5,
+    "min_sip": 2000,
+    "min_lumpsum": 10000,
+    "top_holdings": [
+      "Alphabet Inc (Google)",
+      "Microsoft",
+      "NVIDIA",
+      "Apple",
+      "Amazon"
+    ],
+    "tags": [
+      "Global",
+      "US Tech",
+      "USD Hedge"
+    ],
+    "description": "Provides direct Rupee-denominated investment into global hyperscalers, chip designers, and platform giants."
+  },
+  {
+    "id": "CPW-EQ-014",
+    "name": "Cymbal S&P 500 Index Opportunity Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Equity",
+    "sub_category": "International",
+    "nav": 56.4,
+    "cagr_1y": 18.9,
+    "cagr_3y": 16.7,
+    "cagr_5y": 15.4,
+    "risk_level": "Very High",
+    "ter": 0.45,
+    "aum_crores": 6800.0,
+    "fund_manager": "Arvind Swaminathan",
+    "rating": 4,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "Microsoft",
+      "Apple",
+      "NVIDIA",
+      "Amazon",
+      "Meta Platforms"
+    ],
+    "tags": [
+      "Passive",
+      "Global Index",
+      "Low Cost"
+    ],
+    "description": "Low-cost passive tracking of the benchmark index of the 500 largest publicly traded corporations in the United States."
+  },
+  {
+    "id": "CPW-EQ-015",
+    "name": "Cymbal Tax Advantage ELSS Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Equity",
+    "sub_category": "ELSS Tax Saver",
+    "nav": 168.9,
+    "cagr_1y": 21.6,
+    "cagr_3y": 19.2,
+    "cagr_5y": 17.8,
+    "risk_level": "Very High",
+    "ter": 0.7,
+    "aum_crores": 28400.0,
+    "fund_manager": "Vikram Sen",
+    "rating": 5,
+    "min_sip": 500,
+    "min_lumpsum": 500,
+    "top_holdings": [
+      "HDFC Bank",
+      "ICICI Bank",
+      "Larsen & Toubro",
+      "TCS",
+      "State Bank of India"
+    ],
+    "tags": [
+      "Section 80C",
+      "Tax Saver",
+      "3Y Lock-in"
+    ],
+    "description": "Wealth compounding with Section 80C tax deduction benefits under the Old Tax Regime with 3-year lock-in."
+  },
+  {
+    "id": "CPW-DB-001",
+    "name": "Cymbal Liquid Overnight Cash Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Debt",
+    "sub_category": "Liquid / Overnight",
+    "nav": 1245.3,
+    "cagr_1y": 6.85,
+    "cagr_3y": 6.1,
+    "cagr_5y": 5.75,
+    "risk_level": "Low",
+    "ter": 0.18,
+    "aum_crores": 54000.0,
+    "fund_manager": "Prakash Joshi",
+    "rating": 5,
+    "min_sip": 500,
+    "min_lumpsum": 1000,
+    "top_holdings": [
+      "TREPS / Tri-Party Repo",
+      "T-Bills 91D",
+      "T-Bills 182D",
+      "NABARD CP",
+      "HDFC Bank CD"
+    ],
+    "tags": [
+      "Ultra Safe",
+      "Instant Redemption",
+      "Zero Exit Load"
+    ],
+    "description": "Ideal parking solution for surplus operating funds and emergency buffers with T+1 instant liquidity."
+  },
+  {
+    "id": "CPW-DB-002",
+    "name": "Cymbal Money Market Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Debt",
+    "sub_category": "Money Market",
+    "nav": 312.45,
+    "cagr_1y": 7.35,
+    "cagr_3y": 6.65,
+    "cagr_5y": 6.2,
+    "risk_level": "Low to Moderate",
+    "ter": 0.25,
+    "aum_crores": 22000.0,
+    "fund_manager": "Prakash Joshi",
+    "rating": 5,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "HDFC Bank CD",
+      "ICICI Bank CD",
+      "Reliance Retail CP",
+      "REC Ltd CP",
+      "SIDBI CD"
+    ],
+    "tags": [
+      "Low Volatility",
+      "Short Horizon"
+    ],
+    "description": "Invests in high-grade commercial paper and certificates of deposit with maturities up to 1 year."
+  },
+  {
+    "id": "CPW-DB-003",
+    "name": "Cymbal Ultra Short Term Bond Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Debt",
+    "sub_category": "Ultra Short Duration",
+    "nav": 458.1,
+    "cagr_1y": 7.5,
+    "cagr_3y": 6.85,
+    "cagr_5y": 6.4,
+    "risk_level": "Low to Moderate",
+    "ter": 0.32,
+    "aum_crores": 17500.0,
+    "fund_manager": "Ritu Singhania",
+    "rating": 4,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "PFC Bond",
+      "Power Grid Bond",
+      "Axis Bank CD",
+      "T-Bills 364D",
+      "LIC Housing NCD"
+    ],
+    "tags": [
+      "Stable Yield",
+      "3-6 Month Horizon"
+    ],
+    "description": "Yield-enhancement portfolio for conservative investors with holding horizons between 3 to 6 months."
+  },
+  {
+    "id": "CPW-DB-004",
+    "name": "Cymbal AAA Corporate Bond Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Debt",
+    "sub_category": "Corporate Bond",
+    "nav": 188.75,
+    "cagr_1y": 8.1,
+    "cagr_3y": 7.85,
+    "cagr_5y": 7.45,
+    "risk_level": "Moderate",
+    "ter": 0.38,
+    "aum_crores": 31000.0,
+    "fund_manager": "Ritu Singhania",
+    "rating": 5,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "REC Ltd AAA",
+      "PFC AAA",
+      "HDFC Bank AAA",
+      "Indian Oil Corp AAA",
+      "NABARD AAA"
+    ],
+    "tags": [
+      "AAA Safety",
+      "High Yield",
+      "Flagship Debt"
+    ],
+    "description": "Mandatory 80%+ allocation to premier AAA-rated corporate debt securities ensuring maximum credit safety."
+  },
+  {
+    "id": "CPW-DB-005",
+    "name": "Cymbal Banking & PSU Debt Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Debt",
+    "sub_category": "Banking & PSU",
+    "nav": 215.3,
+    "cagr_1y": 7.8,
+    "cagr_3y": 7.6,
+    "cagr_5y": 7.25,
+    "risk_level": "Moderate",
+    "ter": 0.35,
+    "aum_crores": 26400.0,
+    "fund_manager": "Prakash Joshi",
+    "rating": 5,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "State Bank of India Bond",
+      "NTPC Bond",
+      "HUDCO NCD",
+      "NHPC Bond",
+      "Bank of Baroda Tier-II"
+    ],
+    "tags": [
+      "Sovereign Proxy",
+      "Low Credit Risk"
+    ],
+    "description": "Invests predominantly in debt issued by PSU banks, public financial institutions, and statutory bodies."
+  },
+  {
+    "id": "CPW-DB-006",
+    "name": "Cymbal Dynamic Duration Bond Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Debt",
+    "sub_category": "Dynamic Bond",
+    "nav": 94.2,
+    "cagr_1y": 9.2,
+    "cagr_3y": 8.2,
+    "cagr_5y": 7.6,
+    "risk_level": "Moderate to High",
+    "ter": 0.48,
+    "aum_crores": 8900.0,
+    "fund_manager": "Ritu Singhania",
+    "rating": 4,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "7.18% GS 2033",
+      "7.06% GS 2028",
+      "PFC 2031 NCD",
+      "IRFC 2034 Bond",
+      "REC 2029 AAA"
+    ],
+    "tags": [
+      "Rate Cut Play",
+      "Active Duration"
+    ],
+    "description": "Actively shifts average portfolio duration between 2 to 9 years to capitalize on RBI interest rate cycles."
+  },
+  {
+    "id": "CPW-DB-007",
+    "name": "Cymbal Constant Maturity 10Y Gilt Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Debt",
+    "sub_category": "Gilt / Sovereign",
+    "nav": 164.5,
+    "cagr_1y": 8.9,
+    "cagr_3y": 8.1,
+    "cagr_5y": 7.8,
+    "risk_level": "Moderate",
+    "ter": 0.28,
+    "aum_crores": 12100.0,
+    "fund_manager": "Prakash Joshi",
+    "rating": 4,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "7.18% GS 2033",
+      "7.10% GS 2034",
+      "7.26% GS 2032",
+      "TREPS",
+      "T-Bills"
+    ],
+    "tags": [
+      "Zero Credit Risk",
+      "Sovereign G-Sec"
+    ],
+    "description": "Zero credit risk portfolio investing exclusively in 10-year Government of India sovereign bonds."
+  },
+  {
+    "id": "CPW-DB-008",
+    "name": "Cymbal Short Duration Income Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Debt",
+    "sub_category": "Short Duration",
+    "nav": 142.6,
+    "cagr_1y": 7.65,
+    "cagr_3y": 7.45,
+    "cagr_5y": 6.95,
+    "risk_level": "Moderate",
+    "ter": 0.36,
+    "aum_crores": 14800.0,
+    "fund_manager": "Ritu Singhania",
+    "rating": 4,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "L&T Finance AAA",
+      "HDFC Bank AAA",
+      "Bajaj Finance NCD",
+      "T-Bills 364D",
+      "NABARD NCD"
+    ],
+    "tags": [
+      "1-3 Year Horizon",
+      "Stable"
+    ],
+    "description": "Maintains Macaulay duration between 1 to 3 years balancing current income and price volatility protection."
+  },
+  {
+    "id": "CPW-DB-009",
+    "name": "Cymbal CRISIL SDL 2030 Target Maturity Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Debt",
+    "sub_category": "Target Maturity Index",
+    "nav": 12.85,
+    "cagr_1y": 8.05,
+    "cagr_3y": 7.8,
+    "cagr_5y": 7.5,
+    "risk_level": "Moderate",
+    "ter": 0.15,
+    "aum_crores": 9600.0,
+    "fund_manager": "Prakash Joshi",
+    "rating": 5,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "Maharashtra SDL 2030",
+      "Gujarat SDL 2030",
+      "Tamil Nadu SDL 2030",
+      "Karnataka SDL 2030",
+      "TREPS"
+    ],
+    "tags": [
+      "Target Date",
+      "Fixed Maturity Yield",
+      "Low Cost"
+    ],
+    "description": "Passive target maturity fund locking in current attractive State Development Loan yields maturing in April 2030."
+  },
+  {
+    "id": "CPW-DB-010",
+    "name": "Cymbal High Yield Corporate Credit Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Debt",
+    "sub_category": "Credit Risk",
+    "nav": 88.4,
+    "cagr_1y": 9.8,
+    "cagr_3y": 9.1,
+    "cagr_5y": 8.4,
+    "risk_level": "High",
+    "ter": 0.95,
+    "aum_crores": 5200.0,
+    "fund_manager": "Ritu Singhania",
+    "rating": 3,
+    "min_sip": 2000,
+    "min_lumpsum": 10000,
+    "top_holdings": [
+      "Tata Motors AA+",
+      "Piramal Capital AA",
+      "Godrej Properties AA",
+      "Shriram Finance AA+",
+      "Apollo Tyres AA"
+    ],
+    "tags": [
+      "High Yield",
+      "Credit Spread",
+      "Tactical"
+    ],
+    "description": "Generates superior yield by capturing credit spread compression in well-governed AA and AA+ rated issuers."
+  },
+  {
+    "id": "CPW-CM-001",
+    "name": "Cymbal Sovereign Gold ETF & FoF",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Commodities",
+    "sub_category": "Gold ETF",
+    "nav": 74.2,
+    "cagr_1y": 18.5,
+    "cagr_3y": 14.2,
+    "cagr_5y": 13.6,
+    "risk_level": "Moderately High",
+    "ter": 0.35,
+    "aum_crores": 16400.0,
+    "fund_manager": "Kavita Rao",
+    "rating": 5,
+    "min_sip": 500,
+    "min_lumpsum": 1000,
+    "top_holdings": [
+      "Physical Gold (99.5% Purity)",
+      "Sovereign Gold Bonds",
+      "Cash / TREPS"
+    ],
+    "tags": [
+      "Hedge",
+      "Inflation Shield",
+      "Physical Gold"
+    ],
+    "description": "Pure 24-karat gold asset backing serving as portfolio insurance against currency devaluation and global geopolitical shocks."
+  },
+  {
+    "id": "CPW-CM-002",
+    "name": "Cymbal Physical Silver ETF Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Commodities",
+    "sub_category": "Silver ETF",
+    "nav": 92.8,
+    "cagr_1y": 24.6,
+    "cagr_3y": 16.5,
+    "cagr_5y": 15.2,
+    "risk_level": "Very High",
+    "ter": 0.42,
+    "aum_crores": 6200.0,
+    "fund_manager": "Kavita Rao",
+    "rating": 4,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "Physical Silver (99.9% Purity)",
+      "Silver Vault Receipts",
+      "Cash / TREPS"
+    ],
+    "tags": [
+      "Industrial Metal",
+      "Solar / EV Theme"
+    ],
+    "description": "Dual exposure to precious metal store of value and exploding industrial demand across solar photovoltaic and EV electronics."
+  },
+  {
+    "id": "CPW-CM-003",
+    "name": "Cymbal Global Energy & Agri Commodities Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Commodities",
+    "sub_category": "Multi-Commodity",
+    "nav": 36.4,
+    "cagr_1y": 12.4,
+    "cagr_3y": 11.2,
+    "cagr_5y": 10.8,
+    "risk_level": "High",
+    "ter": 0.75,
+    "aum_crores": 3100.0,
+    "fund_manager": "Kavita Rao",
+    "rating": 3,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "Brent Crude Futures",
+      "Copper LME Contracts",
+      "Agriculture Index",
+      "Aluminium Contracts",
+      "Natural Gas"
+    ],
+    "tags": [
+      "Global Commodities",
+      "Cyclical"
+    ],
+    "description": "Diversified multi-commodity exposure hedging input cost inflation across industrial base metals and energy."
+  },
+  {
+    "id": "CPW-CM-004",
+    "name": "Cymbal Prime Commercial Real Estate REIT Basket",
+    "amc": "Cymbal Capital Advisory",
+    "category": "Commodities",
+    "sub_category": "REIT Basket",
+    "nav": 340.5,
+    "cagr_1y": 14.8,
+    "cagr_3y": 12.4,
+    "cagr_5y": 11.9,
+    "risk_level": "Moderate",
+    "ter": 0.5,
+    "aum_crores": 8500.0,
+    "fund_manager": "Sanjay Deshmukh",
+    "rating": 5,
+    "min_sip": 5000,
+    "min_lumpsum": 25000,
+    "top_holdings": [
+      "Embassy Office Parks REIT",
+      "Mindspace Business Parks REIT",
+      "Brookfield India REIT",
+      "Nexus Select Trust"
+    ],
+    "tags": [
+      "Quarterly Dividends",
+      "Grade-A Office",
+      "Rental Yield"
+    ],
+    "description": "Fractional ownership in marquee Grade-A IT parks and commercial retail malls generating quarterly rental dividend yields."
+  },
+  {
+    "id": "CPW-CM-005",
+    "name": "Cymbal Sovereign Infrastructure InvIT Growth Trust",
+    "amc": "Cymbal Capital Advisory",
+    "category": "Commodities",
+    "sub_category": "InvIT Basket",
+    "nav": 158.2,
+    "cagr_1y": 13.5,
+    "cagr_3y": 11.8,
+    "cagr_5y": 11.1,
+    "risk_level": "Moderate",
+    "ter": 0.48,
+    "aum_crores": 7200.0,
+    "fund_manager": "Sanjay Deshmukh",
+    "rating": 4,
+    "min_sip": 5000,
+    "min_lumpsum": 25000,
+    "top_holdings": [
+      "PowerGrid InvIT",
+      "National Highways Infra Trust (NHAI)",
+      "IndiGrid InvIT",
+      "Cube Highways Trust"
+    ],
+    "tags": [
+      "High Cash Yield",
+      "Govt Toll Roads",
+      "Power Transmission"
+    ],
+    "description": "High cash-flow infrastructure trust backed by operational NHAI toll concessions and national power transmission lines."
+  },
+  {
+    "id": "CPW-CM-006",
+    "name": "Cymbal Strategic Gold Accumulator SIP",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Commodities",
+    "sub_category": "Digital Gold",
+    "nav": 10.0,
+    "cagr_1y": 18.2,
+    "cagr_3y": 14.1,
+    "cagr_5y": 13.5,
+    "risk_level": "Moderate",
+    "ter": 0.2,
+    "aum_crores": 5400.0,
+    "fund_manager": "Kavita Rao",
+    "rating": 5,
+    "min_sip": 1000,
+    "min_lumpsum": 1000,
+    "top_holdings": [
+      "Gold 99.9% Allocated",
+      "SGB Tranche Tranches"
+    ],
+    "tags": [
+      "Automated SIP",
+      "Goal Linked"
+    ],
+    "description": "Micro-SIP vehicle designed to steadily accumulate physical gold reserves for future marriage and milestone obligations."
+  },
+  {
+    "id": "CPW-HB-001",
+    "name": "Cymbal Balanced Advantage (Dynamic Asset Allocation) Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Hybrid",
+    "sub_category": "Balanced Advantage (BAF)",
+    "nav": 84.6,
+    "cagr_1y": 17.5,
+    "cagr_3y": 14.6,
+    "cagr_5y": 13.8,
+    "risk_level": "High",
+    "ter": 0.65,
+    "aum_crores": 48000.0,
+    "fund_manager": "Vikram Sen & Ritu Singhania",
+    "rating": 5,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "ICICI Bank",
+      "HDFC Bank",
+      "Infosys",
+      "7.18% GS 2033",
+      "Reliance Industries"
+    ],
+    "tags": [
+      "Auto-Rebalance",
+      "Flagship Hybrid",
+      "Low Drawdown"
+    ],
+    "description": "Proprietary valuation model automatically cuts equity and increases debt when markets run hot, preventing major drawdowns."
+  },
+  {
+    "id": "CPW-HB-002",
+    "name": "Cymbal Multi-Asset All-Weather Wealth Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Hybrid",
+    "sub_category": "Multi-Asset Allocation",
+    "nav": 68.9,
+    "cagr_1y": 18.2,
+    "cagr_3y": 15.5,
+    "cagr_5y": 14.2,
+    "risk_level": "High",
+    "ter": 0.7,
+    "aum_crores": 29500.0,
+    "fund_manager": "Vikram Sen, Prakash Joshi, Kavita Rao",
+    "rating": 5,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "Equities (60%)",
+      "Corporate Debt (25%)",
+      "Gold ETF (10%)",
+      "Silver ETF (5%)"
+    ],
+    "tags": [
+      "All-Weather",
+      "Tri-Asset",
+      "Top Pick"
+    ],
+    "description": "True all-weather allocation actively combining Equities, Fixed Income, and Precious Metals in one tax-efficient wrapper."
+  },
+  {
+    "id": "CPW-HB-003",
+    "name": "Cymbal Aggressive Hybrid Equity Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Hybrid",
+    "sub_category": "Aggressive Hybrid",
+    "nav": 194.2,
+    "cagr_1y": 20.8,
+    "cagr_3y": 16.1,
+    "cagr_5y": 15.2,
+    "risk_level": "Very High",
+    "ter": 0.72,
+    "aum_crores": 32000.0,
+    "fund_manager": "Aditi Verma & Ritu Singhania",
+    "rating": 4,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "HDFC Bank",
+      "Larsen & Toubro",
+      "ITC Ltd",
+      "AAA REC Bonds",
+      "TCS"
+    ],
+    "tags": [
+      "Wealth Builder",
+      "Equity Heavy"
+    ],
+    "description": "Maintains 65-80% allocation in high-conviction equities while 20-35% high-grade fixed income stabilizes downside swings."
+  },
+  {
+    "id": "CPW-HB-004",
+    "name": "Cymbal Regular Monthly Income Conservative Hybrid Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Hybrid",
+    "sub_category": "Conservative Hybrid",
+    "nav": 78.3,
+    "cagr_1y": 10.4,
+    "cagr_3y": 9.8,
+    "cagr_5y": 9.2,
+    "risk_level": "Moderate",
+    "ter": 0.55,
+    "aum_crores": 14200.0,
+    "fund_manager": "Prakash Joshi & Aditi Verma",
+    "rating": 4,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "PFC 2029 AAA",
+      "7.18% GS 2033",
+      "HDFC Bank AAA",
+      "Infosys",
+      "ITC Ltd"
+    ],
+    "tags": [
+      "SWP Income",
+      "Retiree Friendly"
+    ],
+    "description": "Debt-oriented hybrid fund (75-90% Fixed Income + 10-25% Equities) engineered for reliable Systematic Withdrawal Plan (SWP) cash flows."
+  },
+  {
+    "id": "CPW-HB-005",
+    "name": "Cymbal Arbitrage Tax-Advantage Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Hybrid",
+    "sub_category": "Arbitrage",
+    "nav": 38.65,
+    "cagr_1y": 7.45,
+    "cagr_3y": 6.8,
+    "cagr_5y": 6.15,
+    "risk_level": "Low",
+    "ter": 0.3,
+    "aum_crores": 38000.0,
+    "fund_manager": "Arvind Swaminathan",
+    "rating": 5,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "HDFC Bank Cash/Futures",
+      "Reliance Cash/Futures",
+      "ICICI Bank Arbitrage",
+      "TREPS",
+      "T-Bills"
+    ],
+    "tags": [
+      "Zero Market Risk",
+      "Equity Taxed",
+      "FD Replacement"
+    ],
+    "description": "Exploits price differences between cash equity and futures markets to generate risk-free debt-like returns with equity tax efficiency."
+  },
+  {
+    "id": "CPW-HB-006",
+    "name": "Cymbal Balanced Equity Savings Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Hybrid",
+    "sub_category": "Equity Savings",
+    "nav": 52.1,
+    "cagr_1y": 12.8,
+    "cagr_3y": 11.2,
+    "cagr_5y": 10.4,
+    "risk_level": "Moderate",
+    "ter": 0.58,
+    "aum_crores": 11000.0,
+    "fund_manager": "Aditi Verma & Prakash Joshi",
+    "rating": 4,
+    "min_sip": 1000,
+    "min_lumpsum": 5000,
+    "top_holdings": [
+      "Net Equity (35%)",
+      "Arbitrage (35%)",
+      "Debt & Money Market (30%)"
+    ],
+    "tags": [
+      "Moderate Risk",
+      "Tax Advantage"
+    ],
+    "description": "Smooth hybrid blending unhedged growth equities, hedged arbitrage, and AAA corporate bonds."
+  },
+  {
+    "id": "CPW-HB-007",
+    "name": "Cymbal LifeStage Target Retirement 2040 Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Hybrid",
+    "sub_category": "Target Date Retirement",
+    "nav": 42.8,
+    "cagr_1y": 19.5,
+    "cagr_3y": 15.8,
+    "cagr_5y": 14.6,
+    "risk_level": "Very High",
+    "ter": 0.68,
+    "aum_crores": 8700.0,
+    "fund_manager": "Vikram Sen",
+    "rating": 5,
+    "min_sip": 2500,
+    "min_lumpsum": 10000,
+    "top_holdings": [
+      "Equity Growth (75%)",
+      "Corporate Debt (15%)",
+      "Sovereign Gold (10%)"
+    ],
+    "tags": [
+      "Goal 2040",
+      "Retirement",
+      "Automated Glidepath"
+    ],
+    "description": "Target-date fund tailored for investors retiring around 2040. Automatically shifts from high equity now to high fixed income closer to 2040."
+  },
+  {
+    "id": "CPW-HB-008",
+    "name": "Cymbal Young Scholars Higher Education Goal 2032 Fund",
+    "amc": "Cymbal Mutual Fund",
+    "category": "Hybrid",
+    "sub_category": "Children Education Goal",
+    "nav": 36.9,
+    "cagr_1y": 17.8,
+    "cagr_3y": 14.9,
+    "cagr_5y": 13.9,
+    "risk_level": "High",
+    "ter": 0.65,
+    "aum_crores": 6400.0,
+    "fund_manager": "Aditi Verma",
+    "rating": 5,
+    "min_sip": 2500,
+    "min_lumpsum": 10000,
+    "top_holdings": [
+      "Large & Mid Equity (65%)",
+      "Target Maturity Debt (20%)",
+      "Gold Hedge (15%)"
+    ],
+    "tags": [
+      "Goal 2032",
+      "Education",
+      "Disciplined"
+    ],
+    "description": "Goal-locked solution customized to fund college tuition and overseas higher education expenses coming due in 2032."
+  }
+]

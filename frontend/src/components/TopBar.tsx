@@ -1,123 +1,291 @@
 import { useState } from "react";
-import { ShoppingBag, MapPin, CreditCard, ChevronDown, BadgeCheck, Package, ChevronRight } from "lucide-react";
-import { useStore } from "../store";
-import { sendSetGender } from "../ws";
-import { asset } from "../lib";
+import { Briefcase, ChevronDown, Moon, Sun } from "lucide-react";
+import { useStore } from "@/store";
+import { sendAction } from "@/ws";
+import { inr, inrCompact, inrParts } from "@/lib";
 import Logo from "./Logo";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
+
+/**
+ * Client identity header.
+ *
+ * The executive reads two things here and nothing else: who the client is,
+ * and what they are worth. The workspace switcher sits quietly in the middle;
+ * the theme control, the advisory basket and the full client file recede to
+ * the right or behind the client name. No accent is spent on this surface —
+ * the stamp belongs to the canvas below.
+ */
+
+const FALLBACK_GOALS = [
+	{ name: "Children's education", year: 2032, amount: 5000000 },
+	{ name: "Early retirement", year: 2042, amount: 50000000 },
+];
+
+const TABS: Array<{
+	id: "explorer" | "diagnostics" | "simulation";
+	label: string;
+}> = [
+	{ id: "explorer", label: "Instrument shortlist" },
+	{ id: "diagnostics", label: "Portfolio audit" },
+	{ id: "simulation", label: "Goal projection" },
+];
+
+const MANDATE_LABEL: Record<string, string> = {
+	awaiting_otp: "Awaiting OTP confirmation",
+	authorized: "e-NACH mandate authorised",
+	error: "Authorisation did not complete",
+};
 
 export default function TopBar() {
-  const { cart, filter, setFilter, set, profile, orders } = useStore();
-  const [profileOpen, setProfileOpen] = useState(false);
-  const lastOrder = orders && orders.length ? orders[0] : null;
-  const count = cart.items.reduce((n, i) => n + i.qty, 0);
-  const setGender = (g: "all" | "women" | "men") => {
-    setFilter({ gender: g, category: "all" }); // explicit "shopping for" — UI filter
-    sendSetGender(g);                            // tell the AI which section to show
-  };
-  const rs = profile?.recommended_sizes || {};
+	const {
+		basket,
+		totalSip,
+		activeTab,
+		set,
+		portfolio,
+		profile,
+		mandateStatus,
+		theme,
+		toggleTheme,
+	} = useStore();
+	const [clientFileOpen, setClientFileOpen] = useState(false);
 
-  return (
-    <header className="sticky top-0 z-50 glass border-b border-white/60">
-      <div className="mx-auto max-w-[1500px] px-4 sm:px-6 h-16 flex items-center gap-4">
-        <Logo />
+	const client = portfolio || profile;
 
-        <nav className="hidden md:flex items-center gap-1 ml-6">
-          {(["men", "women", "all"] as const).map((g) => (
-            <button key={g} onClick={() => setGender(g)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium capitalize transition
-                ${filter.gender === g ? "bg-brand-ink text-white" : "text-stone-500 hover:text-brand-ink hover:bg-brand-ink/5"}`}>
-              {g === "all" ? "All" : g === "men" ? "Men" : "Women"}
-            </button>
-          ))}
-        </nav>
+	const clientName = client?.name || "Rahul Sharma";
+	const occupation = client?.occupation || "Engineering director";
+	const city = client?.city || "Bengaluru";
+	const riskProfile = client?.risk_profile || "Moderately aggressive";
+	const aum = client?.total_aum_inr ?? 7500000;
+	const monthlySurplus = client?.monthly_surplus_inr ?? 150000;
+	const activeSip = client?.active_sip_inr ?? 60000;
+	const unallocated = Math.max(monthlySurplus - activeSip, 0);
 
-        <div className="ml-auto flex items-center gap-2">
-          <button onClick={() => set({ cartOpen: true })}
-            className="relative grid place-items-center h-10 w-10 rounded-full bg-white/70 border border-brand-ink/10 text-brand-ink/80 hover:text-brand-ink transition" aria-label="Open cart">
-            <ShoppingBag size={18} />
-            {count > 0 && (
-              <span className="absolute -top-1 -right-1 grid place-items-center h-5 min-w-5 px-1 rounded-full bg-brand-gradient text-white text-[10px] font-bold animate-scale-in">
-                {count}
-              </span>
-            )}
-          </button>
+	const aumFigure = inrParts(aum);
+	const goals = client?.goals?.length
+		? client.goals.map((g) => ({
+				name: g.name,
+				year: g.target_year,
+				amount: g.target_amount_inr,
+			}))
+		: FALLBACK_GOALS;
 
-          {/* logged-in user profile */}
-          {profile && (
-            <div className="relative">
-              <button onClick={() => setProfileOpen((v) => !v)}
-                className="flex items-center gap-2 h-10 pl-1 pr-2 rounded-full bg-white/70 border border-brand-ink/10 hover:border-brand-purple/40 transition"
-                aria-label="Your profile">
-                <img src={asset(profile.base_photo)} alt={profile.name}
-                  className="h-8 w-8 rounded-full object-cover object-top bg-stone-100" />
-                <span className="hidden sm:block text-sm font-semibold text-brand-ink max-w-[120px] truncate">
-                  {profile.name?.split(" ")[0]}
-                </span>
-                <ChevronDown size={14} className={`text-stone-400 transition ${profileOpen ? "rotate-180" : ""}`} />
-              </button>
+	const openTab = (id: (typeof TABS)[number]["id"]) => {
+		if (id === "explorer") {
+			set({ activeTab: "explorer" });
+			return;
+		}
+		if (id === "diagnostics") {
+			set({ activeTab: "diagnostics", diagnosticsOpen: true });
+			sendAction("get_portfolio_diagnostics");
+			return;
+		}
+		set({ activeTab: "simulation", simulationOpen: true });
+		sendAction("simulate_portfolio", {
+			equity_pct: 65,
+			debt_pct: 20,
+			gold_pct: 10,
+			liquid_pct: 5,
+			monthly_sip_inr: 100000,
+		});
+	};
 
-              {profileOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
-                  <div className="absolute right-0 mt-2 w-72 z-50 rounded-2xl bg-white border border-stone-200 shadow-lift p-4 animate-fade-up">
-                    <div className="flex items-center gap-3">
-                      <img src={asset(profile.base_photo)} alt={profile.name}
-                        className="h-12 w-12 rounded-full object-cover object-top bg-stone-100" />
-                      <div className="min-w-0">
-                        <p className="font-bold text-brand-ink leading-tight flex items-center gap-1">
-                          {profile.name} <BadgeCheck size={14} className="text-brand-purple" />
-                        </p>
-                        <p className="text-xs text-stone-500">Cymbal Direct member · {profile.city}</p>
-                      </div>
-                    </div>
+	return (
+		<header className="sticky top-0 z-40 border-b border-rule bg-paper">
+			<div className="mx-auto flex h-18 max-w-[1700px] items-center gap-6 px-gutter">
+				{/* House mark */}
+				<Logo />
 
-                    {profile.address && (
-                      <div className="mt-3 flex items-start gap-2 text-xs text-stone-600">
-                        <MapPin size={14} className="text-brand-purple mt-0.5 shrink-0" />
-                        <p className="leading-snug">
-                          {profile.address.line1}, {profile.address.line2}<br />
-                          {profile.address.city}, {profile.address.state} {profile.address.pincode}
-                        </p>
-                      </div>
-                    )}
-                    {profile.payment && (
-                      <div className="mt-2 flex items-center gap-2 text-xs text-stone-600">
-                        <CreditCard size={14} className="text-brand-purple shrink-0" />
-                        <p>{profile.payment.type} ending {profile.payment.last4}</p>
-                      </div>
-                    )}
+				<div className="hidden h-10 border-l border-rule lg:block" />
 
-                    {(rs.dresses || rs.bottoms || rs.footwear) && (
-                      <div className="mt-3 pt-3 border-t border-stone-100">
-                        <p className="text-[11px] font-semibold text-stone-400 uppercase tracking-wide mb-1.5">Your sizes</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {rs.dresses && <span className="chip bg-stone-100 text-stone-600">Tops {rs.dresses}</span>}
-                          {rs.bottoms && <span className="chip bg-stone-100 text-stone-600">Bottoms {rs.bottoms}</span>}
-                          {rs.footwear && <span className="chip bg-stone-100 text-stone-600">Shoes {rs.footwear}</span>}
-                        </div>
-                      </div>
-                    )}
+				{/* Client identity — name and portfolio value, the two facts
+				    the room needs. The whole block opens the client file. */}
+				<Popover open={clientFileOpen} onOpenChange={setClientFileOpen}>
+					<PopoverTrigger asChild>
+						<button
+							type="button"
+							className="-mx-2 flex items-center gap-5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-paper-sunken"
+							aria-label="Open client file"
+						>
+							<div className="min-w-0">
+								<p className="label">Client under advisory</p>
+								<p className="mt-1 truncate text-lg font-semibold leading-none text-ink-strong">
+									{clientName}
+								</p>
+							</div>
 
-                    {/* My Orders */}
-                    <button
-                      onClick={() => { setProfileOpen(false); set({ ordersOpen: true }); }}
-                      className="mt-3 w-full flex items-center gap-2 rounded-xl border border-stone-200 p-2.5 hover:border-brand-purple/40 transition text-left">
-                      <Package size={15} className="text-brand-purple shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-brand-ink">My Orders</p>
-                        <p className="text-[11px] text-stone-500 truncate">
-                          {lastOrder ? `Last: ${lastOrder.order_id} · ${lastOrder.items?.length || 0} item(s)` : "No orders yet"}
-                        </p>
-                      </div>
-                      <ChevronRight size={15} className="text-stone-400 shrink-0" />
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </header>
-  );
+							<div className="hidden border-l border-rule pl-5 sm:block">
+								<p className="label">Portfolio value</p>
+								<p className="mt-0.5 flex items-baseline gap-1.5 leading-none">
+									<span className="figure text-ink-strong">
+										{aumFigure.value}
+									</span>
+									{aumFigure.unit && (
+										<span className="figure-unit">{aumFigure.unit}</span>
+									)}
+								</p>
+							</div>
+
+							<ChevronDown
+								className={`size-4 shrink-0 text-ink-faint transition-transform duration-200 ${
+									clientFileOpen ? "rotate-180" : ""
+								}`}
+							/>
+						</button>
+					</PopoverTrigger>
+
+					<PopoverContent
+						align="start"
+						sideOffset={10}
+						className="w-92 rounded-lg border-rule bg-paper-sheet p-0 text-ink shadow-raise"
+					>
+						<div className="px-5 pb-4 pt-5">
+							<p className="label">Client file</p>
+							<p className="doc-title mt-2 text-xl leading-tight text-ink-strong">
+								{clientName}
+							</p>
+							<p className="mt-2 text-xs text-ink-muted">
+								{occupation} · {city}
+								{client?.age ? ` · ${client.age}` : ""}
+							</p>
+						</div>
+
+						<div className="paper-sunken border-y border-rule px-5 py-1.5">
+							<dl className="text-xs">
+								<div className="flex items-baseline justify-between gap-6 py-2.5">
+									<dt className="text-ink-muted">Portfolio value</dt>
+									<dd className="tabular-nums font-semibold text-ink-strong">
+										{inr(aum)}
+									</dd>
+								</div>
+								<div className="flex items-baseline justify-between gap-6 py-2.5">
+									<dt className="text-ink-muted">Risk profile</dt>
+									<dd className="text-ink-strong">{riskProfile}</dd>
+								</div>
+								<div className="flex items-baseline justify-between gap-6 py-2.5">
+									<dt className="text-ink-muted">Monthly surplus</dt>
+									<dd className="tabular-nums text-ink-strong">
+										{inr(monthlySurplus)}
+										<span className="text-ink-faint"> /mo</span>
+									</dd>
+								</div>
+								<div className="flex items-baseline justify-between gap-6 py-2.5">
+									<dt className="text-ink-muted">Committed to SIPs</dt>
+									<dd className="tabular-nums text-ink-strong">
+										{inr(activeSip)}
+										<span className="text-ink-faint"> /mo</span>
+									</dd>
+								</div>
+								<div className="mark-attention my-1.5 flex items-baseline justify-between gap-6 py-1">
+									<dt className="text-ink">Unallocated surplus</dt>
+									<dd className="tabular-nums font-semibold text-ink-strong">
+										{inr(unallocated)}
+										<span className="text-ink-faint"> /mo</span>
+									</dd>
+								</div>
+							</dl>
+						</div>
+
+						<div className="px-5 py-4">
+							<p className="label-strong">Goals</p>
+							<div className="mt-3 space-y-2.5">
+								{goals.map((g) => (
+									<div
+										key={`${g.name}-${g.year}`}
+										className="flex items-baseline justify-between gap-6 text-xs"
+									>
+										<span className="text-ink-muted">{g.name}</span>
+										<span className="tabular-nums font-medium text-ink-strong">
+											{inrCompact(g.amount)}
+											<span className="font-normal text-ink-faint">
+												{" "}
+												· {g.year}
+											</span>
+										</span>
+									</div>
+								))}
+							</div>
+						</div>
+
+						{mandateStatus !== "idle" && (
+							<div className="border-t border-rule px-5 py-3.5">
+								<p className="label">Mandate</p>
+								<p className="mt-1.5 text-xs text-ink">
+									{MANDATE_LABEL[mandateStatus] || mandateStatus}
+								</p>
+							</div>
+						)}
+					</PopoverContent>
+				</Popover>
+
+				{/* Workspace switcher — one restrained segmented control */}
+				<nav
+					className="mx-auto hidden items-center gap-0.5 rounded-lg border border-rule bg-paper-sunken p-1 md:flex"
+					aria-label="Workspace"
+				>
+					{TABS.map((tab) => (
+						<button
+							key={tab.id}
+							type="button"
+							onClick={() => openTab(tab.id)}
+							aria-current={activeTab === tab.id ? "page" : undefined}
+							className={`rounded-lg px-3.5 py-1.5 text-xs transition-colors ${
+								activeTab === tab.id
+									? "bg-paper-sheet font-semibold text-ink-strong shadow-sheet"
+									: "font-medium text-ink-muted hover:text-ink"
+							}`}
+						>
+							{tab.label}
+						</button>
+					))}
+				</nav>
+
+				{/* Quiet controls */}
+				<div className="ml-auto flex items-center gap-2 md:ml-0">
+					<button
+						type="button"
+						onClick={toggleTheme}
+						className="grid size-9 place-items-center rounded-lg text-ink-faint transition-colors hover:bg-paper-sunken hover:text-ink"
+						title={theme === "dark" ? "Switch to light" : "Switch to dark"}
+						aria-label={theme === "dark" ? "Switch to light" : "Switch to dark"}
+					>
+						{theme === "dark" ? (
+							<Sun className="size-4" />
+						) : (
+							<Moon className="size-4" />
+						)}
+					</button>
+
+					<button
+						type="button"
+						onClick={() => {
+							set({ basketOpen: true });
+							sendAction("view_basket");
+						}}
+						className="paper-interactive flex h-9 items-center gap-2.5 px-3 text-xs font-medium text-ink"
+						aria-label="Open advisory basket"
+						title={
+							basket.length
+								? `Advisory basket — ${basket.length} instrument${
+										basket.length === 1 ? "" : "s"
+									}, ${inr(totalSip)} monthly`
+								: "Advisory basket"
+						}
+					>
+						<Briefcase className="size-4 text-ink-muted" />
+						<span className="hidden md:inline">Basket</span>
+						{basket.length > 0 && (
+							<span className="border-l border-rule pl-2.5 font-semibold tabular-nums text-ink-strong">
+								{basket.length}
+							</span>
+						)}
+					</button>
+				</div>
+			</div>
+		</header>
+	);
 }
