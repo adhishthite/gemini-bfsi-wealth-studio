@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "@/store";
 import { sendAction } from "@/ws";
 import {
@@ -63,11 +63,33 @@ export default function SimulationDialog() {
 	const { simulationOpen, simulation, portfolio, profile, set } = useStore();
 	const activeClient = portfolio || profile;
 	const clientAum = activeClient?.total_aum_inr ?? 7500000;
-	const clientSip = activeClient?.monthly_surplus_inr ?? 100000;
+	const clientSip =
+		simulation?.monthly_sip_inr ??
+		activeClient?.active_sip_inr ??
+		activeClient?.monthly_surplus_inr ??
+		100000;
 
-	const [activeScenario, setActiveScenario] = useState("baseline");
-	const [eqPct, setEqPct] = useState(65);
+	const [activeScenario, setActiveScenario] = useState(
+		simulation?.scenario ?? "baseline",
+	);
+	const [eqPct, setEqPct] = useState(
+		simulation?.target_allocation?.equity ?? 65,
+	);
 	const [sipAmt, setSipAmt] = useState(clientSip);
+
+	useEffect(() => {
+		if (simulation) {
+			if (typeof simulation.monthly_sip_inr === "number") {
+				setSipAmt(simulation.monthly_sip_inr);
+			}
+			if (simulation.target_allocation?.equity) {
+				setEqPct(simulation.target_allocation.equity);
+			}
+			if (simulation.scenario) {
+				setActiveScenario(simulation.scenario);
+			}
+		}
+	}, [simulation]);
 
 	const defaultFinalCorpus = Math.round(
 		clientAum * Math.pow(1.128, 15) +

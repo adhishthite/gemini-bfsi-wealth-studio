@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FileText } from "@phosphor-icons/react";
 import { useStore } from "@/store";
 import { sendAction } from "@/ws";
@@ -62,11 +62,33 @@ export default function SimulationView() {
 	const { simulation, portfolio, profile } = useStore();
 	const activeClient = portfolio || profile;
 	const clientAum = activeClient?.total_aum_inr ?? 7500000;
-	const clientSip = activeClient?.monthly_surplus_inr ?? 100000;
+	const clientSip =
+		simulation?.monthly_sip_inr ??
+		activeClient?.active_sip_inr ??
+		activeClient?.monthly_surplus_inr ??
+		100000;
 
-	const [activeScenario, setActiveScenario] = useState("baseline");
-	const [eqPct, setEqPct] = useState(65);
+	const [activeScenario, setActiveScenario] = useState(
+		simulation?.scenario ?? "baseline",
+	);
+	const [eqPct, setEqPct] = useState(
+		simulation?.target_allocation?.equity ?? 65,
+	);
 	const [sipAmt, setSipAmt] = useState(clientSip);
+
+	useEffect(() => {
+		if (simulation) {
+			if (typeof simulation.monthly_sip_inr === "number") {
+				setSipAmt(simulation.monthly_sip_inr);
+			}
+			if (simulation.target_allocation?.equity) {
+				setEqPct(simulation.target_allocation.equity);
+			}
+			if (simulation.scenario) {
+				setActiveScenario(simulation.scenario);
+			}
+		}
+	}, [simulation]);
 
 	const defaultFinalCorpus = Math.round(
 		clientAum * Math.pow(1.128, 15) +
@@ -220,7 +242,7 @@ export default function SimulationView() {
 								{surplus >= 0 ? "+" : "-"}
 								{inrCompact(Math.abs(surplus))} against the{" "}
 								{inrCompact(mandateTarget)} retirement mandate, on a monthly
-								commitment of {rupee(sipAmt)}.
+								commitment of {rupee(currentSim.monthly_sip_inr ?? sipAmt)}.
 							</p>
 						</div>
 
@@ -236,7 +258,9 @@ export default function SimulationView() {
 							</div>
 							<div>
 								<p className="label">Monthly commitment</p>
-								<p className="figure mt-1.5">{rupee(sipAmt)}</p>
+								<p className="figure mt-1.5">
+									{rupee(currentSim.monthly_sip_inr ?? sipAmt)}
+								</p>
 							</div>
 						</div>
 					</div>
@@ -514,17 +538,22 @@ export default function SimulationView() {
 								<span className="figure-sm tabular-nums">{rupee(sipAmt)}</span>
 							</div>
 							<Slider
-								min={50000}
-								max={150000}
-								step={10000}
+								min={25000}
+								max={Math.max(
+									activeClient?.monthly_surplus_inr || 150000,
+									sipAmt,
+									150000,
+								)}
+								step={5000}
 								value={[sipAmt]}
 								onValueChange={(val) => setSipAmt(val[0])}
 								onValueCommit={(val) => handleRecalculate(eqPct, val[0])}
 								className="py-1"
 							/>
 							<p className="text-sm text-ink-muted">
-								The idle {rupee(90000)} surplus plus the {rupee(60000)} already
-								running
+								{activeClient?.active_sip_inr
+									? `Current ${rupee(activeClient.active_sip_inr)} active SIP + unallocated surplus`
+									: `Monthly investment allocation`}
 							</p>
 						</div>
 					</div>

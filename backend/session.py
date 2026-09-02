@@ -436,11 +436,15 @@ class WealthSession:
         db = debt_pct if debt_pct is not None else 20.0
         gd = gold_pct if gold_pct is not None else 10.0
         lq = liquid_pct if liquid_pct is not None else 5.0
-        sip = (
-            monthly_sip_inr
-            if monthly_sip_inr is not None
-            else self.portfolio.get("monthly_surplus_inr", 100000)
-        )
+        if monthly_sip_inr is not None:
+            sip = int(monthly_sip_inr)
+        else:
+            basket_sip = sum(int(b.get("monthly_sip_inr", 0) or 0) for b in self.basket)
+            active_sip = int(self.portfolio.get("active_sip_inr", 0) or 0)
+            if basket_sip > 0:
+                sip = active_sip + basket_sip
+            else:
+                sip = int(self.portfolio.get("monthly_surplus_inr", 100000))
 
         # Scenario return assumptions
         scenario_returns = {
@@ -568,7 +572,7 @@ class WealthSession:
             "horizon_years": horizon_years,
             "projected_final_corpus_inr": final_corpus,
             "goals_feasibility": goals_feasibility,
-            "trajectory": corpus_trajectory[:10],
+            "trajectory": corpus_trajectory,
         }
 
         self.queue("update_simulation", simulation=simulation_result)
