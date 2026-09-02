@@ -71,7 +71,13 @@ URL=$(gcloud run services describe "$SERVICE" \
   --region "$REGION" \
   --format="value(status.url)")
 
-# Ensure invoker access for authenticated account domain
+# Ensure invoker access for public access and authenticated account domain
+gcloud run services add-iam-policy-binding "$SERVICE" \
+  --project "$PROJECT" \
+  --region "$REGION" \
+  --member="allUsers" \
+  --role="roles/run.invoker" --quiet >/dev/null 2>&1 || true
+
 ACTIVE_ACCOUNT=$(gcloud config get-value account 2>/dev/null || echo "")
 ACCOUNT_DOMAIN="${ACTIVE_ACCOUNT#*@}"
 if [ -n "$ACCOUNT_DOMAIN" ]; then
