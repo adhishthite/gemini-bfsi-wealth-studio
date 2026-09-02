@@ -18,7 +18,7 @@ try:
     from dotenv import load_dotenv
 
     load_dotenv(Path(__file__).resolve().parent.parent / ".env")
-except Exception:  # python-dotenv optional; env vars still work
+except (ImportError, OSError):
     pass
 
 
@@ -43,7 +43,7 @@ def _detect_default_project() -> str:
         quota_proj = getattr(creds, "quota_project_id", None)
         if quota_proj:
             return quota_proj.strip()
-    except Exception:
+    except Exception:  # noqa: BLE001, S110
         pass
     try:
         import subprocess
@@ -53,23 +53,24 @@ def _detect_default_project() -> str:
             capture_output=True,
             text=True,
             timeout=2,
+            check=False,
         )
         if res.returncode == 0 and res.stdout.strip():
             val = res.stdout.strip()
             if val and val != "(unset)":
                 return val
-    except Exception:
+    except Exception:  # noqa: BLE001, S110
         pass
     return ""
 
 
 def _detect_default_location() -> str:
-    """Auto-detect default GCP region from env vars or fallback to us-central1."""
+    """Auto-detect default GCP region from env vars or fallback to asia-south1 (Mumbai)."""
     return (
         _env("GCP_LOCATION")
         or _env("GOOGLE_CLOUD_REGION")
         or _env("CLOUD_ML_REGION")
-        or "us-central1"
+        or "asia-south1"
     )
 
 

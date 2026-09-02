@@ -7,7 +7,7 @@ set -euo pipefail
 
 # 1. Project & Region Resolution
 PROJECT="${1:-$(gcloud config get-value project 2>/dev/null || echo "")}"
-REGION="${2:-us-central1}"
+REGION="${2:-asia-south1}"
 SERVICE="${3:-gemini-bfsi-wealth-studio}"
 
 if [ -z "$PROJECT" ]; then
