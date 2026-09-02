@@ -90,6 +90,7 @@ def _setup_msg(session: WealthSession, avatar: str = "") -> dict:
         "setup": {
             "model": model,
             "systemInstruction": {"parts": [{"text": sysi}]},
+            "tools": _raw_tools(),
             "generationConfig": {
                 "responseModalities": ["VIDEO"],
                 "speechConfig": {
