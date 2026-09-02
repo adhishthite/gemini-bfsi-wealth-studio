@@ -6,23 +6,93 @@
 set -euo pipefail
 
 # 1. Project & Region Resolution
-PROJECT="${1:-$(gcloud config get-value project 2>/dev/null || echo "")}"
-REGION="${2:-asia-south1}"
+if [ -f .env ]; then
+  echo "▶ Loading configuration from .env..."
+fi
+
+# Resolve environment variables from .env or environment
+ENV_VARS=$(python3 - <<'EOF'
+import os
+
+env_vars = {}
+if os.path.exists(".env"):
+    try:
+        from dotenv import dotenv_values
+        env_vars = dotenv_values(".env")
+    except Exception:
+        pass
+
+def val(k, d=""):
+    return os.environ.get(k) or env_vars.get(k) or d
+
+project = os.environ.get("PROJECT") or val("GCP_PROJECT")
+region = os.environ.get("REGION") or val("GCP_LOCATION", "asia-south1")
+transport = val("AVATAR_TRANSPORT", "fallback").lower()
+live_proj = val("LIVE_PROJECT", project if transport == "live" else "")
+live_loc = val("LIVE_LOCATION", "us-central1")
+live_model = val("LIVE_MODEL", "gemini-3.1-flash-live-preview-04-2026")
+avatar_name = val("AVATAR_NAME", "Kira")
+avatar_voice = val("AVATAR_VOICE", "Aoede")
+brain_loc = val("BRAIN_LOCATION", "global")
+brain_model = val("BRAIN_MODEL", "gemini-3.5-flash-lite")
+brain_proj = val("BRAIN_PROJECT", project)
+img_loc = val("IMAGE_LOCATION", "global")
+img_model = val("IMAGE_MODEL", "gemini-3-pro-image")
+img_proj = val("IMAGE_PROJECT", project)
+vto_model = val("VTO_MODEL", "gemini-3.1-flash-image")
+tts_voice = val("FALLBACK_TTS_VOICE", "en-IN-Journey-F")
+
+cfg = {
+    "GCP_PROJECT": project,
+    "GCP_LOCATION": region,
+    "BRAIN_PROJECT": brain_proj,
+    "BRAIN_LOCATION": brain_loc,
+    "BRAIN_MODEL": brain_model,
+    "IMAGE_PROJECT": img_proj,
+    "IMAGE_LOCATION": img_loc,
+    "IMAGE_MODEL": img_model,
+    "VTO_MODEL": vto_model,
+    "AVATAR_TRANSPORT": transport,
+    "LIVE_PROJECT": live_proj,
+    "LIVE_LOCATION": live_loc,
+    "LIVE_MODEL": live_model,
+    "AVATAR_NAME": avatar_name,
+    "AVATAR_VOICE": avatar_voice,
+    "FALLBACK_TTS_VOICE": tts_voice,
+}
+print(",".join(f"{k}={v}" for k, v in cfg.items() if v))
+EOF
+)
+
+PROJECT="${1:-$(echo "$ENV_VARS" | tr ',' '\n' | grep '^GCP_PROJECT=' | cut -d= -f2 || echo "")}"
+if [ -z "$PROJECT" ]; then
+  PROJECT="$(gcloud config get-value project 2>/dev/null || echo "")"
+fi
+REGION="${2:-$(echo "$ENV_VARS" | tr ',' '\n' | grep '^GCP_LOCATION=' | cut -d= -f2 || echo "asia-south1")}"
 SERVICE="${3:-gemini-bfsi-wealth-studio}"
 
 if [ -z "$PROJECT" ]; then
-  echo "❌ ERROR: No GCP project specified or found in active gcloud config."
+  echo "❌ ERROR: No GCP project specified or found in active gcloud config or .env."
   echo "Usage: ./deploy.sh [PROJECT_ID] [REGION] [SERVICE_NAME]"
   exit 1
 fi
 
+AVATAR_MODE=$(echo "$ENV_VARS" | tr ',' '\n' | grep '^AVATAR_TRANSPORT=' | cut -d= -f2 || echo "fallback")
+LIVE_PROJ_VAL=$(echo "$ENV_VARS" | tr ',' '\n' | grep '^LIVE_PROJECT=' | cut -d= -f2 || echo "")
+LIVE_MODEL_VAL=$(echo "$ENV_VARS" | tr ',' '\n' | grep '^LIVE_MODEL=' | cut -d= -f2 || echo "")
+
 echo "================================================================================"
 echo "✦ DEPLOYING CYMBAL PREMIER WEALTH STUDIO TO GOOGLE CLOUD RUN"
 echo "================================================================================"
-echo "  • GCP Project  : $PROJECT"
-echo "  • Cloud Region : $REGION"
-echo "  • Service Name : $SERVICE"
-echo "  • Source Dir   : $(pwd)"
+echo "  • GCP Project      : $PROJECT"
+echo "  • Cloud Region     : $REGION"
+echo "  • Service Name     : $SERVICE"
+echo "  • Avatar Transport : $AVATAR_MODE"
+if [ "$AVATAR_MODE" = "live" ]; then
+  echo "    ↳ Live Project   : $LIVE_PROJ_VAL"
+  echo "    ↳ Live Model     : $LIVE_MODEL_VAL"
+fi
+echo "  • Source Dir       : $(pwd)"
 echo "================================================================================"
 
 # 2. Verify required GCP APIs are enabled
@@ -62,7 +132,7 @@ gcloud run deploy "$SERVICE" \
   --min-instances 0 \
   --max-instances 10 \
   --quiet \
-  --set-env-vars "GCP_PROJECT=${PROJECT},GCP_LOCATION=${REGION},BRAIN_LOCATION=global,BRAIN_MODEL=gemini-3.5-flash-lite,IMAGE_LOCATION=global,IMAGE_MODEL=gemini-3-pro-image,VTO_MODEL=gemini-3.1-flash-image,AVATAR_TRANSPORT=fallback,FALLBACK_TTS_VOICE=en-IN-Journey-F"
+  --set-env-vars "$ENV_VARS"
 
 # 5. Fetch Deployed URL & Smoke Test
 echo "▶ [4/4] Validating deployment..."

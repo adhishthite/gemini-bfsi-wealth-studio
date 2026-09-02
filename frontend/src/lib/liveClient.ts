@@ -144,6 +144,28 @@ export class LiveAvatar {
 			handleUiCommand(msg.command, msg.args);
 			return;
 		}
+		if (
+			msg.type === "filter_catalog" ||
+			msg.type === "highlight_products" ||
+			msg.type === "show_portfolio_diagnostics" ||
+			msg.type === "update_simulation" ||
+			msg.type === "update_basket" ||
+			msg.type === "open_modal" ||
+			msg.type === "proposal_ready" ||
+			msg.type === "mandate_executed"
+		) {
+			handleUiCommand(msg.type, msg);
+			return;
+		}
+		if (msg.type === "profile_switched") {
+			store.set({
+				profile: msg.profile,
+				portfolio: msg.portfolio || msg.profile,
+				activeProfileKey: msg.profile_key,
+				basket: msg.basket || [],
+			});
+			return;
+		}
 		const sc = msg.serverContent;
 		if (sc?.interrupted) {
 			this.stopPlayback();

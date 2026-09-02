@@ -171,12 +171,14 @@ async def run_live(browser_ws, session: WealthSession, send, avatar: str = ""):
 
         async def gemini_to_browser():
             input_buf = ""
+            tool_called = False
             try:
                 async for raw in gem:
                     text = raw if isinstance(raw, str) else raw.decode()
                     msg = json.loads(text)
                     tc = msg.get("toolCall")
                     if tc and tc.get("functionCalls"):
+                        tool_called = True
                         print(f"[live] ⚙ toolCall RAW: {json.dumps(tc)[:400]}")
                         responses = []
                         for fc in tc["functionCalls"]:
@@ -191,6 +193,7 @@ async def run_live(browser_ws, session: WealthSession, send, avatar: str = ""):
                             except Exception as e:
                                 result = {"error": str(e)[:200]}
                             for cmd in session.drain():
+                                print(f"[live] 📤 emitting UI command to client: {cmd.get('type')}")
                                 await send(cmd)
                             resp = {
                                 "name": name,
@@ -214,11 +217,19 @@ async def run_live(browser_ws, session: WealthSession, send, avatar: str = ""):
                         input_buf = ""
                         if heard:
                             print(f"[live] 🗣 heard: {heard[:120]!r}")
-                            try:
-                                english = await brain.to_english(heard)
-                                print(f"[live] 🌐 normalized intent: {english[:90]!r}")
-                            except Exception as e:
-                                print(f"[live] intent error: {e!r}")
+                            if not tool_called:
+                                try:
+                                    english = await brain.to_english(heard)
+                                    print(f"[live] 🌐 fallback intent analysis: {english[:90]!r}")
+                                    res = await brain.chat(english)
+                                    for cmd in res.get("ui_commands", []):
+                                        print(f"[live] 📤 fallback UI command: {cmd.get('type')}")
+                                        await send(cmd)
+                                    for cmd in session.drain():
+                                        await send(cmd)
+                                except Exception as e:
+                                    print(f"[live] fallback intent error: {e!r}")
+                        tool_called = False
 
                     await browser_ws.send_text(text)
             except Exception as e:

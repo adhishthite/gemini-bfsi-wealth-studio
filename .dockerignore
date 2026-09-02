@@ -9,7 +9,6 @@ frontend/dist
 __pycache__
 **/*.pyc
 **/*.pyo
-.env
 *.log
 .scratch
 .gemini

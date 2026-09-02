@@ -108,6 +108,13 @@ export default function AdvisorDock() {
 
 	const startLive = async () => {
 		if (!canvasRef.current || live.active) return;
+		if (!live.available) {
+			pushToast(
+				"Live Avatar is not configured. Set AVATAR_TRANSPORT=live and an entitled LIVE_PROJECT.",
+				"warning",
+			);
+			return;
+		}
 		set({ voiceOn: false });
 		liveRef.current = new LiveAvatar(canvasRef.current);
 		try {
@@ -454,8 +461,16 @@ export default function AdvisorDock() {
 						{/* The single accent on this screen: the moment the demo turns on. */}
 						<Button
 							onClick={startLive}
-							title="Start the live video advisor"
-							className="ml-1.5 h-9 gap-2 rounded-lg bg-stamp px-4 text-xs font-semibold text-stamp-foreground shadow-none hover:bg-stamp-strong"
+							title={
+								live.available
+									? "Start the live video advisor"
+									: "Live Avatar is offline (AVATAR_TRANSPORT=fallback)"
+							}
+							className={`ml-1.5 h-9 gap-2 rounded-lg px-4 text-xs font-semibold shadow-none transition-colors ${
+								live.available
+									? "bg-stamp text-stamp-foreground hover:bg-stamp-strong"
+									: "bg-paper-sunken text-ink-muted hover:bg-paper-edge hover:text-ink-strong"
+							}`}
 						>
 							<Video className="size-4" />
 							<span>Go live</span>

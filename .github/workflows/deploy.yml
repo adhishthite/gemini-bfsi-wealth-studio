@@ -45,7 +45,7 @@ jobs:
             --min-instances 0 \
             --max-instances 10 \
             --quiet \
-            --set-env-vars "GCP_PROJECT=$PROJECT_ID,GCP_LOCATION=$REGION,BRAIN_LOCATION=global,BRAIN_MODEL=gemini-3.5-flash-lite,IMAGE_LOCATION=global,IMAGE_MODEL=gemini-3-pro-image,VTO_MODEL=gemini-3.1-flash-image,AVATAR_TRANSPORT=fallback,FALLBACK_TTS_VOICE=en-IN-Journey-F"
+            --set-env-vars "GCP_PROJECT=$PROJECT_ID,GCP_LOCATION=$REGION,BRAIN_LOCATION=global,BRAIN_MODEL=gemini-3.5-flash-lite,IMAGE_LOCATION=global,IMAGE_MODEL=gemini-3-pro-image,VTO_MODEL=gemini-3.1-flash-image,AVATAR_TRANSPORT=live,LIVE_PROJECT=$PROJECT_ID,LIVE_LOCATION=us-central1,LIVE_MODEL=gemini-3.1-flash-live-preview-04-2026,AVATAR_NAME=Kira,AVATAR_VOICE=Aoede,FALLBACK_TTS_VOICE=en-IN-Journey-F"
 
       - name: Show Service URL
         run: |
