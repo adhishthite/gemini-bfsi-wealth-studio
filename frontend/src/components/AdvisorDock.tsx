@@ -183,7 +183,9 @@ export default function AdvisorDock() {
 
 			mr.onstop = async () => {
 				stream.getTracks().forEach((track) => track.stop());
-				const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+				const chunks = [...audioChunksRef.current];
+				audioChunksRef.current = [];
+				const audioBlob = new Blob(chunks, { type: mimeType });
 				if (audioBlob.size > 0) {
 					setIsTranscribing(true);
 					try {
@@ -196,6 +198,7 @@ export default function AdvisorDock() {
 							const data = await res.json();
 							const recognized = data.text?.trim();
 							if (recognized) {
+								setText("");
 								sendUserText(recognized);
 							} else {
 								pushToast("No speech recognized. Please try again.", "warning");

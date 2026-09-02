@@ -191,16 +191,32 @@ function handle(msg: any) {
 	}
 }
 
+let lastSentUserText = "";
+let lastSentUserTime = 0;
+
 export function sendUserText(text: string) {
+	const trimmed = text.trim();
+	if (!trimmed) return;
+	const now = Date.now();
+	if (trimmed === lastSentUserText && now - lastSentUserTime < 1200) {
+		return;
+	}
+	lastSentUserText = trimmed;
+	lastSentUserTime = now;
+
 	const s = useStore.getState();
-	s.pushChat({ role: "user", text });
+	s.pushChat({ role: "user", text: trimmed });
 	s.set({
 		thinking: true,
 		currentStep: "Consulting Fiduciary Brain...",
 		streamingText: null,
 	});
 	ws?.send(
-		JSON.stringify({ type: "user_text", text, avatar: s.selectedAvatar }),
+		JSON.stringify({
+			type: "user_text",
+			text: trimmed,
+			avatar: s.selectedAvatar,
+		}),
 	);
 }
 

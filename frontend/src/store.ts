@@ -183,7 +183,20 @@ export const useStore = create<Store>((set, get) => ({
 
 	set: (p) => set(p),
 	setFilter: (p) => set((s) => ({ filter: { ...s.filter, ...p } })),
-	pushChat: (m) => set((s) => ({ chat: [...s.chat, { ...m, id: nid() }] })),
+	pushChat: (m) =>
+		set((s) => {
+			const last = s.chat[s.chat.length - 1];
+			const now = Date.now();
+			if (
+				last &&
+				last.role === m.role &&
+				last.text.trim() === m.text.trim() &&
+				now - (last.timestamp || 0) < 1500
+			) {
+				return s;
+			}
+			return { chat: [...s.chat, { ...m, id: nid(), timestamp: now }] };
+		}),
 	pushToast: (text, type = "error") => {
 		if (type === "warning") toast.warning(text);
 		else toast.error(text);

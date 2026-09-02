@@ -149,6 +149,7 @@ export type ChatMsg = {
 	role: "user" | "assistant";
 	text: string;
 	audio?: string;
+	timestamp?: number;
 };
 
 export type ServerMsg =
