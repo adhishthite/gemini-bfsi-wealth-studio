@@ -146,13 +146,21 @@ The Gemini 3.1 Live Avatar is implemented via a bidirectional WebSocket proxy (`
 
 ## Deployment to Google Cloud Run
 
-Deploy as a containerized serverless workload on Cloud Run:
+The studio builds into a unified multi-stage container image (React SPA + FastAPI backend + pre-compiled funds catalog) and deploys directly to Google Cloud Run:
 
 ```bash
-./deploy.sh <YOUR_GCP_PROJECT> us-central1
+# Automated 1-click deployment via Makefile (auto-detects active gcloud project):
+make deploy
+
+# Or deploy with custom project/region:
+./deploy.sh <YOUR_GCP_PROJECT> us-central1 gemini-bfsi-wealth-studio
 ```
 
-The service runs under a dedicated Cloud Run Service Account with the `roles/aiplatform.user` IAM role.
+### Cloud Run Architecture Highlights
+- **Unified Container**: Multi-stage Docker build compiles the Vite/React frontend with Bun, embeds static assets, and packages the Python 3.12 FastAPI backend.
+- **WebSocket Streaming**: Configured with `--timeout 3600` and `--concurrency 80` to support real-time bidirectional WebSocket sessions for conversational advisory and Live Avatar video.
+- **Zero-Key Security**: Uses Cloud Run's attached Compute Service Account with `roles/aiplatform.user` for Vertex AI and Text-to-Speech authentication.
+- **Scale-to-Zero Serverless**: Set with `--min-instances 0` and `--max-instances 10` for cost optimization.
 
 ---
 

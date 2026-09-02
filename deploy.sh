@@ -1,26 +1,84 @@
 #!/usr/bin/env bash
-# Deploy Cymbal Direct — Style Studio to Cloud Run.
-# Usage: ./deploy.sh [PROJECT] [REGION]
+# ==============================================================================
+# Deploy Cymbal Premier — Private Wealth Studio to Google Cloud Run
+# Usage: ./deploy.sh [PROJECT_ID] [REGION] [SERVICE_NAME]
+# ==============================================================================
 set -euo pipefail
 
-PROJECT="${1:-$(gcloud config get-value project 2>/dev/null)}"
+# 1. Project & Region Resolution
+PROJECT="${1:-$(gcloud config get-value project 2>/dev/null || echo "")}"
 REGION="${2:-us-central1}"
-SERVICE="cymbal-direct-stylist"
+SERVICE="${3:-gemini-bfsi-wealth-studio}"
 
-echo "▶ Deploying $SERVICE to project=$PROJECT region=$REGION"
+if [ -z "$PROJECT" ]; then
+  echo "❌ ERROR: No GCP project specified or found in active gcloud config."
+  echo "Usage: ./deploy.sh [PROJECT_ID] [REGION] [SERVICE_NAME]"
+  exit 1
+fi
 
+echo "================================================================================"
+echo "✦ DEPLOYING CYMBAL PREMIER WEALTH STUDIO TO GOOGLE CLOUD RUN"
+echo "================================================================================"
+echo "  • GCP Project  : $PROJECT"
+echo "  • Cloud Region : $REGION"
+echo "  • Service Name : $SERVICE"
+echo "  • Source Dir   : $(pwd)"
+echo "================================================================================"
+
+# 2. Verify required GCP APIs are enabled
+echo "▶ [1/4] Verifying required GCP APIs..."
+gcloud services enable \
+  run.googleapis.com \
+  cloudbuild.googleapis.com \
+  artifactregistry.googleapis.com \
+  aiplatform.googleapis.com \
+  texttospeech.googleapis.com \
+  --project "$PROJECT"
+
+# 3. Resolve Project Number for Compute Service Account IAM
+echo "▶ [2/4] Verifying Service Account IAM permissions..."
+PROJECT_NUM=$(gcloud projects describe "$PROJECT" --format="value(projectNumber)" 2>/dev/null || echo "")
+if [ -n "$PROJECT_NUM" ]; then
+  SA_EMAIL="${PROJECT_NUM}-compute@developer.gserviceaccount.com"
+  echo "  • Default Service Account: $SA_EMAIL"
+  gcloud projects add-iam-policy-binding "$PROJECT" \
+    --member="serviceAccount:${SA_EMAIL}" \
+    --role="roles/aiplatform.user" \
+    --condition=None --quiet >/dev/null 2>&1 || true
+fi
+
+# 4. Deploy Unified Container to Cloud Run (Builds via Dockerfile on Cloud Build)
+echo "▶ [3/4] Building container and deploying to Cloud Run..."
 gcloud run deploy "$SERVICE" \
   --source . \
   --project "$PROJECT" \
   --region "$REGION" \
+  --platform managed \
   --allow-unauthenticated \
-  --memory 1Gi \
-  --cpu 1 \
-  --timeout 300 \
-  --concurrency 20 \
-  --set-env-vars "AVATAR_TRANSPORT=live,LIVE_PROJECT=${LIVE_PROJECT:-$PROJECT},LIVE_LOCATION=us-central1,GCP_PROJECT=${PROJECT},GCP_LOCATION=us-central1,IMAGE_LOCATION=global,BRAIN_LOCATION=global,BRAIN_MODEL=gemini-3.5-flash-lite,VTO_MODEL=gemini-3.1-flash-image,IMAGE_MODEL=gemini-3-pro-image"
+  --memory 2Gi \
+  --cpu 2 \
+  --timeout 3600 \
+  --concurrency 80 \
+  --min-instances 0 \
+  --max-instances 10 \
+  --set-env-vars "GCP_PROJECT=${PROJECT},GCP_LOCATION=${REGION},BRAIN_LOCATION=global,BRAIN_MODEL=gemini-3.5-flash-lite,IMAGE_LOCATION=global,IMAGE_MODEL=gemini-3-pro-image,VTO_MODEL=gemini-3.1-flash-image,AVATAR_TRANSPORT=fallback,FALLBACK_TTS_VOICE=en-IN-Journey-F,PORT=8080"
 
-URL=$(gcloud run services list --project "$PROJECT" \
-  --filter="metadata.name=${SERVICE}" --format="value(status.url)")
-echo "✅ Deployed: $URL"
-echo "   Smoke test:  curl -s ${URL}/api/config"
+# 5. Fetch Deployed URL & Smoke Test
+echo "▶ [4/4] Validating deployment..."
+URL=$(gcloud run services describe "$SERVICE" \
+  --project "$PROJECT" \
+  --region "$REGION" \
+  --format="value(status.url)")
+
+echo ""
+echo "================================================================================"
+echo "🎉 DEPLOYMENT SUCCESSFUL!"
+echo "================================================================================"
+echo "  • Live Web App URL : $URL"
+echo "  • API Healthcheck  : ${URL}/api/config"
+echo "  • WebSocket Route  : wss://${URL#https://}/ws"
+echo "================================================================================"
+echo ""
+echo "Smoke test response from live endpoint:"
+curl -s "${URL}/api/config" || true
+echo ""

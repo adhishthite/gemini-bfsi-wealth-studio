@@ -14,7 +14,8 @@ BUN := bun
         format format-backend format-frontend \
         lint lint-backend lint-frontend \
         test test-backend test-frontend \
-        check clean clean-backend clean-frontend
+        check clean clean-backend clean-frontend \
+        deploy
 
 # Default target
 help:
@@ -140,3 +141,9 @@ clean-backend:
 
 clean-frontend:
 	@$(MAKE) -C frontend clean
+
+# ==============================================================================
+# 8. Deployment (Google Cloud Run)
+# ==============================================================================
+deploy:
+	@./deploy.sh
