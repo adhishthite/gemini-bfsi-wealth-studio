@@ -75,7 +75,16 @@ type Store = {
 	set: (p: Partial<Store>) => void;
 	setFilter: (p: Partial<Store["filter"]>) => void;
 	pushChat: (m: Omit<ChatMsg, "id">) => void;
-	pushToast: (text: string, type?: "info" | "success" | "warning" | "error") => void;
+	/**
+	 * Failures only — warnings and errors.
+	 *
+	 * "info" and "success" are deliberately NOT in this union. The UI already
+	 * shows what succeeded: the catalog visibly filters, the basket visibly
+	 * updates, the projection visibly redraws. Narrating that again in the
+	 * corner was noise, and it landed on top of the advisor dock during a
+	 * live conversation. Narrowing the type is what keeps it from coming back.
+	 */
+	pushToast: (text: string, type?: "warning" | "error") => void;
 	addToBasket: (item: BasketItem) => void;
 	removeFromBasket: (productId: string) => void;
 };
@@ -164,21 +173,9 @@ export const useStore = create<Store>((set, get) => ({
 	set: (p) => set(p),
 	setFilter: (p) => set((s) => ({ filter: { ...s.filter, ...p } })),
 	pushChat: (m) => set((s) => ({ chat: [...s.chat, { ...m, id: nid() }] })),
-	pushToast: (text, type = "info") => {
-		switch (type) {
-			case "success":
-				toast.success(text);
-				break;
-			case "warning":
-				toast.warning(text);
-				break;
-			case "error":
-				toast.error(text);
-				break;
-			default:
-				toast.info(text);
-				break;
-		}
+	pushToast: (text, type = "error") => {
+		if (type === "warning") toast.warning(text);
+		else toast.error(text);
 	},
 
 	addToBasket: (item) =>

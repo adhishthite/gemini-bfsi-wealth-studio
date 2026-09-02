@@ -59,7 +59,7 @@ const PAD_T = 44;
 const PAD_B = 44;
 
 export default function SimulationView() {
-	const { simulation, pushToast } = useStore();
+	const { simulation } = useStore();
 
 	const [activeScenario, setActiveScenario] = useState("baseline");
 	const [eqPct, setEqPct] = useState(65);
@@ -153,7 +153,6 @@ export default function SimulationView() {
 			liquid_pct: 5,
 			monthly_sip_inr: sip,
 		});
-		pushToast("Projection recalculated", "info");
 	};
 
 	const handleGenerateProposal = () => {
@@ -165,7 +164,6 @@ export default function SimulationView() {
 				0,
 			)}k/mo SIP, projecting \u20b9${finalCrores} Cr corpus for 2042 Early Retirement.`,
 		});
-		pushToast("Preparing the advisory proposal", "info");
 	};
 
 	const activeName =

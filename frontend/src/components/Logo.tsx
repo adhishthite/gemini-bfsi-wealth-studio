@@ -15,11 +15,11 @@ export function PremierMark({
 	return (
 		<div
 			style={{ width: size, height: size }}
-			className={`relative flex select-none items-center justify-center rounded-sm border border-ink-strong bg-transparent ${className}`}
+			className={`relative flex select-none items-center justify-center rounded-sm border border-foil bg-transparent ${className}`}
 			aria-hidden="true"
 		>
 			<span
-				className="font-display leading-none text-ink-strong"
+				className="font-display leading-none text-foil"
 				style={{ fontSize: size * 0.46 }}
 			>
 				CP

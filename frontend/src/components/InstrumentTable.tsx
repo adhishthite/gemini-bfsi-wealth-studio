@@ -7,7 +7,7 @@ import { rupee, pct } from "@/lib";
 import { Button } from "@/components/ui/button";
 
 export default function InstrumentTable({ funds }: { funds: FundProduct[] }) {
-	const { highlightIds, basket, addToBasket, pushToast } = useStore();
+	const { highlightIds, basket, addToBasket } = useStore();
 	const [sipMap] = useState<Record<string, number>>({});
 
 	const getSip = (id: string) => sipMap[id] || 25000;
@@ -33,7 +33,6 @@ export default function InstrumentTable({ funds }: { funds: FundProduct[] }) {
 			lumpsum_amount_inr: 0,
 			linked_goal: "Wealth Creation",
 		});
-		pushToast(`Staged ${fund.name} — ${rupee(sipAmount)} monthly`, "success");
 	};
 
 	return (

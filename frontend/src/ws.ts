@@ -36,12 +36,6 @@ export function handleUiCommand(command: string, args: any) {
 			} else if (!args.fund_ids || args.fund_ids.length === 0) {
 				s.setFilter({ category: "All", subCategory: "All" });
 			}
-			s.pushToast(
-				args.fund_ids && args.fund_ids.length > 0
-					? `Product Explorer filtered (${args.results_count || 0} funds matched)`
-					: "Product Explorer reset to all categories",
-				"info",
-			);
 			break;
 
 		case "highlight_products":
@@ -55,7 +49,6 @@ export function handleUiCommand(command: string, args: any) {
 				diagnosticsOpen: true,
 				activeTab: "diagnostics",
 			});
-			s.pushToast("Portfolio diagnostics & goal audit loaded", "info");
 			break;
 
 		case "update_simulation":
@@ -64,10 +57,6 @@ export function handleUiCommand(command: string, args: any) {
 				simulationOpen: true,
 				activeTab: "simulation",
 			});
-			s.pushToast(
-				`Portfolio projected to ₹${((args.simulation?.projected_final_corpus_inr || 0) / 10000000).toFixed(2)} Cr by 2042`,
-				"success",
-			);
 			break;
 
 		case "update_basket":
@@ -76,7 +65,6 @@ export function handleUiCommand(command: string, args: any) {
 				totalLumpsum: args.total_lumpsum || 0,
 				totalSip: args.total_sip || 0,
 			});
-			s.pushToast("Advisory Basket updated", "info");
 			break;
 
 		case "open_modal":
@@ -90,7 +78,6 @@ export function handleUiCommand(command: string, args: any) {
 
 		case "proposal_ready":
 			s.set({ proposal: args.proposal, proposalOpen: true });
-			s.pushToast("Investment Proposal PDF ready for download", "success");
 			break;
 
 		case "mandate_executed":
@@ -99,10 +86,6 @@ export function handleUiCommand(command: string, args: any) {
 				lastTransactionId: args.transaction_id,
 				portfolio: args.portfolio,
 			});
-			s.pushToast(
-				`Mandate ${args.transaction_id} successfully executed!`,
-				"success",
-			);
 			break;
 	}
 }

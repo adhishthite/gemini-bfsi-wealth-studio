@@ -28,7 +28,6 @@ export default function AdvisoryBasketSheet() {
 		totalSip,
 		set,
 		removeFromBasket,
-		pushToast,
 	} = useStore();
 
 	const handleGenerateProposal = () => {
@@ -36,7 +35,6 @@ export default function AdvisoryBasketSheet() {
 			strategic_rationale:
 				"Rebalancing to resolve large cap concentration and deploying the unallocated monthly surplus into goal-linked SIPs.",
 		});
-		pushToast("Generating the advisory proposal", "info");
 	};
 
 	const handleProceedMandate = () => {

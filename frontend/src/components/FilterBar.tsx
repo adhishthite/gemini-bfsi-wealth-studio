@@ -139,7 +139,7 @@ export default function FilterBar() {
 						sendAction("filter_products", { query: q || null });
 					}}
 					placeholder="Search funds, managers or ISIN"
-					className="paper-sunken h-10 w-full rounded-lg pl-9 pr-3 text-sm text-ink transition-colors placeholder:text-ink-faint focus-visible:border-rule-strong focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+					className="paper-sunken h-10 w-full rounded-lg pl-9 pr-3 text-sm text-ink transition-colors placeholder:text-ink-faint focus-visible:border-rule-strong focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
 				/>
 			</div>
 
@@ -176,7 +176,7 @@ export default function FilterBar() {
 					<PopoverTrigger asChild>
 						<button
 							type="button"
-							className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-rule bg-paper-sheet px-4 text-xs font-medium text-ink-muted transition-colors hover:border-rule-strong hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring sm:w-auto"
+							className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-rule bg-paper-sheet px-4 text-xs font-medium text-ink-muted transition-colors hover:border-rule-strong hover:text-ink focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring sm:w-auto"
 						>
 							<SlidersHorizontal className="size-4 text-ink-faint" />
 							<span>Refine</span>

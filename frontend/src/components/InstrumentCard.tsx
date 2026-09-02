@@ -17,7 +17,7 @@ function Fact({ term, value }: { term: string; value: string }) {
 }
 
 export default function InstrumentCard({ fund }: { fund: FundProduct }) {
-	const { highlightIds, basket, addToBasket, pushToast } = useStore();
+	const { highlightIds, basket, addToBasket } = useStore();
 	const [sipAmount] = useState<number>(25000);
 
 	const isHighlighted = highlightIds.includes(fund.id);
@@ -44,10 +44,6 @@ export default function InstrumentCard({ fund }: { fund: FundProduct }) {
 			lumpsum_amount_inr: 0,
 			linked_goal: "Wealth Creation",
 		});
-		pushToast(
-			`Staged ${fund.name} — ${rupee(sipAmount)} monthly`,
-			"success",
-		);
 	};
 
 	return (

@@ -96,7 +96,7 @@ export default function TopBar() {
 
 	return (
 		<header className="sticky top-0 z-40 border-b border-rule bg-paper">
-			<div className="mx-auto flex h-[4.5rem] max-w-[1700px] items-center gap-6 px-gutter">
+			<div className="mx-auto flex h-18 max-w-[1700px] items-center gap-6 px-gutter">
 				{/* House mark */}
 				<Logo />
 
@@ -141,7 +141,7 @@ export default function TopBar() {
 					<PopoverContent
 						align="start"
 						sideOffset={10}
-						className="w-[23rem] rounded-lg border-rule bg-paper-sheet p-0 text-ink shadow-raise"
+						className="w-92 rounded-lg border-rule bg-paper-sheet p-0 text-ink shadow-raise"
 					>
 						<div className="px-5 pb-4 pt-5">
 							<p className="label">Client file</p>
