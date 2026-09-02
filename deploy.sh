@@ -61,7 +61,8 @@ gcloud run deploy "$SERVICE" \
   --concurrency 80 \
   --min-instances 0 \
   --max-instances 10 \
-  --set-env-vars "GCP_PROJECT=${PROJECT},GCP_LOCATION=${REGION},BRAIN_LOCATION=global,BRAIN_MODEL=gemini-3.5-flash-lite,IMAGE_LOCATION=global,IMAGE_MODEL=gemini-3-pro-image,VTO_MODEL=gemini-3.1-flash-image,AVATAR_TRANSPORT=fallback,FALLBACK_TTS_VOICE=en-IN-Journey-F,PORT=8080"
+  --quiet \
+  --set-env-vars "GCP_PROJECT=${PROJECT},GCP_LOCATION=${REGION},BRAIN_LOCATION=global,BRAIN_MODEL=gemini-3.5-flash-lite,IMAGE_LOCATION=global,IMAGE_MODEL=gemini-3-pro-image,VTO_MODEL=gemini-3.1-flash-image,AVATAR_TRANSPORT=fallback,FALLBACK_TTS_VOICE=en-IN-Journey-F"
 
 # 5. Fetch Deployed URL & Smoke Test
 echo "▶ [4/4] Validating deployment..."

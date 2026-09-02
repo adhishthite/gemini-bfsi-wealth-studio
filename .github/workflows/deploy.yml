@@ -1,0 +1,53 @@
+name: Deploy to Cloud Run (asia-south1)
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT_ID: adhish-base-project-1
+  REGION: asia-south1
+  SERVICE_NAME: gemini-bfsi-wealth-studio
+
+jobs:
+  deploy:
+    name: Build and Deploy to Cloud Run
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy "$SERVICE_NAME" \
+            --source . \
+            --project "$PROJECT_ID" \
+            --region "$REGION" \
+            --platform managed \
+            --allow-unauthenticated \
+            --memory 2Gi \
+            --cpu 2 \
+            --timeout 3600 \
+            --concurrency 80 \
+            --min-instances 0 \
+            --max-instances 10 \
+            --quiet \
+            --set-env-vars "GCP_PROJECT=$PROJECT_ID,GCP_LOCATION=$REGION,BRAIN_LOCATION=global,BRAIN_MODEL=gemini-3.5-flash-lite,IMAGE_LOCATION=global,IMAGE_MODEL=gemini-3-pro-image,VTO_MODEL=gemini-3.1-flash-image,AVATAR_TRANSPORT=fallback,FALLBACK_TTS_VOICE=en-IN-Journey-F"
+
+      - name: Show Service URL
+        run: |
+          URL=$(gcloud run services describe "$SERVICE_NAME" --project "$PROJECT_ID" --region "$REGION" --format="value(status.url)")
+          echo "✅ Deployed successfully to: $URL"
