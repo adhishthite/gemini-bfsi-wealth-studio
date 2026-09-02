@@ -28,13 +28,18 @@ export function handleUiCommand(command: string, args: any) {
 	switch (command) {
 		case "filter_catalog":
 			s.set({
-				visibleFundIds: args.fund_ids && args.fund_ids.length > 0 ? args.fund_ids : null,
+				visibleFundIds:
+					args.fund_ids && args.fund_ids.length > 0 ? args.fund_ids : null,
 				activeTab: "explorer",
 			});
 			if (args.category) {
-				s.setFilter({ category: args.category });
+				s.setFilter({
+					category: args.category,
+					subCategory: args.sub_category || "All",
+					query: args.query || "",
+				});
 			} else if (!args.fund_ids || args.fund_ids.length === 0) {
-				s.setFilter({ category: "All", subCategory: "All" });
+				s.setFilter({ category: "All", subCategory: "All", query: "" });
 			}
 			break;
 
@@ -101,6 +106,8 @@ function handle(msg: any) {
 				funds: msg.funds || msg.catalog || [],
 				profile: msg.profile,
 				portfolio: msg.portfolio || msg.profile,
+				activeProfileKey: msg.active_profile_key || "investor",
+				profiles: msg.profiles || {},
 				basket: msg.basket || [],
 				sid: msg.session_id,
 				selectedAvatar: avatar,
@@ -109,14 +116,53 @@ function handle(msg: any) {
 			break;
 		}
 
+		case "profile_switched": {
+			const clientName = msg.profile?.name || "Client";
+			const aum = msg.profile?.total_aum_inr ?? 7500000;
+			const aumStr =
+				aum >= 10000000
+					? `₹${(aum / 10000000).toFixed(2)} Cr`
+					: `₹${(aum / 100000).toFixed(1)}L`;
+			s.set({
+				profile: msg.profile,
+				portfolio: msg.portfolio || msg.profile,
+				activeProfileKey: msg.profile_key,
+				basket: msg.basket || [],
+				totalLumpsum: 0,
+				totalSip: 0,
+				diagnostics: null,
+				simulation: null,
+				mandateStatus: "idle",
+			});
+			s.pushChat({
+				role: "assistant",
+				text: `Switched to ${clientName}'s advisory file (${msg.profile?.risk_profile || "Wealth Client"} · ${aumStr} AUM). How may I assist with ${clientName.split(" ")[0]}'s portfolio strategy?`,
+			});
+			break;
+		}
+
 		case "thinking":
-			s.set({ thinking: true });
+			s.set({
+				thinking: true,
+				currentStep: "Consulting Fiduciary Brain...",
+				streamingText: null,
+			});
+			break;
+
+		case "status_step":
+			s.set({ thinking: true, currentStep: msg.step });
+			break;
+
+		case "stream_chunk":
+			s.set({
+				streamingText: (useStore.getState().streamingText || "") + msg.chunk,
+			});
 			break;
 
 		case "assistant_text":
-			s.set({ thinking: false });
-			s.pushChat({ role: "assistant", text: msg.text });
-			if (s.voiceOn) speak(msg.text);
+			s.set({ thinking: false, currentStep: null, streamingText: null });
+			s.pushChat({ role: "assistant", text: msg.text, audio: msg.audio });
+			if (s.voiceOn) speak(msg.text, msg.audio);
 			break;
 
 		case "ui_command":
@@ -135,11 +181,11 @@ function handle(msg: any) {
 			break;
 
 		case "turn_complete":
-			s.set({ thinking: false });
+			s.set({ thinking: false, currentStep: null, streamingText: null });
 			break;
 
 		case "error":
-			s.set({ thinking: false });
+			s.set({ thinking: false, currentStep: null, streamingText: null });
 			s.pushToast(msg.message, "warning");
 			break;
 	}
@@ -148,7 +194,11 @@ function handle(msg: any) {
 export function sendUserText(text: string) {
 	const s = useStore.getState();
 	s.pushChat({ role: "user", text });
-	s.set({ thinking: true });
+	s.set({
+		thinking: true,
+		currentStep: "Consulting Fiduciary Brain...",
+		streamingText: null,
+	});
 	ws?.send(
 		JSON.stringify({ type: "user_text", text, avatar: s.selectedAvatar }),
 	);
@@ -167,11 +217,17 @@ export function setPersona(avatar: string) {
 	selectAvatar(avatar);
 }
 
+export function switchProfile(profileKey: string) {
+	ws?.send(JSON.stringify({ type: "switch_profile", profile_key: profileKey }));
+}
+
 export function sendSetGender(gender: string) {
 	ws?.send(JSON.stringify({ type: "set_gender", gender }));
 }
 
+let currentAudio: HTMLAudioElement | null = null;
 let synthVoice: SpeechSynthesisVoice | null = null;
+
 function getVoice(): SpeechSynthesisVoice | null {
 	if (synthVoice) return synthVoice;
 	if (typeof window === "undefined" || !("speechSynthesis" in window))
@@ -193,15 +249,68 @@ if (typeof window !== "undefined" && "speechSynthesis" in window) {
 	};
 }
 
-export function speak(text: string) {
-	if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+export function stopSpeaking() {
+	if (currentAudio) {
+		currentAudio.pause();
+		currentAudio.src = "";
+		currentAudio = null;
+	}
+	if (typeof window !== "undefined" && "speechSynthesis" in window) {
+		window.speechSynthesis.cancel();
+	}
+	useStore.getState().set({ speaking: false });
+}
+
+export async function speak(text: string, audioBase64?: string) {
 	const s = useStore.getState();
 	if (!s.voiceOn || s.live.active) return;
 
+	stopSpeaking();
+
+	let b64 = audioBase64;
+	if (!b64 && typeof window !== "undefined") {
+		try {
+			const res = await fetch(
+				`/api/tts?text=${encodeURIComponent(text)}&avatar=${encodeURIComponent(s.selectedAvatar || "Ananya")}`,
+			);
+			if (res.ok) {
+				const data = await res.json();
+				if (data.audio) b64 = data.audio;
+			}
+		} catch (e) {
+			console.warn("[tts] fetch /api/tts notice:", e);
+		}
+	}
+
+	if (b64) {
+		try {
+			const audio = new Audio(`data:audio/mp3;base64,${b64}`);
+			currentAudio = audio;
+			audio.onplay = () => useStore.getState().set({ speaking: true });
+			audio.onended = () => {
+				useStore.getState().set({ speaking: false });
+				currentAudio = null;
+			};
+			audio.onerror = () => {
+				useStore.getState().set({ speaking: false });
+				currentAudio = null;
+				speakBrowserFallback(text);
+			};
+			await audio.play();
+			return;
+		} catch (e) {
+			console.warn("[tts] DeepMind audio playback notice:", e);
+		}
+	}
+
+	speakBrowserFallback(text);
+}
+
+function speakBrowserFallback(text: string) {
+	if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 	const clean = text.replace(/[*_#`[\]()]/g, "").trim();
 	if (!clean) return;
 
-	window.speechSynthesis.cancel();
 	const u = new SpeechSynthesisUtterance(clean);
 	const v = getVoice();
 	if (v) u.voice = v;
@@ -210,13 +319,6 @@ export function speak(text: string) {
 	u.onend = () => useStore.getState().set({ speaking: false });
 	u.onerror = () => useStore.getState().set({ speaking: false });
 	window.speechSynthesis.speak(u);
-}
-
-export function stopSpeaking() {
-	if (typeof window !== "undefined" && "speechSynthesis" in window) {
-		window.speechSynthesis.cancel();
-	}
-	useStore.getState().set({ speaking: false });
 }
 
 export function startListening() {

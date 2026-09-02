@@ -5,7 +5,10 @@ Domain terminology and concepts for the Private Wealth & Portfolio Advisory Stud
 ## Personas
 
 - **Advisor ("Ananya")**: Senior Private Wealth Relationship Manager and Financial Advisor. Empathic, data-driven, and opinionated. Guides clients on asset allocation, portfolio rebalancing, and goal achievement while upholding fiduciary and regulatory standards.
-- **Investor ("Rahul Sharma")**: The primary demo client. A 38-year-old tech executive based in Bengaluru/Pune with ₹75 Lakh in existing AUM, seeking to optimize a skewed portfolio toward early retirement (2042) and children's higher education (2032).
+- **Investor 1 ("Rahul Sharma")**: 38-year-old Engineering Director based in Bengaluru. ₹75 Lakh AUM. Investment Style: **Moderately Aggressive Growth**. Key Goals: Children's Higher Education (2032, ₹50L) and Early Financial Independence / Retire @ 54 (2042, ₹5 Cr).
+- **Investor 2 ("Anand Kulkarni")**: 59-year-old Retiring VP of Manufacturing based in Pune. ₹2.50 Crore AUM. Investment Style: **Conservative Capital Preservation & SWP Income**. Key Goals: Post-retirement monthly SWP cashflows (₹1.75L/month, ₹2 Cr corpus) and Healthcare Contingency Reserve (2028, ₹50L).
+- **Investor 3 ("Priya Iyer")**: 29-year-old VP of Product at a high-growth Fintech in Bengaluru. ₹45 Lakh AUM. Investment Style: **Aggressive Alpha & NextGen Tech**. Key Goals: Angel Venture Capital Seed Pool (2030, ₹1 Cr) and Luxury Penthouse Downpayment (2035, ₹2.5 Cr).
+- **Investor 4 ("Dr. Vikramaditya Singhania")**: 47-year-old Chief of Interventional Cardiology in Mumbai. ₹1.80 Crore AUM. Investment Style: **Balanced Multi-Asset & Family Estate**. Key Goals: Daughter's Ivy League / Medical School Degree (2031, ₹1.2 Cr), Alibaug Eco Villa (2036, ₹2 Cr), and Philanthropic Foundation Trust (2046, ₹10 Cr).
 
 ## Domain Concepts
 

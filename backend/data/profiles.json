@@ -8,6 +8,7 @@
     "age": 38,
     "occupation": "Engineering Director",
     "risk_profile": "Moderately Aggressive",
+    "investment_style": "High-Alpha Growth & Early Retirement",
     "total_aum_inr": 7500000,
     "current_allocation": {
       "equity": 0.70,
@@ -108,31 +109,368 @@
     "phone": "+91 98xxxx4402",
     "city": "Pune",
     "age": 59,
-    "occupation": "Retiring VP Manufacturing",
+    "occupation": "Retiring VP of Manufacturing",
     "risk_profile": "Conservative Income",
+    "investment_style": "Capital Preservation & SWP Cashflow",
     "total_aum_inr": 25000000,
     "current_allocation": {
-      "equity": 0.25,
-      "debt": 0.60,
+      "equity": 0.20,
+      "debt": 0.65,
       "gold": 0.10,
       "cash_liquid": 0.05
     },
+    "allocation_breakdown": {
+      "equity_inr": 5000000,
+      "debt_inr": 16250000,
+      "gold_inr": 2500000,
+      "cash_liquid_inr": 1250000
+    },
+    "current_holdings": [
+      {
+        "id": "CPW-DB-004",
+        "name": "Cymbal AAA Corporate Bond Fund",
+        "category": "Debt",
+        "invested_inr": 7000000,
+        "current_value_inr": 7500000,
+        "unrealized_gain_inr": 500000,
+        "xirr": 8.2
+      },
+      {
+        "id": "CPW-DB-002",
+        "name": "Cymbal Money Market Fund",
+        "category": "Debt",
+        "invested_inr": 4800000,
+        "current_value_inr": 5000000,
+        "unrealized_gain_inr": 200000,
+        "xirr": 7.1
+      },
+      {
+        "id": "CPW-HB-004",
+        "name": "Cymbal Regular Monthly Income Conservative Hybrid Fund",
+        "category": "Debt",
+        "invested_inr": 3500000,
+        "current_value_inr": 3750000,
+        "unrealized_gain_inr": 250000,
+        "xirr": 9.4
+      },
+      {
+        "id": "CPW-EQ-007",
+        "name": "Cymbal Value & Special Situations Fund",
+        "category": "Equity",
+        "invested_inr": 2500000,
+        "current_value_inr": 3000000,
+        "unrealized_gain_inr": 500000,
+        "xirr": 16.2
+      },
+      {
+        "id": "CPW-EQ-001",
+        "name": "Cymbal Bluechip Large Cap Equity Fund",
+        "category": "Equity",
+        "invested_inr": 1600000,
+        "current_value_inr": 2000000,
+        "unrealized_gain_inr": 400000,
+        "xirr": 15.4
+      },
+      {
+        "id": "CPW-CM-001",
+        "name": "Cymbal Sovereign Gold ETF & FoF",
+        "category": "Commodities",
+        "invested_inr": 2000000,
+        "current_value_inr": 2500000,
+        "unrealized_gain_inr": 500000,
+        "xirr": 13.6
+      },
+      {
+        "id": "CPW-DB-001",
+        "name": "Cymbal Liquid Overnight Cash Fund",
+        "category": "Debt",
+        "invested_inr": 1250000,
+        "current_value_inr": 1250000,
+        "unrealized_gain_inr": 0,
+        "xirr": 6.8
+      }
+    ],
     "goals": [
       {
         "id": "GOAL-01",
-        "name": "Monthly Retirement SWP (₹1.5L/month post-tax)",
+        "name": "Post-Retirement Monthly SWP Cashflow (₹1.75L/mo)",
         "target_year": 2026,
-        "target_amount_inr": 25000000,
-        "current_funded_inr": 25000000,
+        "target_amount_inr": 20000000,
+        "current_funded_inr": 20000000,
+        "on_track": true
+      },
+      {
+        "id": "GOAL-02",
+        "name": "Healthcare & Longevity Contingency Reserve",
+        "target_year": 2028,
+        "target_amount_inr": 5000000,
+        "current_funded_inr": 5000000,
         "on_track": true
       }
     ],
-    "kyc_status": "Verified (Tier 1 Premier)",
+    "monthly_surplus_inr": 200000,
+    "active_sip_inr": 30000,
+    "kyc_status": "Verified (Tier 1 Premier Senior)",
     "bank_account": {
       "bank": "Cymbal Premier Bank",
       "account_number_last4": "3340",
       "ifsc": "CYMB0001002",
       "type": "Premier Senior Privilege"
-    }
+    },
+    "portfolio_health_notes": [
+      "Heavy reinvestment and duration risk in traditional fixed deposits; high tax drag on debt interest without SWP indexation benefits.",
+      "Low equity exposure (20%) risks purchasing power erosion over a 25+ year retirement drawdown horizon.",
+      "Needs structured Systematic Withdrawal Plan (SWP) strategy across Equity Savings and Multi-Asset allocation for post-tax efficiency."
+    ]
+  },
+  "aggressive": {
+    "user_id": "U-IND-2909",
+    "name": "Priya Iyer",
+    "email": "priya.iyer@example.in",
+    "phone": "+91 98xxxx2909",
+    "city": "Bengaluru",
+    "age": 29,
+    "occupation": "VP Product @ High-Growth Fintech",
+    "risk_profile": "Aggressive Growth",
+    "investment_style": "High-Beta Growth, Mid/Small Cap & Tech",
+    "total_aum_inr": 4500000,
+    "current_allocation": {
+      "equity": 0.85,
+      "debt": 0.05,
+      "gold": 0.05,
+      "cash_liquid": 0.05
+    },
+    "allocation_breakdown": {
+      "equity_inr": 3825000,
+      "debt_inr": 225000,
+      "gold_inr": 225000,
+      "cash_liquid_inr": 225000
+    },
+    "current_holdings": [
+      {
+        "id": "CPW-EQ-004",
+        "name": "Cymbal Emerging Leaders Mid Cap Fund",
+        "category": "Equity",
+        "invested_inr": 1100000,
+        "current_value_inr": 1500000,
+        "unrealized_gain_inr": 400000,
+        "xirr": 24.5
+      },
+      {
+        "id": "CPW-EQ-005",
+        "name": "Cymbal Discovery Small Cap Fund",
+        "category": "Equity",
+        "invested_inr": 850000,
+        "current_value_inr": 1200000,
+        "unrealized_gain_inr": 350000,
+        "xirr": 27.8
+      },
+      {
+        "id": "CPW-EQ-008",
+        "name": "Cymbal Digital, Cloud & AI Technology Fund",
+        "category": "Equity",
+        "invested_inr": 500000,
+        "current_value_inr": 625000,
+        "unrealized_gain_inr": 125000,
+        "xirr": 23.2
+      },
+      {
+        "id": "CPW-EQ-003",
+        "name": "Cymbal Flexi Cap Opportunities Fund",
+        "category": "Equity",
+        "invested_inr": 420000,
+        "current_value_inr": 500000,
+        "unrealized_gain_inr": 80000,
+        "xirr": 20.8
+      },
+      {
+        "id": "CPW-DB-004",
+        "name": "Cymbal AAA Corporate Bond Fund",
+        "category": "Debt",
+        "invested_inr": 200000,
+        "current_value_inr": 225000,
+        "unrealized_gain_inr": 25000,
+        "xirr": 8.0
+      },
+      {
+        "id": "CPW-CM-002",
+        "name": "Cymbal Multi-Commodity & Silver ETF",
+        "category": "Commodities",
+        "invested_inr": 180000,
+        "current_value_inr": 225000,
+        "unrealized_gain_inr": 45000,
+        "xirr": 15.2
+      },
+      {
+        "id": "CPW-DB-001",
+        "name": "Cymbal Liquid Overnight Cash Fund",
+        "category": "Debt",
+        "invested_inr": 225000,
+        "current_value_inr": 225000,
+        "unrealized_gain_inr": 0,
+        "xirr": 6.8
+      }
+    ],
+    "goals": [
+      {
+        "id": "GOAL-01",
+        "name": "Angel Venture Capital & Seed Investment Pool",
+        "target_year": 2030,
+        "target_amount_inr": 10000000,
+        "current_funded_inr": 2000000,
+        "on_track": true
+      },
+      {
+        "id": "GOAL-02",
+        "name": "Luxury Penthouse Downpayment",
+        "target_year": 2035,
+        "target_amount_inr": 25000000,
+        "current_funded_inr": 2500000,
+        "on_track": "needs_sip_boost"
+      }
+    ],
+    "monthly_surplus_inr": 250000,
+    "active_sip_inr": 120000,
+    "kyc_status": "Verified (Tier 1 Premier NextGen)",
+    "bank_account": {
+      "bank": "Cymbal Premier Bank",
+      "account_number_last4": "5512",
+      "ifsc": "CYMB0001004",
+      "type": "NextGen Premier Wealth"
+    },
+    "portfolio_health_notes": [
+      "High portfolio beta (1.35) and volatility skew toward mid/small-cap tech; vulnerable to sharp equity market pullbacks.",
+      "Emergency liquidity buffer of ₹2.25L covers only 1 month of expenses; should scale to ₹10L liquid buffer before aggressive illiquid angel bets.",
+      "Monthly surplus of ₹2.5L has ₹1.3L unallocated idle cash ready for automated multi-cap compounding."
+    ]
+  },
+  "balanced": {
+    "user_id": "U-IND-8115",
+    "name": "Dr. Vikramaditya Singhania",
+    "email": "vikram.singhania@example.in",
+    "phone": "+91 98xxxx8115",
+    "city": "Mumbai",
+    "age": 47,
+    "occupation": "Chief of Interventional Cardiology",
+    "risk_profile": "Balanced Multi-Asset",
+    "investment_style": "All-Weather Multi-Asset & Family Estate",
+    "total_aum_inr": 18000000,
+    "current_allocation": {
+      "equity": 0.50,
+      "debt": 0.30,
+      "gold": 0.15,
+      "cash_liquid": 0.05
+    },
+    "allocation_breakdown": {
+      "equity_inr": 9000000,
+      "debt_inr": 5400000,
+      "gold_inr": 2700000,
+      "cash_liquid_inr": 900000
+    },
+    "current_holdings": [
+      {
+        "id": "CPW-HB-002",
+        "name": "Cymbal Multi-Asset All-Weather Wealth Fund",
+        "category": "Hybrid",
+        "invested_inr": 3800000,
+        "current_value_inr": 4500000,
+        "unrealized_gain_inr": 700000,
+        "xirr": 15.5
+      },
+      {
+        "id": "CPW-EQ-002",
+        "name": "Cymbal Large & Mid Cap Growth Fund",
+        "category": "Equity",
+        "invested_inr": 2500000,
+        "current_value_inr": 3000000,
+        "unrealized_gain_inr": 500000,
+        "xirr": 18.9
+      },
+      {
+        "id": "CPW-EQ-003",
+        "name": "Cymbal Flexi Cap Opportunities Fund",
+        "category": "Equity",
+        "invested_inr": 1200000,
+        "current_value_inr": 1500000,
+        "unrealized_gain_inr": 300000,
+        "xirr": 20.2
+      },
+      {
+        "id": "CPW-DB-004",
+        "name": "Cymbal AAA Corporate Bond Fund",
+        "category": "Debt",
+        "invested_inr": 3000000,
+        "current_value_inr": 3400000,
+        "unrealized_gain_inr": 400000,
+        "xirr": 8.1
+      },
+      {
+        "id": "CPW-DB-003",
+        "name": "Cymbal Ultra Short Term Bond Fund",
+        "category": "Debt",
+        "invested_inr": 1800000,
+        "current_value_inr": 2000000,
+        "unrealized_gain_inr": 200000,
+        "xirr": 7.2
+      },
+      {
+        "id": "CPW-CM-001",
+        "name": "Cymbal Sovereign Gold ETF & FoF",
+        "category": "Commodities",
+        "invested_inr": 2100000,
+        "current_value_inr": 2700000,
+        "unrealized_gain_inr": 600000,
+        "xirr": 14.3
+      },
+      {
+        "id": "CPW-HB-005",
+        "name": "Cymbal Arbitrage Tax-Advantage Fund",
+        "category": "Debt",
+        "invested_inr": 900000,
+        "current_value_inr": 900000,
+        "unrealized_gain_inr": 0,
+        "xirr": 6.9
+      }
+    ],
+    "goals": [
+      {
+        "id": "GOAL-01",
+        "name": "Daughter's Global Medical School / Ivy League Degree",
+        "target_year": 2031,
+        "target_amount_inr": 12000000,
+        "current_funded_inr": 7000000,
+        "on_track": true
+      },
+      {
+        "id": "GOAL-02",
+        "name": "Alibaug Sea-Facing Eco Villa",
+        "target_year": 2036,
+        "target_amount_inr": 20000000,
+        "current_funded_inr": 6000000,
+        "on_track": true
+      },
+      {
+        "id": "GOAL-03",
+        "name": "Family Legacy & Philanthropic Foundation Trust",
+        "target_year": 2046,
+        "target_amount_inr": 100000000,
+        "current_funded_inr": 5000000,
+        "on_track": "needs_sip_boost"
+      }
+    ],
+    "monthly_surplus_inr": 400000,
+    "active_sip_inr": 150000,
+    "kyc_status": "Verified (Tier 1 Premier Professional)",
+    "bank_account": {
+      "bank": "Cymbal Premier Bank",
+      "account_number_last4": "9944",
+      "ifsc": "CYMB0001003",
+      "type": "Premier Medical Wealth"
+    },
+    "portfolio_health_notes": [
+      "Uneven clinical consulting cash flows result in ₹2.5L/month unallocated funds accumulating in standard savings.",
+      "High 39% individual tax slab creates significant tax drag on direct fixed deposits; needs Arbitrage & Multi-Asset restructuring.",
+      "Long-term estate & philanthropy goals require dedicated 20-year equity compounding vehicle separate from near-term daughter education milestone."
+    ]
   }
 }

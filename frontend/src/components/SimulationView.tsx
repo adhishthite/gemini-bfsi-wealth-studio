@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileText } from "lucide-react";
+import { FileText } from "@phosphor-icons/react";
 import { useStore } from "@/store";
 import { sendAction } from "@/ws";
 import { Button } from "@/components/ui/button";
@@ -59,38 +59,63 @@ const PAD_T = 44;
 const PAD_B = 44;
 
 export default function SimulationView() {
-	const { simulation } = useStore();
+	const { simulation, portfolio, profile } = useStore();
+	const activeClient = portfolio || profile;
+	const clientAum = activeClient?.total_aum_inr ?? 7500000;
+	const clientSip = activeClient?.monthly_surplus_inr ?? 100000;
 
 	const [activeScenario, setActiveScenario] = useState("baseline");
 	const [eqPct, setEqPct] = useState(65);
-	const [sipAmt, setSipAmt] = useState(100000);
+	const [sipAmt, setSipAmt] = useState(clientSip);
+
+	const defaultFinalCorpus = Math.round(
+		clientAum * Math.pow(1.128, 15) +
+			clientSip * 12 * ((Math.pow(1.128, 15) - 1) / 0.128),
+	);
 
 	const currentSim = simulation || {
 		scenario: "baseline",
 		target_allocation: { equity: 65, debt: 20, gold: 10, liquid: 5 },
 		blended_expected_cagr_pct: 12.8,
-		monthly_sip_inr: 100000,
+		monthly_sip_inr: clientSip,
 		horizon_years: 15,
-		projected_final_corpus_inr: 58200000,
+		projected_final_corpus_inr: defaultFinalCorpus,
 		goals_feasibility: {
-			education_2032_status: "Fully funded, 108% of target",
-			retirement_2042_status: "Met, \u20b95.82 Cr against a \u20b95.00 Cr target",
+			primary_status: `Fully funded, projected ${inrCompact(defaultFinalCorpus)}`,
 		},
 		trajectory: [
-			{ year: 2026, projected_corpus_inr: 7500000 },
-			{ year: 2028, projected_corpus_inr: 12400000 },
-			{ year: 2030, projected_corpus_inr: 19800000 },
+			{ year: 2026, projected_corpus_inr: clientAum },
+			{
+				year: 2028,
+				projected_corpus_inr: Math.round(clientAum * 1.25 + clientSip * 24),
+			},
+			{
+				year: 2030,
+				projected_corpus_inr: Math.round(
+					clientAum * 1.55 + clientSip * 48 * 1.08,
+				),
+			},
 			{
 				year: 2032,
-				projected_corpus_inr: 31200000,
-				education_goal_target: 5000000,
+				projected_corpus_inr: Math.round(
+					clientAum * 1.95 + clientSip * 72 * 1.15,
+				),
+				education_goal_target:
+					activeClient?.goals?.[0]?.target_amount_inr || 5000000,
 			},
-			{ year: 2035, projected_corpus_inr: 39500000 },
-			{ year: 2038, projected_corpus_inr: 47200000 },
+			{
+				year: 2036,
+				projected_corpus_inr: Math.round(
+					clientAum * 2.8 + clientSip * 120 * 1.25,
+				),
+			},
 			{
 				year: 2042,
-				projected_corpus_inr: 58200000,
-				retirement_goal_target: 50000000,
+				projected_corpus_inr: defaultFinalCorpus,
+				retirement_goal_target:
+					activeClient?.goals?.[1]?.target_amount_inr ||
+					activeClient?.goals?.[0]?.target_amount_inr ||
+					50000000,
 			},
 		],
 	};
@@ -221,9 +246,7 @@ export default function SimulationView() {
 			{/* ---- The projection --------------------------------------------- */}
 			<section className="paper space-y-5 p-gutter reveal reveal-2">
 				<div className="flex flex-wrap items-baseline justify-between gap-3">
-					<h3 className="doc-title text-lg">
-						Path to {lastPoint.year}
-					</h3>
+					<h3 className="doc-title text-lg">Path to {lastPoint.year}</h3>
 					<p className="ref text-ink-muted">
 						{inrCompact(traj[0].projected_corpus_inr)} today &rarr;{" "}
 						{inrCompact(lastPoint.projected_corpus_inr)}
@@ -371,18 +394,38 @@ export default function SimulationView() {
 					<h3 className="doc-title text-lg">Goals under this plan</h3>
 
 					<div className="space-y-6">
-						<div className="mark-quiet">
-							<p className="label">Higher education, 2032</p>
-							<p className="mt-1.5 text-base text-ink-strong">
-								{currentSim.goals_feasibility.education_2032_status}
-							</p>
-						</div>
-						<div className="mark-quiet">
-							<p className="label">Financial independence, 2042</p>
-							<p className="mt-1.5 text-base text-ink-strong">
-								{currentSim.goals_feasibility.retirement_2042_status}
-							</p>
-						</div>
+						{activeClient?.goals && activeClient.goals.length > 0 ? (
+							activeClient.goals.map((g, gi) => {
+								const gKey = Object.keys(
+									currentSim.goals_feasibility || {},
+								).find(
+									(k) =>
+										k.includes(String(g.target_year)) ||
+										k.includes(g.name.toLowerCase().split(" ")[0]),
+								);
+								const statusText =
+									(currentSim.goals_feasibility as any)?.[gKey || ""] ||
+									`Funded against ${inrCompact(g.target_amount_inr)} target`;
+								return (
+									<div key={g.id || `${g.name}-${gi}`} className="mark-quiet">
+										<p className="label">
+											{g.name}, {g.target_year}
+										</p>
+										<p className="mt-1.5 text-base text-ink-strong">
+											{statusText}
+										</p>
+									</div>
+								);
+							})
+						) : (
+							<div className="mark-quiet">
+								<p className="label">Financial independence, 2042</p>
+								<p className="mt-1.5 text-base text-ink-strong">
+									{currentSim.goals_feasibility?.retirement_2042_status ||
+										`Projected ${inrCompact(currentSim.projected_final_corpus_inr)}`}
+								</p>
+							</div>
+						)}
 					</div>
 
 					<p className="text-sm text-ink-muted">
@@ -494,8 +537,8 @@ export default function SimulationView() {
 					<h3 className="doc-title text-lg">Advisory proposal</h3>
 					<p className="max-w-xl text-sm text-ink-muted">
 						Sets out the rebalancing, the monthly commitment and the goal
-						projection for the client to sign. Issued under the SEBI
-						(Investment Advisers) Regulations, 2013.
+						projection for the client to sign. Issued under the SEBI (Investment
+						Advisers) Regulations, 2013.
 					</p>
 				</div>
 				<Button

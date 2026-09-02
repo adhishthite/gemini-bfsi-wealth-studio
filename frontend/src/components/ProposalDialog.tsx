@@ -1,4 +1,4 @@
-import { Download } from "lucide-react";
+import { DownloadSimple as Download } from "@phosphor-icons/react";
 import { useStore } from "@/store";
 import {
 	Dialog,
@@ -23,10 +23,11 @@ import { inr, inrCompact } from "@/lib";
 const ADVISER_REGISTRATION = "INA000012345";
 
 export default function ProposalDialog() {
-	const { proposal, proposalOpen, set } = useStore();
+	const { proposal, proposalOpen, portfolio, profile, set } = useStore();
 
 	const documentId = proposal?.proposal_id || "CYMBAL-PROP-2026-0881";
-	const clientName = proposal?.client_name || "Rahul Sharma";
+	const clientName =
+		proposal?.client_name || portfolio?.name || profile?.name || "Rahul Sharma";
 	const issuedOn = proposal?.date || "17 August 2026";
 	const monthly = proposal?.total_sip_inr ?? 60000;
 	const lumpsum = proposal?.total_lumpsum_inr ?? 0;

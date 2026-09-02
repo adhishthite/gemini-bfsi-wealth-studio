@@ -10,7 +10,7 @@ import {
 	CarouselPrevious,
 	type CarouselApi,
 } from "@/components/ui/carousel";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { sendAction } from "@/ws";
 
@@ -41,7 +41,10 @@ function Rail({
 				{action}
 			</div>
 
-			<Carousel opts={{ align: "start", loop: false }} className="relative w-full">
+			<Carousel
+				opts={{ align: "start", loop: false }}
+				className="relative w-full"
+			>
 				<CarouselContent className="-ml-3">
 					{funds.map((fund) => (
 						<CarouselItem key={fund.id} className={SLIDE}>
@@ -58,7 +61,11 @@ function Rail({
 	);
 }
 
-export default function InstrumentCarousel({ funds }: { funds: FundProduct[] }) {
+export default function InstrumentCarousel({
+	funds,
+}: {
+	funds: FundProduct[];
+}) {
 	const { visibleFundIds, filter, setFilter } = useStore();
 	const [api, setApi] = useState<CarouselApi>();
 	const [current, setCurrent] = useState(0);
@@ -66,16 +73,18 @@ export default function InstrumentCarousel({ funds }: { funds: FundProduct[] }) 
 
 	useEffect(() => {
 		if (!api) return;
+		api.scrollTo(0);
 		setCount(api.scrollSnapList().length);
-		setCurrent(api.selectedScrollSnap() + 1);
+		setCurrent(1);
 
 		api.on("select", () => {
 			setCurrent(api.selectedScrollSnap() + 1);
 		});
-	}, [api]);
+	}, [api, visibleFundIds, funds]);
 
 	// Group funds by category when nothing narrower has been asked for
-	const isAllView = filter.category === "All" && !filter.query && !visibleFundIds;
+	const isAllView =
+		filter.category === "All" && !filter.query && !visibleFundIds;
 
 	const featuredFunds = visibleFundIds
 		? funds.filter((f) => visibleFundIds.includes(f.id))

@@ -5,6 +5,7 @@ with VIDEO modality + avatar_config + our wealth tools, then pipes messages both
 Tool calls are executed SERVER-SIDE against the shared WealthSession so the avatar drives
 the same Product Explorer / Portfolio Simulation / Advisory Basket UI.
 """
+
 from __future__ import annotations
 import asyncio, json, ssl
 import certifi
@@ -26,53 +27,102 @@ def _token() -> str:
 
 def _uri() -> str:
     loc = config.LIVE_LOCATION
-    host = "aiplatform.googleapis.com" if loc in ("", "global") else f"{loc}-aiplatform.googleapis.com"
-    return f"wss://{host}/ws/google.cloud.aiplatform.v1.LlmBidiService/BidiGenerateContent"
+    host = (
+        "aiplatform.googleapis.com"
+        if loc in ("", "global")
+        else f"{loc}-aiplatform.googleapis.com"
+    )
+    return (
+        f"wss://{host}/ws/google.cloud.aiplatform.v1.LlmBidiService/BidiGenerateContent"
+    )
 
 
 def _raw_tools() -> list[dict]:
-    decls = [fd.model_dump(by_alias=True, exclude_none=True, mode="json")
-             for fd in tools.FUNCTION_DECLARATIONS]
+    decls = [
+        fd.model_dump(by_alias=True, exclude_none=True, mode="json")
+        for fd in tools.FUNCTION_DECLARATIONS
+    ]
     return [{"functionDeclarations": decls}]
 
 
-ALLOWED_AVATARS = {"Ananya", "Kira", "Ingrid", "Vera", "Jay", "Paul", "Sam",
-                   "Kai", "Ben", "Leo", "Carmen", "Piper"}
+ALLOWED_AVATARS = {
+    "Ananya",
+    "Kira",
+    "Ingrid",
+    "Vera",
+    "Jay",
+    "Paul",
+    "Sam",
+    "Kai",
+    "Ben",
+    "Leo",
+    "Carmen",
+    "Piper",
+}
 
 VOICE_BY_AVATAR = {
-    "Ananya": "Aoede", "Kira": "Aoede", "Ingrid": "Kore", "Vera": "Aoede", "Carmen": "Kore", "Piper": "Aoede",
-    "Jay": "Charon", "Paul": "Fenrir", "Sam": "Puck", "Kai": "Puck", "Ben": "Charon", "Leo": "Fenrir",
+    "Ananya": "Aoede",
+    "Kira": "Aoede",
+    "Ingrid": "Kore",
+    "Vera": "Aoede",
+    "Carmen": "Kore",
+    "Piper": "Aoede",
+    "Jay": "Charon",
+    "Paul": "Fenrir",
+    "Sam": "Puck",
+    "Kai": "Puck",
+    "Ben": "Charon",
+    "Leo": "Fenrir",
 }
 
 
 def _setup_msg(session: WealthSession, avatar: str = "") -> dict:
-    avatar_name = avatar if avatar in ALLOWED_AVATARS else (config.AVATAR_NAME or "Ananya")
+    avatar_name = (
+        avatar if avatar in ALLOWED_AVATARS else (config.AVATAR_NAME or "Ananya")
+    )
     voice = VOICE_BY_AVATAR.get(avatar_name, config.AVATAR_VOICE or "Aoede")
     sysi = tools.system_instruction(session.profile, avatar_name, live=True)
-    model = (f"projects/{config.LIVE_PROJECT}/locations/{config.LIVE_LOCATION}"
-             f"/publishers/google/models/{config.LIVE_MODEL}")
-    return {"setup": {
-        "model": model,
-        "systemInstruction": {"parts": [{"text": sysi}]},
-        "generationConfig": {
-            "responseModalities": ["VIDEO"],
-            "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voice}}},
-        },
-        "avatarConfig": {"avatar_name": "Kira" if avatar_name == "Ananya" else avatar_name},
-        "outputAudioTranscription": {},   # avatar's speech → transcript
-        "inputAudioTranscription": {},    # client's speech → transcript
-        "realtimeInputConfig": {"automaticActivityDetection": {"disabled": True}},
-    }}
+    model = (
+        f"projects/{config.LIVE_PROJECT}/locations/{config.LIVE_LOCATION}"
+        f"/publishers/google/models/{config.LIVE_MODEL}"
+    )
+    return {
+        "setup": {
+            "model": model,
+            "systemInstruction": {"parts": [{"text": sysi}]},
+            "generationConfig": {
+                "responseModalities": ["VIDEO"],
+                "speechConfig": {
+                    "voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voice}}
+                },
+            },
+            "avatarConfig": {
+                "avatar_name": "Kira" if avatar_name == "Ananya" else avatar_name
+            },
+            "outputAudioTranscription": {},  # avatar's speech → transcript
+            "inputAudioTranscription": {},  # client's speech → transcript
+            "realtimeInputConfig": {"automaticActivityDetection": {"disabled": True}},
+        }
+    }
 
 
 async def run_live(browser_ws, session: WealthSession, send, avatar: str = ""):
     """Bridge browser <-> Gemini Live Avatar on a shared WealthSession."""
     from .brain import GeminiBrain
+
     brain = GeminiBrain(session)
     headers = {"Authorization": f"Bearer {_token()}"}
-    print(f"[live] starting session avatar={avatar or config.AVATAR_NAME} project={config.LIVE_PROJECT}")
-    async with websockets.connect(_uri(), additional_headers=headers, ssl=_ssl,
-                                  max_size=None, ping_interval=20, ping_timeout=60) as gem:
+    print(
+        f"[live] starting session avatar={avatar or config.AVATAR_NAME} project={config.LIVE_PROJECT}"
+    )
+    async with websockets.connect(
+        _uri(),
+        additional_headers=headers,
+        ssl=_ssl,
+        max_size=None,
+        ping_interval=20,
+        ping_timeout=60,
+    ) as gem:
         await gem.send(json.dumps(_setup_msg(session, avatar)))
         setup_ack = await gem.recv()
         print(f"[live] setup ack: {str(setup_ack)[:160]}")
@@ -84,12 +134,18 @@ async def run_live(browser_ws, session: WealthSession, send, avatar: str = ""):
                 while True:
                     raw = await browser_ws.receive_text()
                     msg = json.loads(raw)
-                    if msg.get("type") == "action":  # manual basket/simulation action while live
+                    if (
+                        msg.get("type") == "action"
+                    ):  # manual basket/simulation action while live
                         action_name = msg.get("action", "")
                         handler = HANDLERS.get(action_name)
                         if handler:
                             try:
-                                args = {k: v for k, v in msg.items() if k not in ("type", "action")}
+                                args = {
+                                    k: v
+                                    for k, v in msg.items()
+                                    if k not in ("type", "action")
+                                }
                                 handler(session, **args)
                             except Exception as e:
                                 await send({"type": "error", "message": str(e)[:160]})
@@ -101,7 +157,9 @@ async def run_live(browser_ws, session: WealthSession, send, avatar: str = ""):
                             audio_chunks = 0
                             print("[live] → activityStart (user pressed talk)")
                         elif "activityEnd" in ri:
-                            print(f"[live] → activityEnd (sent {audio_chunks} audio chunks)")
+                            print(
+                                f"[live] → activityEnd (sent {audio_chunks} audio chunks)"
+                            )
                         elif ri.get("mediaChunks"):
                             audio_chunks += 1
                         elif ri.get("text"):
@@ -124,12 +182,21 @@ async def run_live(browser_ws, session: WealthSession, send, avatar: str = ""):
                             name = fc.get("name", "")
                             handler = HANDLERS.get(name)
                             try:
-                                result = handler(session, **(fc.get("args") or {})) if handler else {"error": f"unknown tool {name}"}
+                                result = (
+                                    handler(session, **(fc.get("args") or {}))
+                                    if handler
+                                    else {"error": f"unknown tool {name}"}
+                                )
                             except Exception as e:
                                 result = {"error": str(e)[:200]}
                             for cmd in session.drain():
                                 await send(cmd)
-                            resp = {"name": name, "response": result if isinstance(result, dict) else {"result": result}}
+                            resp = {
+                                "name": name,
+                                "response": result
+                                if isinstance(result, dict)
+                                else {"result": result},
+                            }
                             if fc.get("id"):
                                 resp["id"] = fc["id"]
                             responses.append(resp)
@@ -156,4 +223,6 @@ async def run_live(browser_ws, session: WealthSession, send, avatar: str = ""):
             except Exception as e:
                 print(f"[live] gemini->browser error: {e!r}")
 
-        await asyncio.gather(browser_to_gemini(), gemini_to_browser(), return_exceptions=True)
+        await asyncio.gather(
+            browser_to_gemini(), gemini_to_browser(), return_exceptions=True
+        )

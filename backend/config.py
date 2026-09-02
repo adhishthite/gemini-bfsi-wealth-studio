@@ -10,11 +10,13 @@ All settings are environment variables, loaded from a `.env` file at the project
 Auth is Google ADC — no keys in code. Locally:  gcloud auth application-default login
 On a GCP VM / Cloud Run: the attached service account is used automatically.
 """
+
 import os
 from pathlib import Path
 
 try:
     from dotenv import load_dotenv
+
     load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 except Exception:  # python-dotenv optional; env vars still work
     pass
@@ -30,34 +32,75 @@ FRONTEND_DIST = BASE_DIR.parent / "frontend" / "dist"
 ASSETS_DIR = BASE_DIR.parent / "frontend" / "public" / "assets"
 
 # --- default project/region (used as fallback for the per-capability ones below) ---
-GCP_PROJECT = _env("GCP_PROJECT", "")   # set in .env (see .env.example)
+GCP_PROJECT = _env("GCP_PROJECT", "")  # set in .env (see .env.example)
 GCP_LOCATION = _env("GCP_LOCATION", "us-central1")
 
 # --- conversational brain (standard Gemini, Vertex) ---
 BRAIN_PROJECT = _env("BRAIN_PROJECT") or GCP_PROJECT
-BRAIN_LOCATION = _env("BRAIN_LOCATION") or GCP_LOCATION
-BRAIN_MODEL = _env("BRAIN_MODEL", "gemini-2.5-flash")
+BRAIN_LOCATION = _env("BRAIN_LOCATION", "global")
+BRAIN_MODEL = _env("BRAIN_MODEL", "gemini-3.5-flash-lite")
 
 # --- imagery (build-time catalog) + Virtual Try-On (runtime) ---
 IMAGE_PROJECT = _env("IMAGE_PROJECT") or GCP_PROJECT
 IMAGE_LOCATION = _env("IMAGE_LOCATION", "global")
-IMAGE_MODEL = _env("IMAGE_MODEL", "gemini-3-pro-image")      # high-fidelity catalog assets
-VTO_MODEL = _env("VTO_MODEL", "gemini-3.1-flash-image")      # faster runtime try-on
+IMAGE_MODEL = _env("IMAGE_MODEL", "gemini-3-pro-image")  # high-fidelity catalog assets
+VTO_MODEL = _env("VTO_MODEL", "gemini-3.1-flash-image")  # faster runtime try-on
 
 # --- Live Avatar (Gemini 3.1 Live API, Private Preview) ---
 # AVATAR_TRANSPORT: fallback (default, no Live API; portrait + standard brain)
 #                 | live (raw Vertex BidiGenerateContent proxy; needs an entitled LIVE_PROJECT)
 AVATAR_TRANSPORT = _env("AVATAR_TRANSPORT", "fallback").lower()
-LIVE_PROJECT = _env("LIVE_PROJECT")                         # entitled project (set in .env); required for live
+LIVE_PROJECT = _env("LIVE_PROJECT")  # entitled project (set in .env); required for live
 LIVE_LOCATION = _env("LIVE_LOCATION") or "us-central1"
-LIVE_MODEL = _env("LIVE_MODEL", "gemini-3.1-flash-live-preview-04-2026")
-AVATAR_NAME = _env("AVATAR_NAME", "Kira")                   # built-in: Jay, Paul, Sam, Ingrid, Kira, Vera, Ben, Kai, Leo, Carmen, Piper
-AVATAR_VOICE = _env("AVATAR_VOICE", "Aoede")               # Puck, Aoede, Charon, Kore, Fenrir, Zephyr
+LIVE_MODEL = _env("LIVE_MODEL", "gemini-3.1-flash-live-preview")
+AVATAR_NAME = _env(
+    "AVATAR_NAME", "Ananya"
+)  # built-in: Ananya, Jay, Paul, Sam, Ingrid, Kira, Vera, Ben, Kai, Leo, Carmen, Piper
+AVATAR_VOICE = _env(
+    "AVATAR_VOICE", "Aoede"
+)  # Puck, Aoede, Charon, Kore, Fenrir, Zephyr
+
+# --- Fallback High-Fidelity Realistic TTS (DeepMind Journey) ---
+FALLBACK_TTS_VOICE = _env("FALLBACK_TTS_VOICE", "en-IN-Journey-F")
+FALLBACK_MALE_TTS_VOICE = _env("FALLBACK_MALE_TTS_VOICE", "en-IN-Journey-D")
 
 
 def live_available() -> bool:
     return AVATAR_TRANSPORT == "live" and bool(LIVE_PROJECT)
 
+
 # --- app ---
-# The stylist's NAME is always the selected avatar's name (no separate persona name).
 PORT = int(_env("PORT", "8000") or "8000")
+
+
+def log_startup_config() -> None:
+    """Print clean formatted runtime configuration at application startup."""
+    live_status = (
+        "ENABLED (Vertex Bidi WebSocket)"
+        if live_available()
+        else f"FALLBACK ({'LIVE_PROJECT missing' if AVATAR_TRANSPORT == 'live' else 'standard brain mode'})"
+    )
+    banner = (
+        "\n"
+        "================================================================================\n"
+        "✦ CYMBAL PREMIER WEALTH STUDIO — RUNTIME CONFIGURATION\n"
+        "================================================================================\n"
+        f"  • Global GCP Project : {GCP_PROJECT or '(ADC default / auto-detect)'}\n"
+        f"  • Global Region      : {GCP_LOCATION}\n"
+        f"  • Server Port        : {PORT}\n"
+        "────────────────────────────────────────────────────────────────────────────────\n"
+        f"  • Brain Model        : {BRAIN_MODEL}\n"
+        f"    ↳ Brain Target     : project={BRAIN_PROJECT or GCP_PROJECT or '(default)'}, location={BRAIN_LOCATION}\n"
+        "────────────────────────────────────────────────────────────────────────────────\n"
+        f"  • Image Model        : {IMAGE_MODEL}\n"
+        f"  • VTO Model          : {VTO_MODEL}\n"
+        f"    ↳ Image Target     : project={IMAGE_PROJECT or GCP_PROJECT or '(default)'}, location={IMAGE_LOCATION}\n"
+        "────────────────────────────────────────────────────────────────────────────────\n"
+        f"  • Avatar Transport   : {AVATAR_TRANSPORT.upper()} [{live_status}]\n"
+        f"  • Live Model         : {LIVE_MODEL}\n"
+        f"    ↳ Live Target      : project={LIVE_PROJECT or '(not set)'}, location={LIVE_LOCATION}\n"
+        f"  • Live Persona/Voice : {AVATAR_NAME or 'Ananya'} (Live API Voice: {AVATAR_VOICE or 'Aoede'})\n"
+        f"  • Fallback Voice TTS : DeepMind Journey ({FALLBACK_TTS_VOICE})\n"
+        "================================================================================\n"
+    )
+    print(banner, flush=True)

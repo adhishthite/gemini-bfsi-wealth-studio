@@ -168,3 +168,5 @@ Thumbs.db
 assets/proposals/
 frontend/public/assets/proposals/
 
+.env.*
+!.env.example

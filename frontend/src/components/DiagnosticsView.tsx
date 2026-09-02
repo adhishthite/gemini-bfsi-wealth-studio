@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@phosphor-icons/react";
 import { useStore } from "@/store";
 import { sendAction } from "@/ws";
 import { Button } from "@/components/ui/button";
@@ -18,23 +18,24 @@ const SLEEVES = [
 ] as const;
 
 export default function DiagnosticsView() {
-	const { diagnostics, set } = useStore();
+	const { diagnostics, portfolio, profile, set } = useStore();
+	const activeClient = portfolio || profile;
 
 	const activeDiag = diagnostics || {
-		client_name: "Rahul Sharma",
-		total_aum_inr: 7500000,
-		current_allocation: {
+		client_name: activeClient?.name || "Rahul Sharma",
+		total_aum_inr: activeClient?.total_aum_inr ?? 7500000,
+		current_allocation: activeClient?.current_allocation || {
 			equity: 0.7,
 			debt: 0.15,
 			gold: 0.1,
 			cash_liquid: 0.05,
 		},
-		concentration_risks: [
+		concentration_risks: activeClient?.portfolio_health_notes || [
 			"80% of the equity book sits in a single large-cap fund.",
 			"No allocation to mid and small cap growth, and none to global technology.",
-			"Of a monthly surplus of \u20b91.5 L, \u20b990,000 stays idle in the savings account.",
+			"Monthly cash surplus stays idle in the savings account.",
 		],
-		goals: [
+		goals: activeClient?.goals || [
 			{
 				id: "GOAL-01",
 				name: "Children's higher education",
@@ -45,15 +46,19 @@ export default function DiagnosticsView() {
 			},
 			{
 				id: "GOAL-02",
-				name: "Early financial independence, age 54",
+				name: "Early financial independence",
 				target_year: 2042,
 				target_amount_inr: 50000000,
 				current_funded_inr: 5300000,
 				on_track: "needs_sip_boost",
 			},
 		],
-		monthly_surplus_inr: 150000,
-		unallocated_surplus_inr: 90000,
+		monthly_surplus_inr: activeClient?.monthly_surplus_inr ?? 150000,
+		unallocated_surplus_inr: Math.max(
+			0,
+			(activeClient?.monthly_surplus_inr ?? 150000) -
+				(activeClient?.active_sip_inr ?? 60000),
+		),
 	};
 
 	const aum = activeDiag.total_aum_inr;

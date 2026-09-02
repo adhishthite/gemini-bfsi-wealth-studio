@@ -38,7 +38,9 @@ export const asset = (path: string) => "/" + path.replace(/^\//, "");
 
 /** Full precision, Indian grouping. ₹75,00,000 */
 export const rupee = (n?: number | null) =>
-	n == null || Number.isNaN(n) ? "" : "₹" + Math.round(n).toLocaleString("en-IN");
+	n == null || Number.isNaN(n)
+		? ""
+		: "₹" + Math.round(n).toLocaleString("en-IN");
 
 /** Alias of `rupee`, named for how it reads at the call site. */
 export const inr = rupee;
@@ -55,12 +57,24 @@ export const inrParts = (
 	const abs = Math.abs(n);
 	const sign = n < 0 ? "-" : "";
 	if (abs >= 1e7)
-		return { value: sign + "₹" + (abs / 1e7).toFixed(abs >= 1e8 ? 0 : 2), unit: "Cr" };
+		return {
+			value: sign + "₹" + (abs / 1e7).toFixed(abs >= 1e8 ? 0 : 2),
+			unit: "Cr",
+		};
 	if (abs >= 1e5)
-		return { value: sign + "₹" + (abs / 1e5).toFixed(abs >= 1e6 ? 0 : 1), unit: "L" };
+		return {
+			value: sign + "₹" + (abs / 1e5).toFixed(abs >= 1e6 ? 0 : 1),
+			unit: "L",
+		};
 	if (abs >= 1e3)
-		return { value: sign + "₹" + Math.round(abs).toLocaleString("en-IN"), unit: "" };
-	return { value: sign + "₹" + Math.round(abs).toLocaleString("en-IN"), unit: "" };
+		return {
+			value: sign + "₹" + Math.round(abs).toLocaleString("en-IN"),
+			unit: "",
+		};
+	return {
+		value: sign + "₹" + Math.round(abs).toLocaleString("en-IN"),
+		unit: "",
+	};
 };
 
 /** Crore / lakh shorthand as a single string. ₹4.2 Cr */

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Plus } from "lucide-react";
+import { Check, Plus } from "@phosphor-icons/react";
 import type { FundProduct } from "@/types";
 import { useStore } from "@/store";
 import { sendAction } from "@/ws";
@@ -61,9 +61,7 @@ export default function InstrumentTable({ funds }: { funds: FundProduct[] }) {
 								<tr
 									key={fund.id}
 									className={`transition-colors ${
-										isHighlighted
-											? "bg-stamp-wash"
-											: "hover:bg-paper-sunken"
+										isHighlighted ? "bg-stamp-wash" : "hover:bg-paper-sunken"
 									}`}
 								>
 									{/* Instrument & AMC */}

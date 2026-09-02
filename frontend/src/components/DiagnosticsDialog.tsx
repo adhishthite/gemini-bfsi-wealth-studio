@@ -24,23 +24,24 @@ const asPct = (v: number) => (Math.abs(v) <= 1 ? v * 100 : v);
 const FOLIO = "CYM-PMS-0091447";
 
 export default function DiagnosticsDialog() {
-	const { diagnosticsOpen, diagnostics, set } = useStore();
+	const { diagnosticsOpen, diagnostics, portfolio, profile, set } = useStore();
+	const activeClient = portfolio || profile;
 
 	const activeDiag: DiagnosticsData = diagnostics || {
-		client_name: "Rahul Sharma",
-		total_aum_inr: 7500000,
-		current_allocation: {
+		client_name: activeClient?.name || "Rahul Sharma",
+		total_aum_inr: activeClient?.total_aum_inr ?? 7500000,
+		current_allocation: activeClient?.current_allocation || {
 			equity: 0.7,
 			debt: 0.15,
 			gold: 0.1,
 			cash_liquid: 0.05,
 		},
-		concentration_risks: [
+		concentration_risks: activeClient?.portfolio_health_notes || [
 			"80% of the equity book sits in a single large cap fund — concentration well beyond the client's stated risk mandate.",
 			"No allocation to mid and small cap growth, and none to global technology. The book has no diversification outside India.",
-			"₹90,000 of the ₹1,50,000 monthly surplus is sitting idle in the savings account, earning 3%.",
+			"Monthly cash surplus is sitting idle in the savings account, earning 3%.",
 		],
-		goals: [
+		goals: activeClient?.goals || [
 			{
 				id: "GOAL-01",
 				name: "Children's higher education",
@@ -58,8 +59,12 @@ export default function DiagnosticsDialog() {
 				on_track: "needs_sip_boost",
 			},
 		],
-		monthly_surplus_inr: 150000,
-		unallocated_surplus_inr: 90000,
+		monthly_surplus_inr: activeClient?.monthly_surplus_inr ?? 150000,
+		unallocated_surplus_inr: Math.max(
+			0,
+			(activeClient?.monthly_surplus_inr ?? 150000) -
+				(activeClient?.active_sip_inr ?? 60000),
+		),
 	};
 
 	const aum = activeDiag.total_aum_inr;
@@ -107,7 +112,10 @@ export default function DiagnosticsDialog() {
 						</div>
 						<div className="grid grid-cols-2 divide-rule sm:grid-cols-4 sm:divide-x">
 							{sleeves.map((sleeve) => (
-								<div key={sleeve.label} className="px-0 py-4 sm:px-5 sm:first:pl-0">
+								<div
+									key={sleeve.label}
+									className="px-0 py-4 sm:px-5 sm:first:pl-0"
+								>
 									<p className="label">{sleeve.label}</p>
 									<p className="figure mt-2 tabular-nums">
 										{pct(sleeve.share, 0)}

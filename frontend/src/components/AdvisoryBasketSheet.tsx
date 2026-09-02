@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react";
+import { Trash } from "@phosphor-icons/react";
 import { useStore } from "@/store";
 import { sendAction } from "@/ws";
 import {
@@ -21,14 +21,8 @@ import { inr } from "@/lib";
    ------------------------------------------------------------------------ */
 
 export default function AdvisoryBasketSheet() {
-	const {
-		basket,
-		basketOpen,
-		totalLumpsum,
-		totalSip,
-		set,
-		removeFromBasket,
-	} = useStore();
+	const { basket, basketOpen, totalLumpsum, totalSip, set, removeFromBasket } =
+		useStore();
 
 	const handleGenerateProposal = () => {
 		sendAction("generate_advisory_proposal", {
@@ -111,7 +105,7 @@ export default function AdvisoryBasketSheet() {
 													className="size-7 rounded-lg text-ink-faint hover:text-ink-strong"
 													title="Remove from basket"
 												>
-													<Trash2 className="size-3.5" />
+													<Trash className="size-3.5" />
 												</Button>
 											</div>
 										</div>

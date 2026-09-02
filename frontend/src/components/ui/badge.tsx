@@ -13,49 +13,48 @@ import { cn } from "@/lib/utils";
  * appear once on a screen.
  */
 const badgeVariants = cva(
-  "inline-flex items-center rounded-sm border px-2 py-0.5 text-label transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
-  {
-    variants: {
-      variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground font-semibold",
-        secondary:
-          "border-transparent bg-paper-sunken text-ink font-medium",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground font-semibold",
-        outline: "border-rule text-ink-muted font-medium",
+	"inline-flex items-center rounded-sm border px-2 py-0.5 text-label transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
+	{
+		variants: {
+			variant: {
+				default:
+					"border-transparent bg-primary text-primary-foreground font-semibold",
+				secondary: "border-transparent bg-paper-sunken text-ink font-medium",
+				destructive:
+					"border-transparent bg-destructive text-destructive-foreground font-semibold",
+				outline: "border-rule text-ink-muted font-medium",
 
-        // Asset classes — the label does the work, not a colour chip.
-        equity: "border-rule text-ink-muted font-medium",
-        debt: "border-rule text-ink-muted font-medium",
-        commodities: "border-rule text-ink-muted font-medium",
-        hybrid: "border-rule text-ink-muted font-medium",
+				// Asset classes — the label does the work, not a colour chip.
+				equity: "border-rule text-ink-muted font-medium",
+				debt: "border-rule text-ink-muted font-medium",
+				commodities: "border-rule text-ink-muted font-medium",
+				hybrid: "border-rule text-ink-muted font-medium",
 
-        // The one accented badge. Spend it once.
-        gold: "border-stamp-rule text-stamp font-semibold",
+				// The one accented badge. Spend it once.
+				gold: "border-stamp-rule text-stamp font-semibold",
 
-        // Risk ramp: monochrome, encoded in weight and rule strength.
-        riskLow: "border-rule text-ink-faint font-medium",
-        riskModerate: "border-rule-strong text-ink-muted font-semibold",
-        riskHigh: "border-ink-strong text-ink-strong font-semibold",
+				// Risk ramp: monochrome, encoded in weight and rule strength.
+				riskLow: "border-rule text-ink-faint font-medium",
+				riskModerate: "border-rule-strong text-ink-muted font-semibold",
+				riskHigh: "border-ink-strong text-ink-strong font-semibold",
 
-        tag: "border-transparent bg-paper-sunken text-ink-muted font-medium",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
+				tag: "border-transparent bg-paper-sunken text-ink-muted font-medium",
+			},
+		},
+		defaultVariants: {
+			variant: "default",
+		},
+	},
 );
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+	extends React.HTMLAttributes<HTMLDivElement>,
+		VariantProps<typeof badgeVariants> {}
 
 function Badge({ className, variant, ...props }: BadgeProps) {
-  return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
-  );
+	return (
+		<div className={cn(badgeVariants({ variant }), className)} {...props} />
+	);
 }
 
 export { Badge, badgeVariants };

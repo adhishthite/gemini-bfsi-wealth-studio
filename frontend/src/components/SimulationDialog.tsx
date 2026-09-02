@@ -60,38 +60,63 @@ const PAD_TOP = 22;
 const PAD_BOTTOM = 34;
 
 export default function SimulationDialog() {
-	const { simulation, simulationOpen, set } = useStore();
+	const { simulationOpen, simulation, portfolio, profile, set } = useStore();
+	const activeClient = portfolio || profile;
+	const clientAum = activeClient?.total_aum_inr ?? 7500000;
+	const clientSip = activeClient?.monthly_surplus_inr ?? 100000;
 
 	const [activeScenario, setActiveScenario] = useState("baseline");
 	const [eqPct, setEqPct] = useState(65);
-	const [sipAmt, setSipAmt] = useState(100000);
+	const [sipAmt, setSipAmt] = useState(clientSip);
+
+	const defaultFinalCorpus = Math.round(
+		clientAum * Math.pow(1.128, 15) +
+			clientSip * 12 * ((Math.pow(1.128, 15) - 1) / 0.128),
+	);
 
 	const currentSim: SimulationData = simulation || {
 		scenario: "baseline",
 		target_allocation: { equity: 65, debt: 20, gold: 10, liquid: 5 },
 		blended_expected_cagr_pct: 12.8,
-		monthly_sip_inr: 100000,
+		monthly_sip_inr: clientSip,
 		horizon_years: 15,
-		projected_final_corpus_inr: 58200000,
+		projected_final_corpus_inr: defaultFinalCorpus,
 		goals_feasibility: {
-			education_2032_status: "Fully funded, 108% of target",
-			retirement_2042_status: "Met — ₹5.82 Cr against a ₹5.0 Cr target",
+			primary_status: `Fully funded, projected ${inrCompact(defaultFinalCorpus)}`,
 		},
 		trajectory: [
-			{ year: 2026, projected_corpus_inr: 7500000 },
-			{ year: 2028, projected_corpus_inr: 12400000 },
-			{ year: 2030, projected_corpus_inr: 19800000 },
+			{ year: 2026, projected_corpus_inr: clientAum },
+			{
+				year: 2028,
+				projected_corpus_inr: Math.round(clientAum * 1.25 + clientSip * 24),
+			},
+			{
+				year: 2030,
+				projected_corpus_inr: Math.round(
+					clientAum * 1.55 + clientSip * 48 * 1.08,
+				),
+			},
 			{
 				year: 2032,
-				projected_corpus_inr: 31200000,
-				education_goal_target: 5000000,
+				projected_corpus_inr: Math.round(
+					clientAum * 1.95 + clientSip * 72 * 1.15,
+				),
+				education_goal_target:
+					activeClient?.goals?.[0]?.target_amount_inr || 5000000,
 			},
-			{ year: 2035, projected_corpus_inr: 39500000 },
-			{ year: 2038, projected_corpus_inr: 47200000 },
+			{
+				year: 2036,
+				projected_corpus_inr: Math.round(
+					clientAum * 2.8 + clientSip * 120 * 1.25,
+				),
+			},
 			{
 				year: 2042,
-				projected_corpus_inr: 58200000,
-				retirement_goal_target: 50000000,
+				projected_corpus_inr: defaultFinalCorpus,
+				retirement_goal_target:
+					activeClient?.goals?.[1]?.target_amount_inr ||
+					activeClient?.goals?.[0]?.target_amount_inr ||
+					50000000,
 			},
 		],
 	};
@@ -137,7 +162,10 @@ export default function SimulationDialog() {
 		PAD_TOP +
 		(1 - value / Math.max(1, maxValue)) * (CHART_H - PAD_TOP - PAD_BOTTOM);
 	const line = points
-		.map((p, i) => `${i === 0 ? "M" : "L"} ${plotX(p.year)},${plotY(p.projected_corpus_inr)}`)
+		.map(
+			(p, i) =>
+				`${i === 0 ? "M" : "L"} ${plotX(p.year)},${plotY(p.projected_corpus_inr)}`,
+		)
 		.join(" ");
 
 	return (
@@ -186,22 +214,41 @@ export default function SimulationDialog() {
 
 					{/* Goal feasibility, as ruled statements */}
 					<div className="divide-y divide-rule border-y border-rule">
-						<div className="flex items-baseline justify-between gap-4 py-3.5">
-							<p className="text-sm text-ink-strong">
-								Children's higher education, 2032
-							</p>
-							<p className="text-xs text-ink-muted">
-								{currentSim.goals_feasibility?.education_2032_status}
-							</p>
-						</div>
-						<div className="flex items-baseline justify-between gap-4 py-3.5">
-							<p className="text-sm text-ink-strong">
-								Financial independence, 2042
-							</p>
-							<p className="text-xs text-ink-muted">
-								{currentSim.goals_feasibility?.retirement_2042_status}
-							</p>
-						</div>
+						{activeClient?.goals && activeClient.goals.length > 0 ? (
+							activeClient.goals.map((g, gi) => {
+								const gKey = Object.keys(
+									currentSim.goals_feasibility || {},
+								).find(
+									(k) =>
+										k.includes(String(g.target_year)) ||
+										k.includes(g.name.toLowerCase().split(" ")[0]),
+								);
+								const statusText =
+									(currentSim.goals_feasibility as any)?.[gKey || ""] ||
+									`Funded against ${inrCompact(g.target_amount_inr)} target`;
+								return (
+									<div
+										key={g.id || `${g.name}-${gi}`}
+										className="flex items-baseline justify-between gap-4 py-3.5"
+									>
+										<p className="text-sm text-ink-strong">
+											{g.name}, {g.target_year}
+										</p>
+										<p className="text-xs text-ink-muted">{statusText}</p>
+									</div>
+								);
+							})
+						) : (
+							<div className="flex items-baseline justify-between gap-4 py-3.5">
+								<p className="text-sm text-ink-strong">
+									Financial independence, 2042
+								</p>
+								<p className="text-xs text-ink-muted">
+									{currentSim.goals_feasibility?.retirement_2042_status ||
+										`Projected ${inrCompact(currentSim.projected_final_corpus_inr)}`}
+								</p>
+							</div>
+						)}
 					</div>
 
 					{/* Scenario — the selected tile is the one accent on this screen */}
@@ -285,7 +332,9 @@ export default function SimulationDialog() {
 					<div>
 						<div className="flex items-baseline justify-between border-b border-rule-strong pb-2">
 							<p className="label-strong">Compounding trajectory</p>
-							<p className="label">{minYear} to {maxYear}</p>
+							<p className="label">
+								{minYear} to {maxYear}
+							</p>
 						</div>
 						<div className="relative h-48 w-full pt-5">
 							<svg

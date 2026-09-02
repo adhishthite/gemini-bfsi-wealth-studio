@@ -10,10 +10,12 @@ export default function CatalogGrid() {
 	const displayedFunds = useMemo(() => {
 		let list = [...funds];
 
-		// Filter by AI / Tool-called visible IDs if set
+		// If AI / Tool-called visible IDs are set, honor the exact shortlist and priority ranking
 		if (visibleFundIds && visibleFundIds.length > 0) {
-			const idSet = new Set(visibleFundIds);
-			list = list.filter((f) => idSet.has(f.id));
+			const idMap = new Map(visibleFundIds.map((id, index) => [id, index]));
+			list = list.filter((f) => idMap.has(f.id));
+			list.sort((a, b) => (idMap.get(a.id) ?? 999) - (idMap.get(b.id) ?? 999));
+			return list;
 		}
 
 		// Filter by Category
@@ -97,5 +99,3 @@ export default function CatalogGrid() {
 		</div>
 	);
 }
-
-

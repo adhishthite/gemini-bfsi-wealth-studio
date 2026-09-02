@@ -75,10 +75,7 @@ export type SimulationData = {
 	monthly_sip_inr: number;
 	horizon_years: number;
 	projected_final_corpus_inr: number;
-	goals_feasibility: {
-		education_2032_status: string;
-		retirement_2042_status: string;
-	};
+	goals_feasibility: Record<string, string>;
 	trajectory: SimulationTrajectoryPoint[];
 };
 
@@ -104,6 +101,7 @@ export type Profile = {
 	age: number;
 	occupation: string;
 	risk_profile: string;
+	investment_style?: string;
 	total_aum_inr: number;
 	current_allocation: {
 		equity: number;
@@ -150,6 +148,7 @@ export type ChatMsg = {
 	id: number;
 	role: "user" | "assistant";
 	text: string;
+	audio?: string;
 };
 
 export type ServerMsg =
@@ -160,11 +159,20 @@ export type ServerMsg =
 			catalog?: FundProduct[];
 			profile: Profile;
 			portfolio?: Profile;
+			active_profile_key?: string;
+			profiles?: Record<string, Profile>;
 			basket: BasketItem[];
 			default_avatar: string;
 			live_available: boolean;
 	  }
-	| { type: "assistant_text"; text: string }
+	| {
+			type: "profile_switched";
+			profile_key: string;
+			profile: Profile;
+			portfolio: Profile;
+			basket?: BasketItem[];
+	  }
+	| { type: "assistant_text"; text: string; audio?: string }
 	| {
 			type: "filter_catalog";
 			category?: string;
@@ -199,6 +207,8 @@ export type ServerMsg =
 			basket: BasketItem[];
 			portfolio: Profile;
 	  }
+	| { type: "status_step"; step: string; tool?: string; args?: any }
+	| { type: "stream_chunk"; chunk: string }
 	| { type: "thinking" }
 	| { type: "turn_complete" }
 	| { type: "error"; message: string };

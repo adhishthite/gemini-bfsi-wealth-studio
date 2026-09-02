@@ -32,6 +32,8 @@ type Store = {
 	funds: FundProduct[];
 	profile: Profile | null;
 	portfolio: Profile | null;
+	activeProfileKey: string;
+	profiles: Record<string, Profile>;
 	visibleFundIds: string[] | null; // null => show all
 	highlightIds: string[];
 	filter: {
@@ -63,6 +65,9 @@ type Store = {
 
 	// Chat & Toasts
 	chat: ChatMsg[];
+	currentStep: string | null;
+	streamingText: string | null;
+	isRecording: boolean;
 	voiceOn: boolean;
 	listening: boolean;
 	speaking: boolean;
@@ -95,7 +100,8 @@ const nid = () => _id++;
 if (typeof window !== "undefined") {
 	// Light ground is the default: this is a mandate document, and it is read
 	// off a projector or a shared screen. Dark mode stays available.
-	const savedTheme = (localStorage.getItem("cymbal_theme") as "dark" | "light") || "light";
+	const savedTheme =
+		(localStorage.getItem("cymbal_theme") as "dark" | "light") || "light";
 	document.documentElement.classList.toggle("dark", savedTheme === "dark");
 	setTimeout(() => {
 		useStore.setState({ theme: savedTheme });
@@ -123,6 +129,8 @@ export const useStore = create<Store>((set, get) => ({
 	funds: [],
 	profile: null,
 	portfolio: null,
+	activeProfileKey: "investor",
+	profiles: {},
 	visibleFundIds: null,
 	highlightIds: [],
 	filter: {
@@ -156,6 +164,9 @@ export const useStore = create<Store>((set, get) => ({
 			text: "Namaste Rahul! I'm Ananya, your Senior Private Wealth Advisor at Cymbal Premier. How can I assist you with your ₹75L portfolio and goal milestones today?",
 		},
 	],
+	currentStep: null,
+	streamingText: null,
+	isRecording: false,
 	voiceOn: true,
 	listening: false,
 	speaking: false,

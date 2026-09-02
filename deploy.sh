@@ -18,7 +18,7 @@ gcloud run deploy "$SERVICE" \
   --cpu 1 \
   --timeout 300 \
   --concurrency 20 \
-  --set-env-vars "AVATAR_TRANSPORT=live,LIVE_PROJECT=${LIVE_PROJECT:-$PROJECT},LIVE_LOCATION=us-central1,GCP_PROJECT=${PROJECT},GCP_LOCATION=us-central1,IMAGE_LOCATION=global,BRAIN_MODEL=gemini-2.5-flash,VTO_MODEL=gemini-3.1-flash-image,IMAGE_MODEL=gemini-3-pro-image"
+  --set-env-vars "AVATAR_TRANSPORT=live,LIVE_PROJECT=${LIVE_PROJECT:-$PROJECT},LIVE_LOCATION=us-central1,GCP_PROJECT=${PROJECT},GCP_LOCATION=us-central1,IMAGE_LOCATION=global,BRAIN_LOCATION=global,BRAIN_MODEL=gemini-3.5-flash-lite,VTO_MODEL=gemini-3.1-flash-image,IMAGE_MODEL=gemini-3-pro-image"
 
 URL=$(gcloud run services list --project "$PROJECT" \
   --filter="metadata.name=${SERVICE}" --format="value(status.url)")

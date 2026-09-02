@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Format and lint Python files using ruff with fallback to compileall."""
+
 import sys, subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+
 
 def run_format():
     print("==> Formatting Python codebase...")
@@ -18,11 +20,14 @@ def run_format():
             print("  ✅ Ruff formatting complete.")
             return True
         else:
-            print("  ℹ️ Native ruff binary restricted by environment; verified syntax clean.")
+            print(
+                "  ℹ️ Native ruff binary restricted by environment; verified syntax clean."
+            )
             return True
     except Exception as e:
         print(f"  ℹ️ Notice: {e}")
         return True
+
 
 def run_lint():
     print("==> Linting Python codebase...")
@@ -49,6 +54,7 @@ def run_lint():
     except Exception as e:
         print(f"  ℹ️ Lint notice: {e}")
         return True
+
 
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "all"

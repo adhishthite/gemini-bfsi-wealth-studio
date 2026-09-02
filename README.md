@@ -10,7 +10,7 @@ Realizes the Google Cloud BFSI GenAI Architecture. Designed for enterprise priva
 
 | Capability | Powered By | Role in Demo |
 |---|---|---|
-| **Conversational RM Brain + Tool Execution** | **Gemini** (`gemini-2.5-flash` on Vertex AI) | Real-time portfolio analysis, asset allocation steering, and tool orchestration |
+| **Conversational RM Brain + Tool Execution** | **Gemini** (`gemini-3.5-flash-lite` on Vertex AI) | Real-time portfolio analysis, asset allocation steering, and tool orchestration |
 | **Photoreal Live Video Advisor (Flag-Gated)** | **Gemini 3.1 Live API — Live Avatar** | Low-latency bidirectional audiovisual video stream with lip sync |
 | **Portfolio Diagnostics & Drift Engine** | Vertex Function Calling (`get_portfolio_diagnostics`) | Audits Current (70/15/10/5) vs Strategic Target (65/20/10/5) asset allocation |
 | **15-Year Goal Simulation Lab** | Vertex Function Calling (`simulate_portfolio`) | Macro scenario modeling (Supercycle, Recession, Inflation) & Compounding Growth Cone |
@@ -49,7 +49,11 @@ Realizes the Google Cloud BFSI GenAI Architecture. Designed for enterprise priva
 ## Core Domain Concepts & Personas
 
 - **Relationship Manager ("Ananya")**: Senior Private Wealth RM. Fiduciary-focused, data-driven, and proactive in identifying portfolio drift and concentration risks.
-- **Client ("Rahul Sharma")**: 38-year-old tech executive based in Bengaluru/Pune with **₹75 Lakh in existing AUM**, targeting retirement by 2042 and children's higher education by 2032.
+- **Client Personas (4 Distinct Wealth Profiles)**:
+  1. **Rahul Sharma** (38, Engineering Director, Bengaluru): **Moderately Aggressive Growth** · ₹75 Lakh AUM (Retirement 2042 & Children's Higher Ed 2032).
+  2. **Anand Kulkarni** (59, Retiring VP Manufacturing, Pune): **Conservative Capital Preservation** · ₹2.50 Crore AUM (Post-retirement SWP ₹1.75L/mo & Healthcare Reserve).
+  3. **Priya Iyer** (29, Fintech VP Product, Bengaluru): **Aggressive Alpha & Tech** · ₹45 Lakh AUM (Venture Seed Capital 2030 & Luxury Penthouse 2035).
+  4. **Dr. Vikramaditya Singhania** (47, Chief of Cardiology, Mumbai): **Balanced Multi-Asset** · ₹1.80 Crore AUM (Ivy League Education 2031, Eco Villa 2036, Family Trust 2046).
 - **Curated Fund Universe**: 39 institutional-grade mutual funds, ETFs, Target Maturity Gilts, and Sovereign Gold instruments spanning Equity, Debt, Commodities, and Hybrid asset classes.
 
 ---
@@ -68,7 +72,7 @@ cp .env.example .env
 |---|---|---|
 | `GCP_PROJECT` | *(Required)* | Primary Google Cloud Project ID for Vertex AI |
 | `GCP_LOCATION` | `us-central1` | Default Vertex AI region |
-| `BRAIN_MODEL` | `gemini-2.5-flash` | Conversational fiduciary brain model |
+| `BRAIN_MODEL` | `gemini-3.5-flash-lite` | Conversational fiduciary brain model |
 | `AVATAR_TRANSPORT` | `fallback` | Set to `live` to enable Gemini 3.1 Live Avatar streaming |
 | `LIVE_PROJECT` | *(Optional)* | Allowlisted GCP Project ID for Gemini 3.1 Live API Private Preview |
 | `LIVE_LOCATION` | `us-central1` | Region for Live Avatar WebSocket endpoint |

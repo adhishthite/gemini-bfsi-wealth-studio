@@ -142,8 +142,16 @@ export default function MandateDialog() {
 		pushToast,
 	} = useStore();
 
-	const [otp, setOtp] = useState("7701");
+	const defaultOtp = portfolio?.user_id
+		? portfolio.user_id.split("-").pop() || "7701"
+		: "7701";
+	const [otp, setOtp] = useState(defaultOtp);
 	const [agreed, setAgreed] = useState(true);
+
+	// Sync OTP whenever active client changes
+	useState(() => {
+		if (defaultOtp !== otp) setOtp(defaultOtp);
+	});
 
 	const authorized = mandateStatus === "authorized";
 	const failed = mandateStatus === "error";

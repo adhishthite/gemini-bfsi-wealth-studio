@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { MessageCircle, X } from "lucide-react";
+import { ChatCircleDots, X } from "@phosphor-icons/react";
 import { connect } from "@/ws";
 import { useStore } from "@/store";
 import TopBar from "@/components/TopBar";
@@ -114,7 +114,11 @@ export default function App() {
 				className="lg:hidden fixed bottom-6 right-6 z-80 size-12 rounded-lg border border-rule-strong bg-ink-strong text-paper shadow-sheet hover:bg-ink active:scale-95"
 				aria-label="Open advisor chat"
 			>
-				{sheetOpen ? <X className="size-5" /> : <MessageCircle className="size-5" />}
+				{sheetOpen ? (
+					<X className="size-5" />
+				) : (
+					<ChatCircleDots className="size-5" />
+				)}
 			</Button>
 
 			{/* Mobile bottom sheet for the advisor dock */}

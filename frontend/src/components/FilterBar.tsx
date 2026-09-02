@@ -1,11 +1,11 @@
 import { useState, type ReactNode } from "react";
 import {
-	GalleryHorizontal,
-	LayoutGrid,
-	Search,
+	Cards as GalleryHorizontal,
+	SquaresFour as LayoutGrid,
+	MagnifyingGlass as Search,
 	SlidersHorizontal,
-	TableProperties,
-} from "lucide-react";
+	Table as TableProperties,
+} from "@phosphor-icons/react";
 import { useStore } from "@/store";
 import { sendAction } from "@/ws";
 import {

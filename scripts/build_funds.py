@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Generate backend/data/funds.json — 39 mutual funds, ETFs, and instruments across 4 asset classes.
 
-  python scripts/build_funds.py
+python scripts/build_funds.py
 """
+
 import json
 from pathlib import Path
 
@@ -28,9 +29,15 @@ FUNDS = [
         "rating": 5,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["HDFC Bank", "Reliance Industries", "ICICI Bank", "Infosys", "TCS"],
+        "top_holdings": [
+            "HDFC Bank",
+            "Reliance Industries",
+            "ICICI Bank",
+            "Infosys",
+            "TCS",
+        ],
         "tags": ["Flagship", "Large Cap", "Top Rated"],
-        "description": "Invests in top 100 established market leaders with consistent earnings growth and robust balance sheets."
+        "description": "Invests in top 100 established market leaders with consistent earnings growth and robust balance sheets.",
     },
     {
         "id": "CPW-EQ-002",
@@ -49,9 +56,15 @@ FUNDS = [
         "rating": 5,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["Larsen & Toubro", "Axis Bank", "Tata Motors", "Trent Ltd", "Bharat Electronics"],
+        "top_holdings": [
+            "Larsen & Toubro",
+            "Axis Bank",
+            "Tata Motors",
+            "Trent Ltd",
+            "Bharat Electronics",
+        ],
         "tags": ["Growth", "High Conviction"],
-        "description": "Blends stability of bluechips with high growth velocity of emerging mid-market champions."
+        "description": "Blends stability of bluechips with high growth velocity of emerging mid-market champions.",
     },
     {
         "id": "CPW-EQ-003",
@@ -70,9 +83,15 @@ FUNDS = [
         "rating": 5,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["ICICI Bank", "HCL Tech", "Sun Pharma", "Mahindra & Mahindra", "Bajaj Finance"],
+        "top_holdings": [
+            "ICICI Bank",
+            "HCL Tech",
+            "Sun Pharma",
+            "Mahindra & Mahindra",
+            "Bajaj Finance",
+        ],
         "tags": ["Bestseller", "All-Cap", "Top Rated"],
-        "description": "Dynamic multi-cap strategy with unconstrained mandate to capture growth across large, mid, and small cap sectors."
+        "description": "Dynamic multi-cap strategy with unconstrained mandate to capture growth across large, mid, and small cap sectors.",
     },
     {
         "id": "CPW-EQ-004",
@@ -91,9 +110,15 @@ FUNDS = [
         "rating": 4,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["Persistent Systems", "Polycab India", "Federal Bank", "Cummins India", "Max Healthcare"],
+        "top_holdings": [
+            "Persistent Systems",
+            "Polycab India",
+            "Federal Bank",
+            "Cummins India",
+            "Max Healthcare",
+        ],
         "tags": ["High Alpha", "Mid Cap"],
-        "description": "Identifies fast-growing mid-tier companies poised to become tomorrow's large caps."
+        "description": "Identifies fast-growing mid-tier companies poised to become tomorrow's large caps.",
     },
     {
         "id": "CPW-EQ-005",
@@ -112,9 +137,15 @@ FUNDS = [
         "rating": 4,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["Kaynes Tech", "KPIT Technologies", "AIA Engineering", "CreditAccess Grameen", "Carborundum"],
+        "top_holdings": [
+            "Kaynes Tech",
+            "KPIT Technologies",
+            "AIA Engineering",
+            "CreditAccess Grameen",
+            "Carborundum",
+        ],
         "tags": ["High Return", "Small Cap", "Volatile"],
-        "description": "Aggressive small-cap strategy targeting niche market disruptors and capital goods manufacturers."
+        "description": "Aggressive small-cap strategy targeting niche market disruptors and capital goods manufacturers.",
     },
     {
         "id": "CPW-EQ-006",
@@ -133,9 +164,15 @@ FUNDS = [
         "rating": 4,
         "min_sip": 2000,
         "min_lumpsum": 10000,
-        "top_holdings": ["State Bank of India", "Bharti Airtel", "Titan Company", "Kotak Mahindra Bank", "LTI Mindtree"],
+        "top_holdings": [
+            "State Bank of India",
+            "Bharti Airtel",
+            "Titan Company",
+            "Kotak Mahindra Bank",
+            "LTI Mindtree",
+        ],
         "tags": ["Focused", "High Conviction"],
-        "description": "Concentrated portfolio limited to maximum 25 high-conviction ideas across sectors."
+        "description": "Concentrated portfolio limited to maximum 25 high-conviction ideas across sectors.",
     },
     {
         "id": "CPW-EQ-007",
@@ -154,9 +191,15 @@ FUNDS = [
         "rating": 4,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["NTPC Ltd", "Coal India", "ITC Ltd", "Power Grid Corp", "GAIL India"],
+        "top_holdings": [
+            "NTPC Ltd",
+            "Coal India",
+            "ITC Ltd",
+            "Power Grid Corp",
+            "GAIL India",
+        ],
         "tags": ["Value", "Dividend Yield"],
-        "description": "Contrarian value investing in fundamentally sound businesses available at reasonable margin of safety."
+        "description": "Contrarian value investing in fundamentally sound businesses available at reasonable margin of safety.",
     },
     {
         "id": "CPW-EQ-008",
@@ -175,9 +218,15 @@ FUNDS = [
         "rating": 5,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["Infosys", "Tata Consultancy Services", "HCL Tech", "Coforge", "Persistent Systems"],
+        "top_holdings": [
+            "Infosys",
+            "Tata Consultancy Services",
+            "HCL Tech",
+            "Coforge",
+            "Persistent Systems",
+        ],
         "tags": ["Sectoral", "Technology", "AI Theme"],
-        "description": "Pure-play exposure to global and domestic enterprise software, cloud transformation, and generative AI providers."
+        "description": "Pure-play exposure to global and domestic enterprise software, cloud transformation, and generative AI providers.",
     },
     {
         "id": "CPW-EQ-009",
@@ -196,9 +245,15 @@ FUNDS = [
         "rating": 4,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["HDFC Bank", "ICICI Bank", "State Bank of India", "Bajaj Finserv", "Jio Financial Services"],
+        "top_holdings": [
+            "HDFC Bank",
+            "ICICI Bank",
+            "State Bank of India",
+            "Bajaj Finserv",
+            "Jio Financial Services",
+        ],
         "tags": ["Banking", "Credit Growth"],
-        "description": "Rides India's formalization of credit, digital payments, and private banking expansion."
+        "description": "Rides India's formalization of credit, digital payments, and private banking expansion.",
     },
     {
         "id": "CPW-EQ-010",
@@ -217,9 +272,15 @@ FUNDS = [
         "rating": 4,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["Sun Pharmaceutical", "Cipla Ltd", "Dr. Reddy's", "Apollo Hospitals", "Divi's Laboratories"],
+        "top_holdings": [
+            "Sun Pharmaceutical",
+            "Cipla Ltd",
+            "Dr. Reddy's",
+            "Apollo Hospitals",
+            "Divi's Laboratories",
+        ],
         "tags": ["Healthcare", "Pharma", "Defensive"],
-        "description": "Defensive growth investing in domestic formulations, hospital chains, and global contract research (CDMO)."
+        "description": "Defensive growth investing in domestic formulations, hospital chains, and global contract research (CDMO).",
     },
     {
         "id": "CPW-EQ-011",
@@ -238,9 +299,15 @@ FUNDS = [
         "rating": 5,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["Larsen & Toubro", "Siemens India", "ABB India", "Bharat Forge", "Tata Steel"],
+        "top_holdings": [
+            "Larsen & Toubro",
+            "Siemens India",
+            "ABB India",
+            "Bharat Forge",
+            "Tata Steel",
+        ],
         "tags": ["Capex", "PLI Theme", "Industrial"],
-        "description": "Captures the India manufacturing supercycle, government infrastructure spending, and defense localization."
+        "description": "Captures the India manufacturing supercycle, government infrastructure spending, and defense localization.",
     },
     {
         "id": "CPW-EQ-012",
@@ -259,9 +326,15 @@ FUNDS = [
         "rating": 4,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["Tata Power", "Infosys", "Maruti Suzuki", "Titan Company", "Havells India"],
+        "top_holdings": [
+            "Tata Power",
+            "Infosys",
+            "Maruti Suzuki",
+            "Titan Company",
+            "Havells India",
+        ],
         "tags": ["ESG", "Clean Energy", "Governance"],
-        "description": "Selects companies demonstrating superior environmental stewardship, social responsibility, and transparent corporate governance."
+        "description": "Selects companies demonstrating superior environmental stewardship, social responsibility, and transparent corporate governance.",
     },
     {
         "id": "CPW-EQ-013",
@@ -280,9 +353,15 @@ FUNDS = [
         "rating": 5,
         "min_sip": 2000,
         "min_lumpsum": 10000,
-        "top_holdings": ["Alphabet Inc (Google)", "Microsoft", "NVIDIA", "Apple", "Amazon"],
+        "top_holdings": [
+            "Alphabet Inc (Google)",
+            "Microsoft",
+            "NVIDIA",
+            "Apple",
+            "Amazon",
+        ],
         "tags": ["Global", "US Tech", "USD Hedge"],
-        "description": "Provides direct Rupee-denominated investment into global hyperscalers, chip designers, and platform giants."
+        "description": "Provides direct Rupee-denominated investment into global hyperscalers, chip designers, and platform giants.",
     },
     {
         "id": "CPW-EQ-014",
@@ -303,7 +382,7 @@ FUNDS = [
         "min_lumpsum": 5000,
         "top_holdings": ["Microsoft", "Apple", "NVIDIA", "Amazon", "Meta Platforms"],
         "tags": ["Passive", "Global Index", "Low Cost"],
-        "description": "Low-cost passive tracking of the benchmark index of the 500 largest publicly traded corporations in the United States."
+        "description": "Low-cost passive tracking of the benchmark index of the 500 largest publicly traded corporations in the United States.",
     },
     {
         "id": "CPW-EQ-015",
@@ -322,11 +401,16 @@ FUNDS = [
         "rating": 5,
         "min_sip": 500,
         "min_lumpsum": 500,
-        "top_holdings": ["HDFC Bank", "ICICI Bank", "Larsen & Toubro", "TCS", "State Bank of India"],
+        "top_holdings": [
+            "HDFC Bank",
+            "ICICI Bank",
+            "Larsen & Toubro",
+            "TCS",
+            "State Bank of India",
+        ],
         "tags": ["Section 80C", "Tax Saver", "3Y Lock-in"],
-        "description": "Wealth compounding with Section 80C tax deduction benefits under the Old Tax Regime with 3-year lock-in."
+        "description": "Wealth compounding with Section 80C tax deduction benefits under the Old Tax Regime with 3-year lock-in.",
     },
-
     # --- 2. DEBT & FIXED INCOME (10) ---
     {
         "id": "CPW-DB-001",
@@ -345,9 +429,15 @@ FUNDS = [
         "rating": 5,
         "min_sip": 500,
         "min_lumpsum": 1000,
-        "top_holdings": ["TREPS / Tri-Party Repo", "T-Bills 91D", "T-Bills 182D", "NABARD CP", "HDFC Bank CD"],
+        "top_holdings": [
+            "TREPS / Tri-Party Repo",
+            "T-Bills 91D",
+            "T-Bills 182D",
+            "NABARD CP",
+            "HDFC Bank CD",
+        ],
         "tags": ["Ultra Safe", "Instant Redemption", "Zero Exit Load"],
-        "description": "Ideal parking solution for surplus operating funds and emergency buffers with T+1 instant liquidity."
+        "description": "Ideal parking solution for surplus operating funds and emergency buffers with T+1 instant liquidity.",
     },
     {
         "id": "CPW-DB-002",
@@ -366,9 +456,15 @@ FUNDS = [
         "rating": 5,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["HDFC Bank CD", "ICICI Bank CD", "Reliance Retail CP", "REC Ltd CP", "SIDBI CD"],
+        "top_holdings": [
+            "HDFC Bank CD",
+            "ICICI Bank CD",
+            "Reliance Retail CP",
+            "REC Ltd CP",
+            "SIDBI CD",
+        ],
         "tags": ["Low Volatility", "Short Horizon"],
-        "description": "Invests in high-grade commercial paper and certificates of deposit with maturities up to 1 year."
+        "description": "Invests in high-grade commercial paper and certificates of deposit with maturities up to 1 year.",
     },
     {
         "id": "CPW-DB-003",
@@ -387,9 +483,15 @@ FUNDS = [
         "rating": 4,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["PFC Bond", "Power Grid Bond", "Axis Bank CD", "T-Bills 364D", "LIC Housing NCD"],
+        "top_holdings": [
+            "PFC Bond",
+            "Power Grid Bond",
+            "Axis Bank CD",
+            "T-Bills 364D",
+            "LIC Housing NCD",
+        ],
         "tags": ["Stable Yield", "3-6 Month Horizon"],
-        "description": "Yield-enhancement portfolio for conservative investors with holding horizons between 3 to 6 months."
+        "description": "Yield-enhancement portfolio for conservative investors with holding horizons between 3 to 6 months.",
     },
     {
         "id": "CPW-DB-004",
@@ -408,9 +510,15 @@ FUNDS = [
         "rating": 5,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["REC Ltd AAA", "PFC AAA", "HDFC Bank AAA", "Indian Oil Corp AAA", "NABARD AAA"],
+        "top_holdings": [
+            "REC Ltd AAA",
+            "PFC AAA",
+            "HDFC Bank AAA",
+            "Indian Oil Corp AAA",
+            "NABARD AAA",
+        ],
         "tags": ["AAA Safety", "High Yield", "Flagship Debt"],
-        "description": "Mandatory 80%+ allocation to premier AAA-rated corporate debt securities ensuring maximum credit safety."
+        "description": "Mandatory 80%+ allocation to premier AAA-rated corporate debt securities ensuring maximum credit safety.",
     },
     {
         "id": "CPW-DB-005",
@@ -429,9 +537,15 @@ FUNDS = [
         "rating": 5,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["State Bank of India Bond", "NTPC Bond", "HUDCO NCD", "NHPC Bond", "Bank of Baroda Tier-II"],
+        "top_holdings": [
+            "State Bank of India Bond",
+            "NTPC Bond",
+            "HUDCO NCD",
+            "NHPC Bond",
+            "Bank of Baroda Tier-II",
+        ],
         "tags": ["Sovereign Proxy", "Low Credit Risk"],
-        "description": "Invests predominantly in debt issued by PSU banks, public financial institutions, and statutory bodies."
+        "description": "Invests predominantly in debt issued by PSU banks, public financial institutions, and statutory bodies.",
     },
     {
         "id": "CPW-DB-006",
@@ -450,9 +564,15 @@ FUNDS = [
         "rating": 4,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["7.18% GS 2033", "7.06% GS 2028", "PFC 2031 NCD", "IRFC 2034 Bond", "REC 2029 AAA"],
+        "top_holdings": [
+            "7.18% GS 2033",
+            "7.06% GS 2028",
+            "PFC 2031 NCD",
+            "IRFC 2034 Bond",
+            "REC 2029 AAA",
+        ],
         "tags": ["Rate Cut Play", "Active Duration"],
-        "description": "Actively shifts average portfolio duration between 2 to 9 years to capitalize on RBI interest rate cycles."
+        "description": "Actively shifts average portfolio duration between 2 to 9 years to capitalize on RBI interest rate cycles.",
     },
     {
         "id": "CPW-DB-007",
@@ -471,9 +591,15 @@ FUNDS = [
         "rating": 4,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["7.18% GS 2033", "7.10% GS 2034", "7.26% GS 2032", "TREPS", "T-Bills"],
+        "top_holdings": [
+            "7.18% GS 2033",
+            "7.10% GS 2034",
+            "7.26% GS 2032",
+            "TREPS",
+            "T-Bills",
+        ],
         "tags": ["Zero Credit Risk", "Sovereign G-Sec"],
-        "description": "Zero credit risk portfolio investing exclusively in 10-year Government of India sovereign bonds."
+        "description": "Zero credit risk portfolio investing exclusively in 10-year Government of India sovereign bonds.",
     },
     {
         "id": "CPW-DB-008",
@@ -492,9 +618,15 @@ FUNDS = [
         "rating": 4,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["L&T Finance AAA", "HDFC Bank AAA", "Bajaj Finance NCD", "T-Bills 364D", "NABARD NCD"],
+        "top_holdings": [
+            "L&T Finance AAA",
+            "HDFC Bank AAA",
+            "Bajaj Finance NCD",
+            "T-Bills 364D",
+            "NABARD NCD",
+        ],
         "tags": ["1-3 Year Horizon", "Stable"],
-        "description": "Maintains Macaulay duration between 1 to 3 years balancing current income and price volatility protection."
+        "description": "Maintains Macaulay duration between 1 to 3 years balancing current income and price volatility protection.",
     },
     {
         "id": "CPW-DB-009",
@@ -513,9 +645,15 @@ FUNDS = [
         "rating": 5,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["Maharashtra SDL 2030", "Gujarat SDL 2030", "Tamil Nadu SDL 2030", "Karnataka SDL 2030", "TREPS"],
+        "top_holdings": [
+            "Maharashtra SDL 2030",
+            "Gujarat SDL 2030",
+            "Tamil Nadu SDL 2030",
+            "Karnataka SDL 2030",
+            "TREPS",
+        ],
         "tags": ["Target Date", "Fixed Maturity Yield", "Low Cost"],
-        "description": "Passive target maturity fund locking in current attractive State Development Loan yields maturing in April 2030."
+        "description": "Passive target maturity fund locking in current attractive State Development Loan yields maturing in April 2030.",
     },
     {
         "id": "CPW-DB-010",
@@ -534,11 +672,16 @@ FUNDS = [
         "rating": 3,
         "min_sip": 2000,
         "min_lumpsum": 10000,
-        "top_holdings": ["Tata Motors AA+", "Piramal Capital AA", "Godrej Properties AA", "Shriram Finance AA+", "Apollo Tyres AA"],
+        "top_holdings": [
+            "Tata Motors AA+",
+            "Piramal Capital AA",
+            "Godrej Properties AA",
+            "Shriram Finance AA+",
+            "Apollo Tyres AA",
+        ],
         "tags": ["High Yield", "Credit Spread", "Tactical"],
-        "description": "Generates superior yield by capturing credit spread compression in well-governed AA and AA+ rated issuers."
+        "description": "Generates superior yield by capturing credit spread compression in well-governed AA and AA+ rated issuers.",
     },
-
     # --- 3. COMMODITIES & ALTERNATIVES (6) ---
     {
         "id": "CPW-CM-001",
@@ -557,9 +700,13 @@ FUNDS = [
         "rating": 5,
         "min_sip": 500,
         "min_lumpsum": 1000,
-        "top_holdings": ["Physical Gold (99.5% Purity)", "Sovereign Gold Bonds", "Cash / TREPS"],
+        "top_holdings": [
+            "Physical Gold (99.5% Purity)",
+            "Sovereign Gold Bonds",
+            "Cash / TREPS",
+        ],
         "tags": ["Hedge", "Inflation Shield", "Physical Gold"],
-        "description": "Pure 24-karat gold asset backing serving as portfolio insurance against currency devaluation and global geopolitical shocks."
+        "description": "Pure 24-karat gold asset backing serving as portfolio insurance against currency devaluation and global geopolitical shocks.",
     },
     {
         "id": "CPW-CM-002",
@@ -578,9 +725,13 @@ FUNDS = [
         "rating": 4,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["Physical Silver (99.9% Purity)", "Silver Vault Receipts", "Cash / TREPS"],
+        "top_holdings": [
+            "Physical Silver (99.9% Purity)",
+            "Silver Vault Receipts",
+            "Cash / TREPS",
+        ],
         "tags": ["Industrial Metal", "Solar / EV Theme"],
-        "description": "Dual exposure to precious metal store of value and exploding industrial demand across solar photovoltaic and EV electronics."
+        "description": "Dual exposure to precious metal store of value and exploding industrial demand across solar photovoltaic and EV electronics.",
     },
     {
         "id": "CPW-CM-003",
@@ -599,9 +750,15 @@ FUNDS = [
         "rating": 3,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["Brent Crude Futures", "Copper LME Contracts", "Agriculture Index", "Aluminium Contracts", "Natural Gas"],
+        "top_holdings": [
+            "Brent Crude Futures",
+            "Copper LME Contracts",
+            "Agriculture Index",
+            "Aluminium Contracts",
+            "Natural Gas",
+        ],
         "tags": ["Global Commodities", "Cyclical"],
-        "description": "Diversified multi-commodity exposure hedging input cost inflation across industrial base metals and energy."
+        "description": "Diversified multi-commodity exposure hedging input cost inflation across industrial base metals and energy.",
     },
     {
         "id": "CPW-CM-004",
@@ -620,9 +777,14 @@ FUNDS = [
         "rating": 5,
         "min_sip": 5000,
         "min_lumpsum": 25000,
-        "top_holdings": ["Embassy Office Parks REIT", "Mindspace Business Parks REIT", "Brookfield India REIT", "Nexus Select Trust"],
+        "top_holdings": [
+            "Embassy Office Parks REIT",
+            "Mindspace Business Parks REIT",
+            "Brookfield India REIT",
+            "Nexus Select Trust",
+        ],
         "tags": ["Quarterly Dividends", "Grade-A Office", "Rental Yield"],
-        "description": "Fractional ownership in marquee Grade-A IT parks and commercial retail malls generating quarterly rental dividend yields."
+        "description": "Fractional ownership in marquee Grade-A IT parks and commercial retail malls generating quarterly rental dividend yields.",
     },
     {
         "id": "CPW-CM-005",
@@ -641,9 +803,14 @@ FUNDS = [
         "rating": 4,
         "min_sip": 5000,
         "min_lumpsum": 25000,
-        "top_holdings": ["PowerGrid InvIT", "National Highways Infra Trust (NHAI)", "IndiGrid InvIT", "Cube Highways Trust"],
+        "top_holdings": [
+            "PowerGrid InvIT",
+            "National Highways Infra Trust (NHAI)",
+            "IndiGrid InvIT",
+            "Cube Highways Trust",
+        ],
         "tags": ["High Cash Yield", "Govt Toll Roads", "Power Transmission"],
-        "description": "High cash-flow infrastructure trust backed by operational NHAI toll concessions and national power transmission lines."
+        "description": "High cash-flow infrastructure trust backed by operational NHAI toll concessions and national power transmission lines.",
     },
     {
         "id": "CPW-CM-006",
@@ -664,9 +831,8 @@ FUNDS = [
         "min_lumpsum": 1000,
         "top_holdings": ["Gold 99.9% Allocated", "SGB Tranche Tranches"],
         "tags": ["Automated SIP", "Goal Linked"],
-        "description": "Micro-SIP vehicle designed to steadily accumulate physical gold reserves for future marriage and milestone obligations."
+        "description": "Micro-SIP vehicle designed to steadily accumulate physical gold reserves for future marriage and milestone obligations.",
     },
-
     # --- 4. HYBRID & MULTI-ASSET (8) ---
     {
         "id": "CPW-HB-001",
@@ -685,9 +851,15 @@ FUNDS = [
         "rating": 5,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["ICICI Bank", "HDFC Bank", "Infosys", "7.18% GS 2033", "Reliance Industries"],
+        "top_holdings": [
+            "ICICI Bank",
+            "HDFC Bank",
+            "Infosys",
+            "7.18% GS 2033",
+            "Reliance Industries",
+        ],
         "tags": ["Auto-Rebalance", "Flagship Hybrid", "Low Drawdown"],
-        "description": "Proprietary valuation model automatically cuts equity and increases debt when markets run hot, preventing major drawdowns."
+        "description": "Proprietary valuation model automatically cuts equity and increases debt when markets run hot, preventing major drawdowns.",
     },
     {
         "id": "CPW-HB-002",
@@ -706,9 +878,14 @@ FUNDS = [
         "rating": 5,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["Equities (60%)", "Corporate Debt (25%)", "Gold ETF (10%)", "Silver ETF (5%)"],
+        "top_holdings": [
+            "Equities (60%)",
+            "Corporate Debt (25%)",
+            "Gold ETF (10%)",
+            "Silver ETF (5%)",
+        ],
         "tags": ["All-Weather", "Tri-Asset", "Top Pick"],
-        "description": "True all-weather allocation actively combining Equities, Fixed Income, and Precious Metals in one tax-efficient wrapper."
+        "description": "True all-weather allocation actively combining Equities, Fixed Income, and Precious Metals in one tax-efficient wrapper.",
     },
     {
         "id": "CPW-HB-003",
@@ -727,9 +904,15 @@ FUNDS = [
         "rating": 4,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["HDFC Bank", "Larsen & Toubro", "ITC Ltd", "AAA REC Bonds", "TCS"],
+        "top_holdings": [
+            "HDFC Bank",
+            "Larsen & Toubro",
+            "ITC Ltd",
+            "AAA REC Bonds",
+            "TCS",
+        ],
         "tags": ["Wealth Builder", "Equity Heavy"],
-        "description": "Maintains 65-80% allocation in high-conviction equities while 20-35% high-grade fixed income stabilizes downside swings."
+        "description": "Maintains 65-80% allocation in high-conviction equities while 20-35% high-grade fixed income stabilizes downside swings.",
     },
     {
         "id": "CPW-HB-004",
@@ -748,9 +931,15 @@ FUNDS = [
         "rating": 4,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["PFC 2029 AAA", "7.18% GS 2033", "HDFC Bank AAA", "Infosys", "ITC Ltd"],
+        "top_holdings": [
+            "PFC 2029 AAA",
+            "7.18% GS 2033",
+            "HDFC Bank AAA",
+            "Infosys",
+            "ITC Ltd",
+        ],
         "tags": ["SWP Income", "Retiree Friendly"],
-        "description": "Debt-oriented hybrid fund (75-90% Fixed Income + 10-25% Equities) engineered for reliable Systematic Withdrawal Plan (SWP) cash flows."
+        "description": "Debt-oriented hybrid fund (75-90% Fixed Income + 10-25% Equities) engineered for reliable Systematic Withdrawal Plan (SWP) cash flows.",
     },
     {
         "id": "CPW-HB-005",
@@ -769,9 +958,15 @@ FUNDS = [
         "rating": 5,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["HDFC Bank Cash/Futures", "Reliance Cash/Futures", "ICICI Bank Arbitrage", "TREPS", "T-Bills"],
+        "top_holdings": [
+            "HDFC Bank Cash/Futures",
+            "Reliance Cash/Futures",
+            "ICICI Bank Arbitrage",
+            "TREPS",
+            "T-Bills",
+        ],
         "tags": ["Zero Market Risk", "Equity Taxed", "FD Replacement"],
-        "description": "Exploits price differences between cash equity and futures markets to generate risk-free debt-like returns with equity tax efficiency."
+        "description": "Exploits price differences between cash equity and futures markets to generate risk-free debt-like returns with equity tax efficiency.",
     },
     {
         "id": "CPW-HB-006",
@@ -790,9 +985,13 @@ FUNDS = [
         "rating": 4,
         "min_sip": 1000,
         "min_lumpsum": 5000,
-        "top_holdings": ["Net Equity (35%)", "Arbitrage (35%)", "Debt & Money Market (30%)"],
+        "top_holdings": [
+            "Net Equity (35%)",
+            "Arbitrage (35%)",
+            "Debt & Money Market (30%)",
+        ],
         "tags": ["Moderate Risk", "Tax Advantage"],
-        "description": "Smooth hybrid blending unhedged growth equities, hedged arbitrage, and AAA corporate bonds."
+        "description": "Smooth hybrid blending unhedged growth equities, hedged arbitrage, and AAA corporate bonds.",
     },
     {
         "id": "CPW-HB-007",
@@ -811,9 +1010,13 @@ FUNDS = [
         "rating": 5,
         "min_sip": 2500,
         "min_lumpsum": 10000,
-        "top_holdings": ["Equity Growth (75%)", "Corporate Debt (15%)", "Sovereign Gold (10%)"],
+        "top_holdings": [
+            "Equity Growth (75%)",
+            "Corporate Debt (15%)",
+            "Sovereign Gold (10%)",
+        ],
         "tags": ["Goal 2040", "Retirement", "Automated Glidepath"],
-        "description": "Target-date fund tailored for investors retiring around 2040. Automatically shifts from high equity now to high fixed income closer to 2040."
+        "description": "Target-date fund tailored for investors retiring around 2040. Automatically shifts from high equity now to high fixed income closer to 2040.",
     },
     {
         "id": "CPW-HB-008",
@@ -832,17 +1035,23 @@ FUNDS = [
         "rating": 5,
         "min_sip": 2500,
         "min_lumpsum": 10000,
-        "top_holdings": ["Large & Mid Equity (65%)", "Target Maturity Debt (20%)", "Gold Hedge (15%)"],
+        "top_holdings": [
+            "Large & Mid Equity (65%)",
+            "Target Maturity Debt (20%)",
+            "Gold Hedge (15%)",
+        ],
         "tags": ["Goal 2032", "Education", "Disciplined"],
-        "description": "Goal-locked solution customized to fund college tuition and overseas higher education expenses coming due in 2032."
-    }
+        "description": "Goal-locked solution customized to fund college tuition and overseas higher education expenses coming due in 2032.",
+    },
 ]
+
 
 def main():
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with open(OUT, "w") as f:
         json.dump(FUNDS, f, indent=2)
     print(f"Generated {len(FUNDS)} funds at {OUT}")
+
 
 if __name__ == "__main__":
     main()

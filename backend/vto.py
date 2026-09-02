@@ -3,6 +3,7 @@
 Composites the shopper's base photo + garment flat-lays into a single photoreal image
 set in a context that matches the occasion. Returns a data: URL + caption.
 """
+
 from __future__ import annotations
 import base64, io
 from pathlib import Path
@@ -13,11 +14,15 @@ from PIL import Image
 
 from . import config
 
+
 def _make_client() -> genai.Client:
     # Build a fresh client per call. A module-level singleton gets its httpx context bound to the loop/thread
     # it was created on; reused from the VTO worker thread it raises
     # "Context has already been used to create a Connection, it cannot be mutated again".
-    return genai.Client(enterprise=True, project=config.IMAGE_PROJECT, location=config.IMAGE_LOCATION)
+    return genai.Client(
+        enterprise=True, project=config.IMAGE_PROJECT, location=config.IMAGE_LOCATION
+    )
+
 
 _SCENES = {
     "udaipur": "an elegant Udaipur palace courtyard at golden hour with Rajasthani arches",
@@ -58,15 +63,25 @@ def _vto_gender(session, sku_ids: list[str]) -> str:
 
 
 def generate_vto(session, sku_ids: list[str], context: str | None):
-    gender = _vto_gender(session, sku_ids)            # from the selected items (falls back to shopper gender)
+    gender = _vto_gender(
+        session, sku_ids
+    )  # from the selected items (falls back to shopper gender)
     pron, model_desc = ("him", "man") if gender == "men" else ("her", "woman")
-    base_rel = _MALE_BASE if gender == "men" else _FEMALE_BASE   # Arjun (men) / Aisha (women) base model
+    base_rel = (
+        _MALE_BASE if gender == "men" else _FEMALE_BASE
+    )  # Arjun (men) / Aisha (women) base model
     parts: list = []
     try:
-        parts.append(types.Part.from_bytes(data=_asset_bytes(base_rel), mime_type="image/png"))
-        person_clause = f"Use the FIRST image as the exact person (keep {pron} face and body)."
+        parts.append(
+            types.Part.from_bytes(data=_asset_bytes(base_rel), mime_type="image/png")
+        )
+        person_clause = (
+            f"Use the FIRST image as the exact person (keep {pron} face and body)."
+        )
     except Exception:
-        person_clause = f"Generate a realistic Indian {model_desc} model in their early 30s."
+        person_clause = (
+            f"Generate a realistic Indian {model_desc} model in their early 30s."
+        )
 
     # Only worn garments/footwear go into the try-on. Accessories (umbrella, bags, etc.) render unreliably
     # and often don't match the catalogue piece, so they're excluded from the composite.
@@ -76,7 +91,11 @@ def generate_vto(session, sku_ids: list[str], context: str | None):
         if not it or it.get("category") == "Accessory":
             continue
         try:
-            parts.append(types.Part.from_bytes(data=_asset_bytes(it["image"]), mime_type="image/png"))
+            parts.append(
+                types.Part.from_bytes(
+                    data=_asset_bytes(it["image"]), mime_type="image/png"
+                )
+            )
         except Exception:
             continue
         names.append(it["name"])
@@ -96,22 +115,34 @@ def generate_vto(session, sku_ids: list[str], context: str | None):
     )
     parts.append(types.Part(text=prompt))
 
-    client = _make_client()   # keep a strong ref for the whole call (a temporary gets GC'd → httpx closed)
+    client = (
+        _make_client()
+    )  # keep a strong ref for the whole call (a temporary gets GC'd → httpx closed)
     resp = client.models.generate_content(
         model=config.VTO_MODEL,
         contents=parts,
         config=types.GenerateContentConfig(
             response_modalities=["IMAGE", "TEXT"],
-            image_config=types.ImageConfig(aspect_ratio="9:16", output_mime_type="image/png", image_size="2K"),
+            image_config=types.ImageConfig(
+                aspect_ratio="9:16", output_mime_type="image/png", image_size="2K"
+            ),
         ),
     )
     cand = resp.candidates[0]
-    img = next((p.inline_data.data for p in cand.content.parts if getattr(p, "inline_data", None)), None)
+    img = next(
+        (
+            p.inline_data.data
+            for p in cand.content.parts
+            if getattr(p, "inline_data", None)
+        ),
+        None,
+    )
     if not img:
         raise RuntimeError(f"VTO produced no image (finish={cand.finish_reason})")
     # downscale a touch for fast transport
     im = Image.open(io.BytesIO(img)).convert("RGB")
-    buf = io.BytesIO(); im.save(buf, format="JPEG", quality=88)
+    buf = io.BytesIO()
+    im.save(buf, format="JPEG", quality=88)
     data_url = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
     caption = f"{', '.join(names)} — styled for {context or 'you'}"
     return data_url, caption

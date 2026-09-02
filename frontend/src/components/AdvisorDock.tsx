@@ -1,32 +1,24 @@
 import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import {
-	Mic,
-	Send,
-	Volume2,
-	VolumeX,
-	Video,
-	PhoneOff,
-	Maximize2,
-	Minimize2,
-} from "lucide-react";
+	Microphone as Mic,
+	PaperPlaneRight as Send,
+	SpeakerHigh as Volume2,
+	SpeakerSlash as VolumeX,
+	VideoCamera as Video,
+	PhoneSlash as PhoneOff,
+	ArrowsOut as Maximize2,
+	ArrowsIn as Minimize2,
+	CircleNotch as Loader2,
+	Sparkle as Sparkles,
+	Square,
+} from "@phosphor-icons/react";
 import { useStore } from "@/store";
-import { sendUserText } from "@/ws";
+import { sendUserText, speak, stopSpeaking } from "@/ws";
 import { inrCompact, rupee } from "@/lib";
 import { LiveAvatar } from "@/lib/liveClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-/* Seeded openings for the advisory conversation. Amounts run through the
-   Indian grouping helpers so the chips and the transcript agree. */
-const ADVISORY_OPENERS = [
-	`Review my ${inrCompact(7500000)} portfolio and goal progress`,
-	"Show the top flexi cap and global tech funds",
-	"Add all-weather volatility protection",
-	`Simulate a ${rupee(100000)} monthly SIP for the 2042 retirement goal`,
-	"Generate the official advisory proposal",
-];
-
-const CLIENT_NAME = "Rahul Sharma";
 
 /**
  * Audio level indicator, demoted to chrome.
@@ -57,6 +49,8 @@ function AudioLevel({ active }: { active: boolean }) {
 export default function AdvisorDock() {
 	const {
 		chat,
+		currentStep,
+		streamingText,
 		thinking,
 		speaking,
 		listening,
@@ -64,20 +58,48 @@ export default function AdvisorDock() {
 		connected,
 		live,
 		expandedAdvisor,
+		portfolio,
+		profile,
 		set,
+		pushToast,
 	} = useStore();
 	const [text, setText] = useState("");
+	const [isRecording, setIsRecording] = useState(false);
+	const [isTranscribing, setIsTranscribing] = useState(false);
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+
+	const client = portfolio || profile;
+	const clientName = client?.name || "Rahul Sharma";
+	const aum = client?.total_aum_inr ?? 7500000;
+	const primaryGoal = client?.goals?.[0];
+
+	const advisoryOpeners = [
+		`Review my ${inrCompact(aum)} portfolio and goal progress`,
+		client?.risk_profile?.includes("Conservative")
+			? "Show conservative hybrid and target maturity debt funds"
+			: client?.risk_profile?.includes("Aggressive")
+				? "Show high alpha mid cap, small cap and global tech funds"
+				: "Show top flexi cap, multi-asset and all-weather funds",
+		"Add all-weather volatility protection to basket",
+		primaryGoal
+			? `Simulate portfolio trajectory for ${primaryGoal.name} (${primaryGoal.target_year})`
+			: `Simulate a ${rupee(100000)} monthly SIP for retirement compounding`,
+		"Generate the official advisory proposal",
+	];
 	const captionRef = useRef<HTMLParagraphElement>(null);
 	const liveRef = useRef<LiveAvatar | null>(null);
+
+	const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+	const audioChunksRef = useRef<Blob[]>([]);
+	const speechRecRef = useRef<any>(null);
 
 	useEffect(() => {
 		scrollRef.current?.scrollTo({
 			top: scrollRef.current.scrollHeight,
 			behavior: "smooth",
 		});
-	}, [chat, thinking]);
+	}, [chat, thinking, currentStep, streamingText]);
 
 	useEffect(() => {
 		const el = captionRef.current;
@@ -136,6 +158,114 @@ export default function AdvisorDock() {
 		};
 	}, [live.active]);
 
+	// STT Voice Recording
+	const startRecording = async () => {
+		if (isRecording || isTranscribing) return;
+		stopSpeaking();
+		try {
+			const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+			audioChunksRef.current = [];
+
+			const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+				? "audio/webm;codecs=opus"
+				: MediaRecorder.isTypeSupported("audio/mp4")
+					? "audio/mp4"
+					: "audio/webm";
+
+			const mr = new MediaRecorder(stream, { mimeType });
+			mediaRecorderRef.current = mr;
+
+			mr.ondataavailable = (e) => {
+				if (e.data.size > 0) {
+					audioChunksRef.current.push(e.data);
+				}
+			};
+
+			mr.onstop = async () => {
+				stream.getTracks().forEach((track) => track.stop());
+				const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+				if (audioBlob.size > 0) {
+					setIsTranscribing(true);
+					try {
+						const res = await fetch("/api/stt", {
+							method: "POST",
+							headers: { "Content-Type": mimeType },
+							body: audioBlob,
+						});
+						if (res.ok) {
+							const data = await res.json();
+							const recognized = data.text?.trim();
+							if (recognized) {
+								sendUserText(recognized);
+							} else {
+								pushToast("No speech recognized. Please try again.", "warning");
+							}
+						} else {
+							pushToast("Speech transcription error.", "warning");
+						}
+					} catch (err) {
+						console.error("[stt] error:", err);
+						pushToast("Failed to transcribe speech audio.", "warning");
+					} finally {
+						setIsTranscribing(false);
+					}
+				}
+			};
+
+			mr.start(250);
+			setIsRecording(true);
+			set({ listening: true });
+
+			// Optional browser live recognition preview for instant feedback
+			const SpeechRec =
+				(window as any).SpeechRecognition ||
+				(window as any).webkitSpeechRecognition;
+			if (SpeechRec) {
+				try {
+					const sr = new SpeechRec();
+					sr.lang = "en-IN";
+					sr.continuous = true;
+					sr.interimResults = true;
+					sr.onresult = (ev: any) => {
+						const lastResult = ev.results[ev.results.length - 1];
+						if (lastResult) {
+							setText(lastResult[0].transcript);
+						}
+					};
+					sr.onerror = () => {};
+					sr.start();
+					speechRecRef.current = sr;
+				} catch {}
+			}
+		} catch (err) {
+			console.error("[stt] microphone error:", err);
+			pushToast(
+				"Microphone access was denied. Please allow mic permissions.",
+				"warning",
+			);
+		}
+	};
+
+	const stopRecording = () => {
+		if (!isRecording) return;
+		setIsRecording(false);
+		set({ listening: false });
+
+		if (speechRecRef.current) {
+			try {
+				speechRecRef.current.stop();
+			} catch {}
+			speechRecRef.current = null;
+		}
+
+		if (
+			mediaRecorderRef.current &&
+			mediaRecorderRef.current.state !== "inactive"
+		) {
+			mediaRecorderRef.current.stop();
+		}
+	};
+
 	const submit = () => {
 		const t = text.trim();
 		if (!t) return;
@@ -156,13 +286,17 @@ export default function AdvisorDock() {
 				: "Listening"
 		: !connected
 			? "Connecting"
-			: thinking
-				? "Reviewing the portfolio"
-				: listening
-					? "Listening"
-					: speaking
-						? "Speaking"
-						: "Available";
+			: isRecording
+				? "Listening to your voice..."
+				: isTranscribing
+					? "Transcribing with Gemini..."
+					: thinking
+						? currentStep || "Reviewing the portfolio"
+						: listening
+							? "Listening"
+							: speaking
+								? "Speaking"
+								: "Available";
 
 	/* Consecutive messages from the same speaker are one minuted turn: one
 	   attribution, one rule, several paragraphs. */
@@ -253,13 +387,19 @@ export default function AdvisorDock() {
 								<span className="inline-flex items-center gap-1.5">
 									<span
 										className={`size-1.5 rounded-full ${
-											connected ? "bg-ink-strong" : "bg-ink-faint"
+											isRecording
+												? "bg-destructive"
+												: connected
+													? "bg-ink-strong"
+													: "bg-ink-faint"
 										}`}
 										aria-hidden="true"
 									/>
-									<span>{status}</span>
+									<span className="truncate max-w-[210px]">{status}</span>
 								</span>
-								<AudioLevel active={listening || speaking || thinking} />
+								<AudioLevel
+									active={listening || speaking || thinking || isRecording}
+								/>
 							</p>
 						</div>
 					</div>
@@ -285,15 +425,26 @@ export default function AdvisorDock() {
 						</button>
 						<button
 							type="button"
-							onClick={() => set({ voiceOn: !voiceOn })}
-							title={voiceOn ? "Mute Ananya" : "Unmute Ananya"}
+							onClick={() => {
+								if (voiceOn) stopSpeaking();
+								set({ voiceOn: !voiceOn });
+							}}
+							title={
+								voiceOn
+									? "Mute Ananya (Turn off voice playback)"
+									: "Unmute Ananya (Turn on voice playback)"
+							}
 							aria-label={voiceOn ? "Mute Ananya" : "Unmute Ananya"}
-							className="inline-flex size-8 items-center justify-center rounded-lg text-ink-faint transition-colors hover:bg-paper-sunken hover:text-ink-strong focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-rule-strong"
+							className={`inline-flex size-8 items-center justify-center rounded-lg transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-rule-strong ${
+								voiceOn
+									? "text-ink-faint hover:bg-paper-sunken hover:text-ink-strong"
+									: "bg-paper-sunken text-ink-muted hover:bg-paper-edge hover:text-ink-strong"
+							}`}
 						>
 							{voiceOn ? (
 								<Volume2 className="size-4" />
 							) : (
-								<VolumeX className="size-4" />
+								<VolumeX className="size-4 text-destructive" />
 							)}
 						</button>
 
@@ -324,33 +475,165 @@ export default function AdvisorDock() {
 									key={turn.items[0].id ?? ti}
 									className={isClient ? "pl-8" : "mark-quiet"}
 								>
-									<p className={`mb-1.5 ${isClient ? "label" : "label-strong"}`}>
-										{isClient ? CLIENT_NAME : "Ananya"}
-									</p>
-									<div className="space-y-2.5">
-										{turn.items.map((m) => (
-											<p
-												key={m.id}
-												className={`text-base leading-relaxed ${
-													isClient
-														? "font-medium text-ink-strong"
-														: "text-ink"
-												}`}
+									<div className="mb-1.5 flex items-center justify-between">
+										<p className={isClient ? "label" : "label-strong"}>
+											{isClient ? clientName : "Ananya"}
+										</p>
+										{!isClient && (
+											<button
+												type="button"
+												onClick={() =>
+													speak(
+														turn.items.map((i) => i.text).join(" "),
+														turn.items[0]?.audio,
+													)
+												}
+												title="Listen to Ananya"
+												aria-label="Listen to Ananya"
+												className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-ink-muted transition-colors hover:bg-paper-sunken hover:text-ink-strong"
 											>
-												{m.text}
-											</p>
-										))}
+												<Volume2 className="size-3" />
+												<span>Listen</span>
+											</button>
+										)}
+									</div>
+									<div className="space-y-2.5">
+										{turn.items.map((m) =>
+											isClient ? (
+												<p
+													key={m.id}
+													className="text-base font-medium leading-relaxed text-ink-strong"
+												>
+													{m.text}
+												</p>
+											) : (
+												<div
+													key={m.id}
+													className="text-base leading-relaxed text-ink space-y-2"
+												>
+													<ReactMarkdown
+														components={{
+															p: ({ children }) => (
+																<p className="mb-2 last:mb-0 leading-relaxed">
+																	{children}
+																</p>
+															),
+															strong: ({ children }) => (
+																<strong className="font-semibold text-ink-strong">
+																	{children}
+																</strong>
+															),
+															em: ({ children }) => (
+																<em className="italic">{children}</em>
+															),
+															ul: ({ children }) => (
+																<ul className="my-2 list-disc pl-5 space-y-1">
+																	{children}
+																</ul>
+															),
+															ol: ({ children }) => (
+																<ol className="my-2 list-decimal pl-5 space-y-1">
+																	{children}
+																</ol>
+															),
+															li: ({ children }) => (
+																<li className="leading-relaxed">{children}</li>
+															),
+															h1: ({ children }) => (
+																<h3 className="font-display font-semibold text-base text-ink-strong my-2">
+																	{children}
+																</h3>
+															),
+															h2: ({ children }) => (
+																<h3 className="font-display font-semibold text-base text-ink-strong my-2">
+																	{children}
+																</h3>
+															),
+															h3: ({ children }) => (
+																<h4 className="font-semibold text-sm text-ink-strong my-1.5">
+																	{children}
+																</h4>
+															),
+															code: ({ children }) => (
+																<code className="font-mono text-xs bg-paper-sunken px-1.5 py-0.5 rounded border border-rule">
+																	{children}
+																</code>
+															),
+														}}
+													>
+														{m.text}
+													</ReactMarkdown>
+												</div>
+											),
+										)}
 									</div>
 								</li>
 							);
 						})}
 
-						{thinking && (
-							<li className="mark-quiet">
-								<p className="label-strong mb-1.5">Ananya</p>
-								<p className="text-base leading-relaxed text-ink-faint">
-									Reviewing your allocation and goal funding…
-								</p>
+						{/* Real-time streaming output & live tool status */}
+						{(thinking || currentStep || streamingText) && (
+							<li className="mark-quiet space-y-2.5">
+								<div className="flex items-center justify-between">
+									<p className="label-strong">Ananya</p>
+									<AudioLevel active={true} />
+								</div>
+
+								{/* Live Tool Execution Status Badge */}
+								{currentStep && (
+									<div className="inline-flex items-center gap-2 rounded-md border border-stamp/30 bg-stamp/10 px-3 py-1.5 text-xs font-medium text-stamp">
+										<Sparkles className="size-3.5 animate-spin text-stamp" />
+										<span>{currentStep}</span>
+									</div>
+								)}
+
+								{/* Live Streaming Token Preview */}
+								{streamingText ? (
+									<div className="text-base leading-relaxed text-ink space-y-2">
+										<ReactMarkdown
+											components={{
+												p: ({ children }) => (
+													<p className="mb-2 last:mb-0 leading-relaxed">
+														{children}
+													</p>
+												),
+												strong: ({ children }) => (
+													<strong className="font-semibold text-ink-strong">
+														{children}
+													</strong>
+												),
+												em: ({ children }) => (
+													<em className="italic">{children}</em>
+												),
+												ul: ({ children }) => (
+													<ul className="my-2 list-disc pl-5 space-y-1">
+														{children}
+													</ul>
+												),
+												ol: ({ children }) => (
+													<ol className="my-2 list-decimal pl-5 space-y-1">
+														{children}
+													</ol>
+												),
+												li: ({ children }) => (
+													<li className="leading-relaxed">{children}</li>
+												),
+												code: ({ children }) => (
+													<code className="font-mono text-xs bg-paper-sunken px-1.5 py-0.5 rounded border border-rule">
+														{children}
+													</code>
+												),
+											}}
+										>
+											{streamingText}
+										</ReactMarkdown>
+										<span className="inline-block w-2 h-4 bg-stamp animate-pulse align-middle" />
+									</div>
+								) : !currentStep ? (
+									<p className="text-base leading-relaxed text-ink-faint">
+										Reviewing your allocation and goal funding…
+									</p>
+								) : null}
 							</li>
 						)}
 					</ol>
@@ -359,7 +642,7 @@ export default function AdvisorDock() {
 						<div className="mt-8 border-t border-rule pt-5">
 							<p className="label">Suggested</p>
 							<div className="mt-3 grid gap-2">
-								{ADVISORY_OPENERS.slice(0, 3).map((s) => (
+								{advisoryOpeners.slice(0, 3).map((s) => (
 									<button
 										key={s}
 										type="button"
@@ -375,6 +658,27 @@ export default function AdvisorDock() {
 				</div>
 			)}
 
+			{/* ===== ACTIVE SPEECH STATUS & STOP CONTROL BAR ===== */}
+			{!live.active && speaking && (
+				<div className="flex items-center justify-between border-t border-rule bg-paper-sunken px-5 py-2">
+					<div className="flex items-center gap-2 text-xs font-medium text-ink-strong">
+						<span className="size-2 rounded-full bg-stamp" />
+						<span>Ananya is speaking...</span>
+					</div>
+					<Button
+						type="button"
+						onClick={stopSpeaking}
+						size="sm"
+						variant="destructive"
+						title="Stop voice playback"
+						className="h-6 gap-1 rounded-md px-2.5 text-[11px] font-semibold shadow-none"
+					>
+						<Square className="size-2.5 fill-current" />
+						<span>Stop Voice</span>
+					</Button>
+				</div>
+			)}
+
 			{/* ===== COMPOSER ===== */}
 			{!live.active && (
 				<div className="border-t border-rule bg-paper-sheet px-5 py-4">
@@ -385,16 +689,50 @@ export default function AdvisorDock() {
 						}}
 						className="flex items-center gap-2"
 					>
+						{/* Speech-to-Text Microphone Button */}
+						{isRecording ? (
+							<Button
+								type="button"
+								onClick={stopRecording}
+								title="Stop recording & send voice input"
+								aria-label="Stop recording"
+								className="size-10 shrink-0 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive-hover shadow-none"
+							>
+								<Square className="size-4" />
+							</Button>
+						) : (
+							<Button
+								type="button"
+								onClick={startRecording}
+								disabled={isTranscribing}
+								title="Speak to Ananya (Voice input with Gemini STT)"
+								aria-label="Start voice input"
+								className="size-10 shrink-0 rounded-lg border border-rule bg-paper-sunken text-ink hover:bg-paper-edge hover:text-ink-strong shadow-none"
+							>
+								{isTranscribing ? (
+									<Loader2 className="size-4 animate-spin text-stamp" />
+								) : (
+									<Mic className="size-4" />
+								)}
+							</Button>
+						)}
+
 						<Input
 							type="text"
 							value={text}
 							onChange={(e) => setText(e.target.value)}
-							placeholder="Ask Ananya about the portfolio, the goals or the mandate"
+							placeholder={
+								isRecording
+									? "Listening to you... Speak now"
+									: isTranscribing
+										? "Transcribing voice via Gemini STT..."
+										: "Ask Ananya about the portfolio, goals or mandate"
+							}
 							className="paper-sunken h-10 flex-1 rounded-lg border-rule text-sm text-ink placeholder:text-ink-faint focus-visible:ring-1 focus-visible:ring-rule-strong focus-visible:ring-offset-0"
 						/>
 						<Button
 							type="submit"
-							disabled={!text.trim()}
+							disabled={!text.trim() || isRecording}
 							size="icon"
 							aria-label="Send"
 							className="size-10 shrink-0 rounded-lg shadow-none"

@@ -1,7 +1,14 @@
 import { useState } from "react";
-import { Briefcase, ChevronDown, Moon, Sun } from "lucide-react";
+import {
+	Briefcase,
+	CaretDown as ChevronDown,
+	Check,
+	Moon,
+	Sun,
+	User,
+} from "@phosphor-icons/react";
 import { useStore } from "@/store";
-import { sendAction } from "@/ws";
+import { sendAction, switchProfile } from "@/ws";
 import { inr, inrCompact, inrParts } from "@/lib";
 import Logo from "./Logo";
 import {
@@ -19,6 +26,37 @@ import {
  * the right or behind the client name. No accent is spent on this surface —
  * the stamp belongs to the canvas below.
  */
+
+const CLIENT_PROFILES = [
+	{
+		key: "investor",
+		name: "Rahul Sharma",
+		role: "Engineering Director · Bengaluru",
+		style: "Moderately Aggressive",
+		aum: 7500000,
+	},
+	{
+		key: "conservative",
+		name: "Anand Kulkarni",
+		role: "Retiring VP Manufacturing · Pune",
+		style: "Conservative Income",
+		aum: 25000000,
+	},
+	{
+		key: "aggressive",
+		name: "Priya Iyer",
+		role: "VP Product @ Fintech · Bengaluru",
+		style: "Aggressive Growth",
+		aum: 4500000,
+	},
+	{
+		key: "balanced",
+		name: "Dr. Vikramaditya Singhania",
+		role: "Chief of Cardiology · Mumbai",
+		style: "Balanced Multi-Asset",
+		aum: 18000000,
+	},
+];
 
 const FALLBACK_GOALS = [
 	{ name: "Children's education", year: 2032, amount: 5000000 },
@@ -48,6 +86,7 @@ export default function TopBar() {
 		set,
 		portfolio,
 		profile,
+		activeProfileKey,
 		mandateStatus,
 		theme,
 		toggleTheme,
@@ -73,6 +112,10 @@ export default function TopBar() {
 				amount: g.target_amount_inr,
 			}))
 		: FALLBACK_GOALS;
+
+	const handleSelectClient = (key: string) => {
+		switchProfile(key);
+	};
 
 	const openTab = (id: (typeof TABS)[number]["id"]) => {
 		if (id === "explorer") {
@@ -141,16 +184,55 @@ export default function TopBar() {
 					<PopoverContent
 						align="start"
 						sideOffset={10}
-						className="w-92 rounded-lg border-rule bg-paper-sheet p-0 text-ink shadow-raise"
+						className="w-104 rounded-lg border-rule bg-paper-sheet p-0 text-ink shadow-raise"
 					>
-						<div className="px-5 pb-4 pt-5">
-							<p className="label">Client file</p>
-							<p className="doc-title mt-2 text-xl leading-tight text-ink-strong">
+						{/* Multi-client persona switcher header */}
+						<div className="border-b border-rule px-4 py-3 bg-paper-sunken/60">
+							<p className="label mb-2">Switch advisory persona</p>
+							<div className="grid grid-cols-2 gap-1.5">
+								{CLIENT_PROFILES.map((p) => {
+									const isCurrent =
+										activeProfileKey === p.key ||
+										(activeProfileKey === "investor" && p.key === "investor") ||
+										clientName
+											.toLowerCase()
+											.includes(p.name.split(" ")[0].toLowerCase());
+									return (
+										<button
+											key={p.key}
+											type="button"
+											onClick={() => handleSelectClient(p.key)}
+											className={`flex flex-col text-left rounded-md px-2.5 py-1.5 transition-all text-xs border ${
+												isCurrent
+													? "border-accent bg-paper font-semibold text-ink-strong shadow-sm"
+													: "border-transparent text-ink-muted hover:text-ink hover:bg-paper-sunken"
+											}`}
+										>
+											<div className="flex items-center justify-between w-full">
+												<span className="font-semibold text-ink-strong truncate">
+													{p.name.split(" ")[0]} {p.name.split(" ")[1]?.[0]}.
+												</span>
+												<span className="text-[10px] tabular-nums font-mono text-ink-muted">
+													{inrCompact(p.aum)}
+												</span>
+											</div>
+											<span className="text-[10px] text-ink-faint truncate">
+												{p.style}
+											</span>
+										</button>
+									);
+								})}
+							</div>
+						</div>
+
+						<div className="px-5 pb-4 pt-4">
+							<p className="label">Active client dossier</p>
+							<p className="doc-title mt-1 text-xl leading-tight text-ink-strong">
 								{clientName}
 							</p>
-							<p className="mt-2 text-xs text-ink-muted">
+							<p className="mt-1.5 text-xs text-ink-muted">
 								{occupation} · {city}
-								{client?.age ? ` · ${client.age}` : ""}
+								{client?.age ? ` · ${client.age} yrs` : ""}
 							</p>
 						</div>
 
