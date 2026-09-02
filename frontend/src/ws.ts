@@ -227,6 +227,8 @@ export function sendSetGender(gender: string) {
 
 let currentAudio: HTMLAudioElement | null = null;
 let synthVoice: SpeechSynthesisVoice | null = null;
+let currentSpeakId = 0;
+let isSpeakingStopped = false;
 
 function getVoice(): SpeechSynthesisVoice | null {
 	if (synthVoice) return synthVoice;
@@ -250,14 +252,31 @@ if (typeof window !== "undefined" && "speechSynthesis" in window) {
 }
 
 export function stopSpeaking() {
+	currentSpeakId++;
+	isSpeakingStopped = true;
+
 	if (currentAudio) {
-		currentAudio.pause();
-		currentAudio.src = "";
+		// Detach listeners before pausing/clearing src so onerror/onended do not trigger fallback synthesis
+		currentAudio.onplay = null;
+		currentAudio.onended = null;
+		currentAudio.onerror = null;
+		try {
+			currentAudio.pause();
+			currentAudio.src = "";
+		} catch {
+			// ignore pause/src reset notices
+		}
 		currentAudio = null;
 	}
+
 	if (typeof window !== "undefined" && "speechSynthesis" in window) {
-		window.speechSynthesis.cancel();
+		try {
+			window.speechSynthesis.cancel();
+		} catch {
+			// ignore cancel notices
+		}
 	}
+
 	useStore.getState().set({ speaking: false });
 }
 
@@ -267,55 +286,102 @@ export async function speak(text: string, audioBase64?: string) {
 
 	stopSpeaking();
 
+	const speakId = ++currentSpeakId;
+	isSpeakingStopped = false;
+
 	let b64 = audioBase64;
 	if (!b64 && typeof window !== "undefined") {
 		try {
 			const res = await fetch(
 				`/api/tts?text=${encodeURIComponent(text)}&avatar=${encodeURIComponent(s.selectedAvatar || "Ananya")}`,
 			);
+			if (speakId !== currentSpeakId || isSpeakingStopped) return;
 			if (res.ok) {
 				const data = await res.json();
 				if (data.audio) b64 = data.audio;
 			}
 		} catch (e) {
+			if (speakId !== currentSpeakId || isSpeakingStopped) return;
 			console.warn("[tts] fetch /api/tts notice:", e);
 		}
 	}
+
+	if (speakId !== currentSpeakId || isSpeakingStopped) return;
 
 	if (b64) {
 		try {
 			const audio = new Audio(`data:audio/mp3;base64,${b64}`);
 			currentAudio = audio;
-			audio.onplay = () => useStore.getState().set({ speaking: true });
+			audio.onplay = () => {
+				if (speakId !== currentSpeakId || isSpeakingStopped) {
+					audio.pause();
+					return;
+				}
+				useStore.getState().set({ speaking: true });
+			};
 			audio.onended = () => {
+				if (currentAudio === audio) currentAudio = null;
 				useStore.getState().set({ speaking: false });
-				currentAudio = null;
 			};
 			audio.onerror = () => {
+				if (currentAudio === audio) currentAudio = null;
 				useStore.getState().set({ speaking: false });
-				currentAudio = null;
-				speakBrowserFallback(text);
+				// Never trigger fallback synthesis if playback was explicitly stopped by user
+				if (speakId !== currentSpeakId || isSpeakingStopped) return;
+				speakBrowserFallback(text, speakId);
 			};
+
 			await audio.play();
 			return;
-		} catch (e) {
+		} catch (e: any) {
+			// AbortError is expected if stopSpeaking() paused the audio while play() was pending
+			if (
+				speakId !== currentSpeakId ||
+				isSpeakingStopped ||
+				e?.name === "AbortError"
+			) {
+				return;
+			}
 			console.warn("[tts] DeepMind audio playback notice:", e);
 		}
 	}
 
-	speakBrowserFallback(text);
+	if (speakId !== currentSpeakId || isSpeakingStopped) return;
+	speakBrowserFallback(text, speakId);
 }
 
-function speakBrowserFallback(text: string) {
+function speakBrowserFallback(text: string, speakId?: number) {
 	if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+	if (
+		speakId !== undefined &&
+		(speakId !== currentSpeakId || isSpeakingStopped)
+	)
+		return;
+
 	const clean = text.replace(/[*_#`[\]()]/g, "").trim();
 	if (!clean) return;
+
+	try {
+		window.speechSynthesis.cancel();
+	} catch {
+		// ignore cancel notices
+	}
 
 	const u = new SpeechSynthesisUtterance(clean);
 	const v = getVoice();
 	if (v) u.voice = v;
 	u.rate = 1.05;
-	u.onstart = () => useStore.getState().set({ speaking: true });
+	u.onstart = () => {
+		if (
+			speakId !== undefined &&
+			(speakId !== currentSpeakId || isSpeakingStopped)
+		) {
+			window.speechSynthesis.cancel();
+			useStore.getState().set({ speaking: false });
+			return;
+		}
+		useStore.getState().set({ speaking: true });
+	};
 	u.onend = () => useStore.getState().set({ speaking: false });
 	u.onerror = () => useStore.getState().set({ speaking: false });
 	window.speechSynthesis.speak(u);
