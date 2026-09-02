@@ -366,10 +366,10 @@ export default function AdvisorDock() {
 						onMouseUp={() => talk(false)}
 						onTouchStart={() => talk(true)}
 						onTouchEnd={() => talk(false)}
-						className={`inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-xs font-semibold transition-colors ${
+						className={`inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-xs font-semibold shadow-sm transition-colors ${
 							live.talking
 								? "bg-stamp text-stamp-foreground"
-								: "bg-white text-ink-strong hover:bg-white/90"
+								: "bg-white text-neutral-900 hover:bg-white/90"
 						}`}
 					>
 						<Mic className="size-4" />
